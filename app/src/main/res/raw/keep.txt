@@ -1,0 +1,2 @@
+Placeholder to ensure the raw directory exists.
+Please replace this directory's contents with your splash_video.mp4 file.
