@@ -1,0 +1,118 @@
+<?xml version="1.0" encoding="utf-8"?>
+<com.google.android.material.card.MaterialCardView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    style="@style/ClayCard"
+    android:id="@+id/cardBudget"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_marginStart="16dp"
+    android:layout_marginTop="4dp"
+    android:layout_marginEnd="16dp"
+    android:layout_marginBottom="8dp"
+    app:cardCornerRadius="16dp"
+    android:clickable="true"
+    android:focusable="true">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="16dp">
+
+        <RelativeLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="12dp">
+
+            <!-- Category Icon -->
+            <FrameLayout
+                android:id="@+id/layoutIconFrame"
+                android:layout_width="40dp"
+                android:layout_height="40dp"
+                android:background="@drawable/bg_clay_button"
+                android:backgroundTint="@color/colorPrimary"
+                android:layout_centerVertical="true">
+
+                <TextView
+                    android:id="@+id/txtCategoryEmoji"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center"
+                    android:text="🍔"
+                    android:textSize="18sp" />
+            </FrameLayout>
+
+            <!-- Center details -->
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_centerVertical="true"
+                android:layout_marginStart="12dp"
+                android:layout_toEndOf="@+id/layoutIconFrame"
+                android:orientation="vertical">
+
+                <TextView
+                    android:id="@+id/txtBudgetName"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Food"
+                    android:textColor="@color/colorTextPrimary"
+                    android:textSize="14sp"
+                    android:textStyle="bold" />
+
+                <TextView
+                    android:id="@+id/txtBudgetSpentVsLimit"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="2dp"
+                    android:text="₹450 / ₹1,000"
+                    android:textColor="@color/colorTextSecondary"
+                    android:textSize="12sp" />
+            </LinearLayout>
+
+            <!-- Right layout for alert icon and percentage badge -->
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_alignParentEnd="true"
+                android:layout_centerVertical="true"
+                android:gravity="center_vertical"
+                android:orientation="horizontal">
+
+                <!-- Alert icon (visible only when over budget) -->
+                <ImageView
+                    android:id="@+id/imgAlertIcon"
+                    android:layout_width="20dp"
+                    android:layout_height="20dp"
+                    android:layout_marginEnd="8dp"
+                    android:src="@drawable/ic_alert"
+                    app:tint="@color/colorDanger"
+                    android:visibility="gone" />
+
+                <TextView
+                    android:id="@+id/txtBudgetPercentage"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:background="@drawable/bg_clay_button"
+                    android:backgroundTint="@color/colorSecondary"
+                    android:paddingHorizontal="8dp"
+                    android:paddingVertical="4dp"
+                    android:text="45%"
+                    android:textColor="@android:color/white"
+                    android:textSize="10sp"
+                    android:textStyle="bold" />
+            </LinearLayout>
+        </RelativeLayout>
+
+        <!-- Progress bar -->
+        <com.google.android.material.progressindicator.LinearProgressIndicator
+            android:id="@+id/progressBudgetCategory"
+            android:layout_width="match_parent"
+            android:layout_height="6dp"
+            android:progress="45"
+            app:trackCornerRadius="3dp"
+            app:indicatorColor="@color/colorSecondary"
+            app:trackColor="@color/colorCardBorder" />
+
+    </LinearLayout>
+</com.google.android.material.card.MaterialCardView>

@@ -1,6 +1,6 @@
 <resources xmlns:tools="http://schemas.android.com/tools">
 
-    <style name="Theme.BACHATKHATA" parent="Base.Theme.BACHATKHATA">
+    <style name="Theme.BachatKhata" parent="Base.Theme.BachatKhata">
         <!-- Transparent system bars for edge-to-edge. -->
         <item name="android:navigationBarColor">@android:color/transparent</item>
         <item name="android:statusBarColor">@android:color/transparent</item>

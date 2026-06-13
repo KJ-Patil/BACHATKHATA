@@ -2,7 +2,15 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools">
 
+    <!-- Permissions -->
+    <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.USE_FINGERPRINT" />
+    <uses-permission android:name="android.permission.USE_BIOMETRIC" />
+    <uses-permission android:name="android.permission.VIBRATE" />
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+
     <application
+        android:name=".BachatKhataApplication"
         android:allowBackup="true"
         android:dataExtractionRules="@xml/data_extraction_rules"
         android:fullBackupContent="@xml/backup_rules"
@@ -10,23 +18,74 @@
         android:label="@string/app_name"
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
-        android:theme="@style/Theme.BACHATKHATA">
+        android:theme="@style/Theme.BachatKhata">
 
+        <!-- Splash Screen (Launcher) -->
         <activity
             android:name=".SplashActivity"
             android:exported="true"
-            android:theme="@style/Theme.BACHATKHATA">
+            android:noHistory="true"
+            android:theme="@style/Theme.BachatKhata">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
 
+        <!-- Authentication & Onboarding -->
+        <activity
+            android:name=".LoginActivity"
+            android:exported="false"
+            android:noHistory="true" />
+        <activity
+            android:name=".RegisterActivity"
+            android:exported="false" />
+        <activity
+            android:name=".ForgotPasswordActivity"
+            android:exported="false" />
+        <activity
+            android:name=".OnboardingActivity"
+            android:exported="false" />
+
+        <!-- Security screens -->
+        <activity
+            android:name=".PinSetupActivity"
+            android:exported="false"
+            android:noHistory="false" />
+        <activity
+            android:name=".BiometricSetupActivity"
+            android:exported="false" />
+
+        <!-- Main Workspace -->
         <activity
             android:name=".MainActivity"
             android:exported="true"
-            android:theme="@style/Theme.BACHATKHATA">
-        </activity>
+            android:windowSoftInputMode="adjustResize" />
+
+        <!-- Transaction management -->
+        <activity
+            android:name=".AddTransactionActivity"
+            android:exported="false" />
+        <activity
+            android:name=".TransactionDetailActivity"
+            android:exported="false" />
+
+        <!-- Savings goal management -->
+        <activity
+            android:name=".AddSavingsGoalActivity"
+            android:exported="false" />
+        <activity
+            android:name=".SavingsDetailActivity"
+            android:exported="false" />
+
+        <!-- Profile secondary features -->
+        <activity
+            android:name=".CategoryManageActivity"
+            android:exported="false" />
+        <activity
+            android:name=".ExportActivity"
+            android:exported="false" />
+
     </application>
 
 </manifest>

@@ -1,0 +1,39 @@
+{
+  "project_info": {
+    "project_number": "76586644572",
+    "project_id": "bachat-khata-db36c",
+    "storage_bucket": "bachat-khata-db36c.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:76586644572:android:496e5e6c2276b7daf0a299",
+        "android_client_info": {
+          "package_name": "com.example.bachatkhata"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "76586644572-qudvm1u9p4oct7ue4db47vd21kb3fsaf.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAWjfyaBotTPUlUp40aHp_eQksYYPXvmGA"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "76586644572-qudvm1u9p4oct7ue4db47vd21kb3fsaf.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

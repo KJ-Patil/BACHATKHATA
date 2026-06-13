@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:background="@color/colorBackground"
+    android:padding="24dp">
+
+    <!-- Handle Indicator for Bottom Sheet -->
+    <View
+        android:layout_width="40dp"
+        android:layout_height="4dp"
+        android:layout_gravity="center_horizontal"
+        android:layout_marginBottom="20dp"
+        android:background="@color/colorCardBorder" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Sort Transactions"
+        android:textColor="@color/colorTextPrimary"
+        android:textSize="18sp"
+        android:textStyle="bold"
+        android:layout_marginBottom="20dp" />
+
+    <!-- Radio Group for Sort Logic -->
+    <RadioGroup
+        android:id="@+id/rgSort"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="24dp">
+
+        <com.google.android.material.radiobutton.MaterialRadioButton
+            android:id="@+id/rbNewest"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Date: Newest first"
+            android:textColor="@color/colorTextPrimary"
+            android:textSize="15sp"
+            android:checked="true"
+            android:padding="12dp"
+            android:layout_marginBottom="8dp" />
+
+        <com.google.android.material.radiobutton.MaterialRadioButton
+            android:id="@+id/rbOldest"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Date: Oldest first"
+            android:textColor="@color/colorTextPrimary"
+            android:textSize="15sp"
+            android:padding="12dp"
+            android:layout_marginBottom="8dp" />
+
+        <com.google.android.material.radiobutton.MaterialRadioButton
+            android:id="@+id/rbHighest"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Amount: Highest first"
+            android:textColor="@color/colorTextPrimary"
+            android:textSize="15sp"
+            android:padding="12dp"
+            android:layout_marginBottom="8dp" />
+
+        <com.google.android.material.radiobutton.MaterialRadioButton
+            android:id="@+id/rbLowest"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Amount: Lowest first"
+            android:textColor="@color/colorTextPrimary"
+            android:textSize="15sp"
+            android:padding="12dp" />
+    </RadioGroup>
+
+    <!-- Apply Button -->
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/btnApplySort"
+        style="@style/ClayButton"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Apply" />
+
+</LinearLayout>

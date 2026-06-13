@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:paddingVertical="8dp">
+
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="6dp">
+
+        <!-- Category Emoji + Name -->
+        <TextView
+            android:id="@+id/txtCategoryName"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentStart="true"
+            android:text="🍔 Food"
+            android:textColor="@color/colorTextPrimary"
+            android:textSize="13sp"
+            android:textStyle="bold" />
+
+        <!-- Percentage Label -->
+        <TextView
+            android:id="@+id/txtCategoryPercent"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_toEndOf="@+id/txtCategoryName"
+            android:layout_marginStart="8dp"
+            android:text="(25.5%)"
+            android:textColor="@color/colorTextSecondary"
+            android:textSize="11sp" />
+
+        <!-- Amount Spent -->
+        <TextView
+            android:id="@+id/txtCategoryAmount"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentEnd="true"
+            android:text="₹1,250.00"
+            android:textColor="@color/colorTextPrimary"
+            android:textSize="13sp"
+            android:textStyle="bold" />
+    </RelativeLayout>
+
+    <!-- Mini Progress Bar -->
+    <com.google.android.material.progressindicator.LinearProgressIndicator
+        android:id="@+id/progressWeight"
+        android:layout_width="match_parent"
+        android:layout_height="6dp"
+        app:trackColor="@color/colorCardBorder"
+        app:trackCornerRadius="3dp"
+        app:indicatorColor="@color/colorPrimary"
+        android:progress="25" />
+
+</LinearLayout>

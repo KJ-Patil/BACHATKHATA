@@ -1,46 +1,97 @@
 <resources>
-    <string name="app_name">BACHAT KHATA</string>
+    <!-- App Name -->
+    <string name="app_name">BachatKhata</string>
+
+    <!-- General / Navigation -->
+    <string name="title_home">Home</string>
+    <string name="title_transactions">Transactions</string>
+    <string name="title_budget">Budget</string>
+    <string name="title_savings">Savings</string>
+    <string name="title_analytics">Analytics</string>
+    <string name="title_profile">Profile</string>
+    <string name="title_notifications">Notifications</string>
     <string name="action_settings">Settings</string>
-    <!-- Strings used for fragments for navigation -->
-    <string name="first_fragment_label">First Fragment</string>
-    <string name="second_fragment_label">Second Fragment</string>
     <string name="next">Next</string>
     <string name="previous">Previous</string>
+    <string name="skip">Skip</string>
+    <string name="done">Done</string>
+    <string name="save">Save</string>
+    <string name="cancel">Cancel</string>
+    <string name="delete">Delete</string>
+    <string name="edit">Edit</string>
+    <string name="exit">Exit</string>
+    <string name="yes">Yes</string>
+    <string name="no">No</string>
+    
+    <!-- Onboarding -->
+    <string name="onboarding_title_1">Track every rupee</string>
+    <string name="onboarding_subtitle_1">Know exactly where your money goes with detailed transaction logging and smart categorization.</string>
+    <string name="onboarding_title_2">Set budgets &amp; goals</string>
+    <string name="onboarding_subtitle_2">Create monthly limits per category and track savings goals in real-time with visual indicators.</string>
+    <string name="onboarding_title_3">See your money grow</string>
+    <string name="onboarding_subtitle_3">Get automatic reports, spending trends, and alerts to keep you financially healthy and safe.</string>
+    <string name="get_started">Get Started</string>
 
-    <string name="lorem_ipsum">
-        Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nam in scelerisque sem. Mauris
-        volutpat, dolor id interdum ullamcorper, risus dolor egestas lectus, sit amet mattis purus
-        dui nec risus. Maecenas non sodales nisi, vel dictum dolor. Class aptent taciti sociosqu ad
-        litora torquent per conubia nostra, per inceptos himenaeos. Suspendisse blandit eleifend
-        diam, vel rutrum tellus vulputate quis. Aliquam eget libero aliquet, imperdiet nisl a,
-        ornare ex. Sed rhoncus est ut libero porta lobortis. Fusce in dictum tellus.\n\n
-        Suspendisse interdum ornare ante. Aliquam nec cursus lorem. Morbi id magna felis. Vivamus
-        egestas, est a condimentum egestas, turpis nisl iaculis ipsum, in dictum tellus dolor sed
-        neque. Morbi tellus erat, dapibus ut sem a, iaculis tincidunt dui. Interdum et malesuada
-        fames ac ante ipsum primis in faucibus. Curabitur et eros porttitor, ultricies urna vitae,
-        molestie nibh. Phasellus at commodo eros, non aliquet metus. Sed maximus nisl nec dolor
-        bibendum, vel congue leo egestas.\n\n
-        Sed interdum tortor nibh, in sagittis risus mollis quis. Curabitur mi odio, condimentum sit
-        amet auctor at, mollis non turpis. Nullam pretium libero vestibulum, finibus orci vel,
-        molestie quam. Fusce blandit tincidunt nulla, quis sollicitudin libero facilisis et. Integer
-        interdum nunc ligula, et fermentum metus hendrerit id. Vestibulum lectus felis, dictum at
-        lacinia sit amet, tristique id quam. Cras eu consequat dui. Suspendisse sodales nunc ligula,
-        in lobortis sem porta sed. Integer id ultrices magna, in luctus elit. Sed a pellentesque
-        est.\n\n
-        Aenean nunc velit, lacinia sed dolor sed, ultrices viverra nulla. Etiam a venenatis nibh.
-        Morbi laoreet, tortor sed facilisis varius, nibh orci rhoncus nulla, id elementum leo dui
-        non lorem. Nam mollis ipsum quis auctor varius. Quisque elementum eu libero sed commodo. In
-        eros nisl, imperdiet vel imperdiet et, scelerisque a mauris. Pellentesque varius ex nunc,
-        quis imperdiet eros placerat ac. Duis finibus orci et est auctor tincidunt. Sed non viverra
-        ipsum. Nunc quis augue egestas, cursus lorem at, molestie sem. Morbi a consectetur ipsum, a
-        placerat diam. Etiam vulputate dignissim convallis. Integer faucibus mauris sit amet finibus
-        convallis.\n\n
-        Phasellus in aliquet mi. Pellentesque habitant morbi tristique senectus et netus et
-        malesuada fames ac turpis egestas. In volutpat arcu ut felis sagittis, in finibus massa
-        gravida. Pellentesque id tellus orci. Integer dictum, lorem sed efficitur ullamcorper,
-        libero justo consectetur ipsum, in mollis nisl ex sed nisl. Donec maximus ullamcorper
-        sodales. Praesent bibendum rhoncus tellus nec feugiat. In a ornare nulla. Donec rhoncus
-        libero vel nunc consequat, quis tincidunt nisl eleifend. Cras bibendum enim a justo luctus
-        vestibulum. Fusce dictum libero quis erat maximus, vitae volutpat diam dignissim.
-    </string>
+    <!-- Auth / Login / Register -->
+    <string name="welcome_back">Welcome back</string>
+    <string name="sign_in_tagline">Sign in to BachatKhata</string>
+    <string name="email_hint">Email Address</string>
+    <string name="password_hint">Password</string>
+    <string name="confirm_password_hint">Confirm Password</string>
+    <string name="full_name_hint">Full Name</string>
+    <string name="forgot_password">Forgot Password?</string>
+    <string name="sign_in">Sign In</string>
+    <string name="sign_up">Sign Up</string>
+    <string name="register_tagline">Create your BachatKhata account</string>
+    <string name="register_btn">Create Account</string>
+    <string name="no_account_prompt">Don\'t have an account? Register</string>
+    <string name="have_account_prompt">Already have an account? Sign In</string>
+    <string name="google_sign_in">Sign in with Google</string>
+    <string name="reset_password_title">Reset Password</string>
+    <string name="reset_password_tagline">Enter your email to receive a password reset link.</string>
+    <string name="send_reset_link">Send Reset Link</string>
+    <string name="choose_photo">Choose Photo</string>
+    <string name="or_divider">OR</string>
+
+    <!-- PIN & Biometric Security -->
+    <string name="pin_create_title">Create your PIN</string>
+    <string name="pin_confirm_title">Confirm your PIN</string>
+    <string name="pin_enter_title">Enter PIN to unlock</string>
+    <string name="pin_setup_mismatch">PINs do not match. Try again.</string>
+    <string name="pin_correct">PIN verified.</string>
+    <string name="pin_incorrect">Incorrect PIN.</string>
+    <string name="biometric_setup_title">Enable fingerprint unlock?</string>
+    <string name="biometric_setup_desc">Protect your financial records with biometric security. You can bypass PIN checks with your fingerprint.</string>
+    <string name="enable">Enable</string>
+    <string name="biometric_auth_title">Unlock BachatKhata</string>
+    <string name="biometric_auth_subtitle">Use your biometric credential to access the application</string>
+
+    <!-- Transactions -->
+    <string name="add_transaction">Add Transaction</string>
+    <string name="edit_transaction">Edit Transaction</string>
+    <string name="transaction_details">Transaction Details</string>
+    <string name="income">Income</string>
+    <string name="expense">Expense</string>
+    <string name="amount_hint">0.00</string>
+    <string name="select_category">Select Category</string>
+    <string name="add_note">Add a note...</string>
+    <string name="date_picker">Select Date</string>
+    <string name="account_picker">Select Account</string>
+    <string name="save_transaction">Save Transaction</string>
+    <string name="no_transactions">No transactions yet</string>
+    <string name="no_transactions_desc">Start logging your incomes and expenses to see your dashboard come to life!</string>
+    
+    <!-- Validation Errors -->
+    <string name="err_empty_email">Email cannot be empty</string>
+    <string name="err_invalid_email">Please enter a valid email</string>
+    <string name="err_empty_password">Password cannot be empty</string>
+    <string name="err_short_password">Password must be at least 6 characters</string>
+    <string name="err_empty_name">Name cannot be empty</string>
+    <string name="err_password_mismatch">Passwords do not match</string>
+    <string name="err_invalid_amount">Please enter a valid amount greater than zero</string>
+    <string name="err_select_category">Please select a category</string>
+
+    <!-- Firebase / Client ID -->
+    <!-- Replace with actual client ID from Google console if available, using standard default name expected by standard auth tools -->
+    <string name="default_web_client_id">538622153215-t3g8s0lq663u5fghm7l88l9efbe9e26a.apps.googleusercontent.com</string>
 </resources>
