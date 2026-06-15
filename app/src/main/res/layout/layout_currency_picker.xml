@@ -2,53 +2,60 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
-    android:layout_height="match_parent"
+    android:layout_height="wrap_content"
     android:orientation="vertical"
     android:background="@color/colorBackground"
-    android:padding="20dp">
+    android:padding="24dp">
 
-    <!-- Handle Indicator for Bottom Sheet -->
+    <!-- Top drag handle / decoration -->
     <View
         android:layout_width="40dp"
         android:layout_height="4dp"
         android:layout_gravity="center_horizontal"
-        android:layout_marginBottom="16dp"
-        android:background="@color/colorCardBorder"
-        android:backgroundTint="@color/colorCardBorder"/>
+        android:background="#D1CFF5"
+        android:layout_marginBottom="20dp" />
 
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="Select Currency"
         android:textColor="@color/colorTextPrimary"
-        android:textSize="18sp"
+        android:textSize="20sp"
         android:textStyle="bold"
-        android:layout_marginBottom="16dp"/>
+        android:layout_marginBottom="4dp" />
 
-    <!-- Search Input -->
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Choose your preferred currency for the transaction"
+        android:textColor="@color/colorTextSecondary"
+        android:textSize="14sp"
+        android:layout_marginBottom="16dp" />
+
+    <!-- Search Box with ClayInput style -->
     <com.google.android.material.textfield.TextInputLayout
-        android:id="@+id/tilSearch"
         style="@style/ClayInput"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginBottom="16dp"
-        android:hint="Search currency..."
+        android:hint="Search currency or code..."
         app:startIconDrawable="@drawable/ic_search"
-        app:startIconTint="@color/colorTextSecondary">
+        android:layout_marginBottom="16dp">
 
         <com.google.android.material.textfield.TextInputEditText
             android:id="@+id/etSearch"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:inputType="text"
+            android:maxLines="1"
             android:textColor="@color/colorTextPrimary" />
     </com.google.android.material.textfield.TextInputLayout>
 
-    <!-- Currency List -->
+    <!-- Currencies List -->
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/rvCurrencies"
         android:layout_width="match_parent"
-        android:layout_height="0dp"
-        android:layout_weight="1" />
+        android:layout_height="320dp"
+        android:clipToPadding="false"
+        android:scrollbars="vertical" />
 
 </LinearLayout>

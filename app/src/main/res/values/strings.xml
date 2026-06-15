@@ -94,4 +94,97 @@
     <!-- Firebase / Client ID -->
     <!-- Replace with actual client ID from Google console if available, using standard default name expected by standard auth tools -->
     <string name="default_web_client_id">538622153215-t3g8s0lq663u5fghm7l88l9efbe9e26a.apps.googleusercontent.com</string>
+
+    <!-- v2.0 FEATURES STRINGS -->
+
+    <!-- SMS Auto-Import -->
+    <string name="sms_import_title">Auto-Import Transaction</string>
+    <string name="sms_import_confirm">Confirm Import</string>
+    <string name="sms_import_desc">We detected a financial SMS. Would you like to import this transaction?</string>
+    <string name="sms_import_success">Transaction imported successfully!</string>
+    <string name="sms_import_fail">Failed to parse SMS transaction.</string>
+
+    <!-- Subscriptions -->
+    <string name="title_subscriptions">Subscriptions</string>
+    <string name="sub_merchant">Merchant Name</string>
+    <string name="sub_frequency">Renewal Frequency</string>
+    <string name="sub_next_renewal">Next Renewal</string>
+    <string name="sub_active">Active</string>
+    <string name="sub_inactive">Inactive</string>
+    <string name="sub_add">Add Subscription</string>
+
+    <!-- EMI Tracker -->
+    <string name="title_emi">EMI Tracker</string>
+    <string name="emi_loan_name">Loan/Facility Name</string>
+    <string name="emi_principal">Principal Amount</string>
+    <string name="emi_interest">Interest Rate (%)</string>
+    <string name="emi_tenure">Tenure (Months)</string>
+    <string name="emi_amount">Monthly EMI</string>
+    <string name="emi_due_date">Next Due Date</string>
+    <string name="emi_paid_months">Paid Months</string>
+    <string name="emi_add">Add EMI</string>
+
+    <!-- Family / Group Wallet -->
+    <string name="title_family_wallet">Family Wallet</string>
+    <string name="group_name">Group Name</string>
+    <string name="group_type">Group Type</string>
+    <string name="group_invite_code">Invite Code</string>
+    <string name="group_create">Create Group</string>
+    <string name="group_join">Join Group</string>
+    <string name="group_limit">Member Spend Limit</string>
+
+    <!-- Bill Calendar -->
+    <string name="title_bill_calendar">Bill Calendar</string>
+    <string name="bill_name">Bill Name</string>
+    <string name="bill_amount">Amount Due</string>
+    <string name="bill_due_day">Due Day of Month</string>
+    <string name="bill_is_recurring">Recurring Bill</string>
+
+    <!-- Gamification & Achievements -->
+    <string name="title_achievements">Achievements</string>
+    <string name="ach_badges">Earned Badges</string>
+    <string name="ach_streaks">Active Streaks</string>
+    <string name="ach_challenges">Active Challenges</string>
+    <string name="streak_days">%d Days Streak</string>
+
+    <!-- Financial Health Score & Net Worth -->
+    <string name="title_health_score">Financial Health Score</string>
+    <string name="title_net_worth">Net Worth Tracker</string>
+    <string name="net_worth_assets">Total Assets</string>
+    <string name="net_worth_liabilities">Total Liabilities</string>
+    <string name="net_worth_total">Total Net Worth</string>
+
+    <!-- Financial Literacy Lessons -->
+    <string name="title_literacy">Financial Literacy Center</string>
+    <string name="lit_lessons">Lessons</string>
+    <string name="lit_quiz">Take Quiz</string>
+
+    <!-- Organization Expense Claims -->
+    <string name="title_org_claims">Expense Claims</string>
+    <string name="claim_status">Claim Status</string>
+    <string name="claim_submit">Submit Claim</string>
+    <string name="claim_approve">Approve</string>
+    <string name="claim_reject">Reject</string>
+
+    <!-- Split Bills -->
+    <string name="title_split_bills">Bill Splitter</string>
+    <string name="split_total">Total Amount</string>
+    <string name="split_participants">Participants</string>
+    <string name="split_calculate">Calculate Split</string>
+
+    <!-- Mood Check-In -->
+    <string name="title_mood_checkin">Mood Check-in</string>
+    <string name="mood_prompt">How are you feeling about your finances today?</string>
+    <string name="mood_good">Good</string>
+    <string name="mood_okay">Okay</string>
+    <string name="mood_stressed">Stressed</string>
+
+    <!-- Carbon Tracker -->
+    <string name="title_carbon_tracker">Carbon Footprint Tracker</string>
+    <string name="carbon_score">Eco Score</string>
+    
+    <!-- NGO Tracker -->
+    <string name="title_ngo_tracker">NGO Tracker</string>
+    <string name="ngo_projects">Active Projects</string>
+    <string name="ngo_donations">Donations Received</string>
 </resources>

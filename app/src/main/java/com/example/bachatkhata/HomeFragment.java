@@ -1,5 +1,7 @@
 package com.example.bachatkhata;
 
+import android.content.Context;
+import android.content.Intent;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -7,6 +9,7 @@ import android.view.ViewGroup;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.core.widget.NestedScrollView;
 import androidx.fragment.app.Fragment;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.navigation.Navigation;
@@ -15,7 +18,6 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import com.example.bachatkhata.databinding.FragmentHomeBinding;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.FirebaseFirestore;
-import com.google.firebase.firestore.QuerySnapshot;
 
 import java.util.Calendar;
 import java.util.List;
@@ -28,6 +30,11 @@ public class HomeFragment extends Fragment {
     private TransactionAdapter adapter;
     private FirebaseAuth mAuth;
     private FirebaseFirestore mFirestore;
+
+    private double lastIncome = 0.0;
+    private double lastSpent = 0.0;
+    private double lastSaved = 0.0;
+    private int lastTxns = 0;
 
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container,
@@ -47,6 +54,8 @@ public class HomeFragment extends Fragment {
         setupRecyclerView();
         setupPeriodFilters();
         setupNavListeners();
+        setupSwipeRefresh();
+        setupScrollListener();
         observeViewModel();
 
         if (mAuth.getCurrentUser() != null) {
@@ -68,15 +77,20 @@ public class HomeFragment extends Fragment {
         if (binding.lineChart != null) AnimationHelper.animateSlideUpIn(binding.lineChart, 600, 200);
         if (binding.barChart != null) AnimationHelper.animateSlideUpIn(binding.barChart, 600, 300);
         AnimationHelper.animateSlideUpIn(binding.rvRecentTransactions, 650, 400);
+
+        // Staggered card entry for KPI grid (0, 100, 200, 300ms delays)
+        AnimationHelper.cardEntryAnimation(binding.cardKpiIncome, 0);
+        AnimationHelper.cardEntryAnimation(binding.cardKpiSpent, 100);
+        AnimationHelper.cardEntryAnimation(binding.cardKpiSaved, 200);
+        AnimationHelper.cardEntryAnimation(binding.cardKpiTxnCount, 300);
     }
 
     private void setupRecyclerView() {
         adapter = new TransactionAdapter(transaction -> {
-            // Handle clicking transaction items in list (e.g. go to detail)
             Bundle bundle = new Bundle();
             bundle.putSerializable("transaction", transaction);
             Navigation.findNavController(binding.getRoot())
-                    .navigate(R.id.action_add_transaction, bundle); // fallback action or handle edit flow
+                    .navigate(R.id.action_add_transaction, bundle);
         });
         binding.rvRecentTransactions.setLayoutManager(new LinearLayoutManager(getContext()));
         binding.rvRecentTransactions.setAdapter(adapter);
@@ -106,19 +120,71 @@ public class HomeFragment extends Fragment {
         binding.btnNotificationBell.setOnClickListener(v ->
             Navigation.findNavController(v).navigate(R.id.navigation_notifications)
         );
+
+        if (getActivity() != null) {
+            View fab = getActivity().findViewById(R.id.fabAdd);
+            if (fab != null) {
+                fab.setOnLongClickListener(v -> {
+                    Intent intent = new Intent(getContext(), AddTransactionActivity.class);
+                    intent.putExtra("startVoiceLogging", true);
+                    startActivity(intent);
+                    return true;
+                });
+            }
+        }
+    }
+
+    private void setupSwipeRefresh() {
+        binding.swipeRefreshLayout.setColorSchemeResources(
+                R.color.colorPrimary,
+                R.color.colorSecondary,
+                R.color.colorAccent
+        );
+        binding.swipeRefreshLayout.setOnRefreshListener(() -> {
+            if (mAuth.getCurrentUser() != null) {
+                String uid = mAuth.getCurrentUser().getUid();
+                String period = viewModel.getSelectedPeriod().getValue();
+                viewModel.loadDashboardData(uid, period != null ? period : "Monthly");
+                setGreetingText(uid);
+            } else {
+                binding.swipeRefreshLayout.setRefreshing(false);
+            }
+        });
+    }
+
+    private void setupScrollListener() {
+        binding.nestedScrollView.setOnScrollChangeListener((NestedScrollView.OnScrollChangeListener) (v, scrollX, scrollY, oldScrollX, oldScrollY) -> {
+            float density = getResources().getDisplayMetrics().density;
+            float threshold = 200 * density; // 200dp threshold
+            if (scrollY > threshold) {
+                if (binding.cardTodaySummaryPill.getVisibility() != View.VISIBLE) {
+                    binding.cardTodaySummaryPill.setVisibility(View.VISIBLE);
+                    binding.cardTodaySummaryPill.setAlpha(0f);
+                    binding.cardTodaySummaryPill.animate().alpha(1f).setDuration(200).start();
+                }
+            } else {
+                if (binding.cardTodaySummaryPill.getVisibility() == View.VISIBLE) {
+                    binding.cardTodaySummaryPill.animate().alpha(0f).setDuration(200).withEndAction(() -> {
+                        binding.cardTodaySummaryPill.setVisibility(View.GONE);
+                    }).start();
+                }
+            }
+        });
     }
 
     private void observeViewModel() {
         viewModel.getTotalIncome().observe(getViewLifecycleOwner(), income -> {
             String val = CurrencyManager.getInstance().formatAmount(income);
             binding.txtHeroIncome.setText(val);
-            binding.txtKpiIncome.setText(val);
+            AnimationHelper.countUpAmountAnimation(binding.txtKpiIncome, lastIncome, income, 1000);
+            lastIncome = income;
         });
 
         viewModel.getTotalSpent().observe(getViewLifecycleOwner(), spent -> {
             String val = CurrencyManager.getInstance().formatAmount(spent);
             binding.txtHeroSpent.setText(val);
-            binding.txtKpiSpent.setText(val);
+            AnimationHelper.countUpAmountAnimation(binding.txtKpiSpent, lastSpent, spent, 1000);
+            lastSpent = spent;
         });
 
         viewModel.getTotalBalance().observe(getViewLifecycleOwner(), balance -> {
@@ -126,12 +192,21 @@ public class HomeFragment extends Fragment {
         });
 
         viewModel.getTotalSaved().observe(getViewLifecycleOwner(), saved -> {
-            binding.txtKpiSaved.setText(CurrencyManager.getInstance().formatAmount(saved));
+            AnimationHelper.countUpAmountAnimation(binding.txtKpiSaved, lastSaved, saved, 1000);
+            lastSaved = saved;
         });
 
         viewModel.getRecentTransactions().observe(getViewLifecycleOwner(), list -> {
-            binding.txtKpiTxnCount.setText(String.valueOf(list.size()));
+            int txnCount = list.size();
+            AnimationHelper.countUpIntegerAnimation(binding.txtKpiTxnCount, lastTxns, txnCount, 1000);
+            lastTxns = txnCount;
             adapter.submitList(list);
+            binding.swipeRefreshLayout.setRefreshing(false);
+        });
+
+        viewModel.getTodaySpent().observe(getViewLifecycleOwner(), todaySpent -> {
+            String val = CurrencyManager.getInstance().formatAmount(todaySpent);
+            binding.txtTodaySummaryText.setText("Spent " + val + " today");
         });
 
         viewModel.getLineChartData().observe(getViewLifecycleOwner(), entries -> {
@@ -149,7 +224,6 @@ public class HomeFragment extends Fragment {
     }
 
     private void setGreetingText(String uid) {
-        // Set Greeting based on time of day
         Calendar calendar = Calendar.getInstance();
         int hour = calendar.get(Calendar.HOUR_OF_DAY);
         String greeting = "Good morning";
@@ -159,24 +233,44 @@ public class HomeFragment extends Fragment {
             greeting = "Good evening";
         }
 
-        // Set Month/Year subtitle
         String monthYear = calendar.getDisplayName(Calendar.MONTH, Calendar.LONG, Locale.US) + " " + calendar.get(Calendar.YEAR);
         binding.txtDateSubtitle.setText(monthYear);
 
         final String finalGreeting = greeting;
         mFirestore.collection("users").document(uid).get()
                 .addOnSuccessListener(documentSnapshot -> {
-                    if (documentSnapshot.exists()) {
+                    if (documentSnapshot.exists() && binding != null && getContext() != null) {
                         String name = documentSnapshot.getString("name");
                         if (name != null && !name.trim().isEmpty()) {
                             binding.txtGreeting.setText(String.format("%s, %s", finalGreeting, name));
                         } else {
                             binding.txtGreeting.setText(String.format("%s, User", finalGreeting));
                         }
+
+                        // Load and display Weekly Insight
+                        String weeklyInsight = documentSnapshot.getString("weeklyInsight");
+                        if (weeklyInsight != null && !weeklyInsight.trim().isEmpty()) {
+                            android.content.SharedPreferences prefs = getContext().getSharedPreferences("BachatKhataPrefs", Context.MODE_PRIVATE);
+                            String lastDismissed = prefs.getString("lastDismissedInsight", "");
+                            if (!weeklyInsight.equals(lastDismissed)) {
+                                binding.cardWeeklyInsight.setVisibility(View.VISIBLE);
+                                binding.txtWeeklyInsightContent.setText(weeklyInsight);
+                                binding.btnDismissInsight.setOnClickListener(v -> {
+                                    binding.cardWeeklyInsight.setVisibility(View.GONE);
+                                    prefs.edit().putString("lastDismissedInsight", weeklyInsight).apply();
+                                });
+                            } else {
+                                binding.cardWeeklyInsight.setVisibility(View.GONE);
+                            }
+                        } else {
+                            binding.cardWeeklyInsight.setVisibility(View.GONE);
+                        }
                     }
                 })
                 .addOnFailureListener(e -> {
-                    binding.txtGreeting.setText(String.format("%s, User", finalGreeting));
+                    if (binding != null) {
+                        binding.txtGreeting.setText(String.format("%s, User", finalGreeting));
+                    }
                 });
     }
 
@@ -185,7 +279,7 @@ public class HomeFragment extends Fragment {
                 .whereEqualTo("isRead", false)
                 .addSnapshotListener((value, error) -> {
                     if (error != null) return;
-                    if (value != null) {
+                    if (value != null && binding != null) {
                         int count = value.size();
                         if (count > 0) {
                             binding.txtNotificationBadge.setText(String.valueOf(count));

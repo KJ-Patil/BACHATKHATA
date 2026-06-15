@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:gravity="center"
+    android:padding="4dp">
+
+    <TextView
+        android:id="@+id/txtDayNumber"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="1"
+        android:textColor="@color/colorTextPrimary"
+        android:textSize="12sp"
+        android:textStyle="bold" />
+
+    <!-- Dots Container -->
+    <LinearLayout
+        android:id="@+id/layoutDots"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:layout_marginTop="2dp"
+        android:gravity="center">
+
+        <View
+            android:id="@+id/dotGreen"
+            android:layout_width="6dp"
+            android:layout_height="6dp"
+            android:layout_margin="1dp"
+            android:background="@drawable/bg_clay_button"
+            android:backgroundTint="#5DCAA5"
+            android:visibility="gone" />
+
+        <View
+            android:id="@+id/dotAmber"
+            android:layout_width="6dp"
+            android:layout_height="6dp"
+            android:layout_margin="1dp"
+            android:background="@drawable/bg_clay_button"
+            android:backgroundTint="#EF9F27"
+            android:visibility="gone" />
+
+        <View
+            android:id="@+id/dotRed"
+            android:layout_width="6dp"
+            android:layout_height="6dp"
+            android:layout_margin="1dp"
+            android:background="@drawable/bg_clay_button"
+            android:backgroundTint="#E24B4A"
+            android:visibility="gone" />
+
+        <View
+            android:id="@+id/dotBlue"
+            android:layout_width="6dp"
+            android:layout_height="6dp"
+            android:layout_margin="1dp"
+            android:background="@drawable/bg_clay_button"
+            android:backgroundTint="#3B82F6"
+            android:visibility="gone" />
+    </LinearLayout>
+</LinearLayout>

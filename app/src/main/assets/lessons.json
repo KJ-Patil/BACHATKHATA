@@ -1,0 +1,82 @@
+[
+  {
+    "id": "lesson_01",
+    "title": "What is CIBIL score?",
+    "topic": "Credit",
+    "readTimeMinutes": 2,
+    "prerequisiteId": "",
+    "icon": "ic_credit"
+  },
+  {
+    "id": "lesson_02",
+    "title": "How EMI works",
+    "topic": "Loans",
+    "readTimeMinutes": 2,
+    "prerequisiteId": "lesson_01",
+    "icon": "ic_loan"
+  },
+  {
+    "id": "lesson_03",
+    "title": "Compound interest magic",
+    "topic": "Savings",
+    "readTimeMinutes": 2,
+    "prerequisiteId": "",
+    "icon": "ic_savings"
+  },
+  {
+    "id": "lesson_04",
+    "title": "UPI and digital payments explained",
+    "topic": "Payments",
+    "readTimeMinutes": 2,
+    "prerequisiteId": "",
+    "icon": "ic_wallet"
+  },
+  {
+    "id": "lesson_05",
+    "title": "What is a mutual fund?",
+    "topic": "Investing",
+    "readTimeMinutes": 2,
+    "prerequisiteId": "lesson_03",
+    "icon": "ic_investing"
+  },
+  {
+    "id": "lesson_06",
+    "title": "SIP vs lump sum investing",
+    "topic": "Investing",
+    "readTimeMinutes": 2,
+    "prerequisiteId": "lesson_05",
+    "icon": "ic_investing"
+  },
+  {
+    "id": "lesson_07",
+    "title": "How to read your bank statement",
+    "topic": "Banking",
+    "readTimeMinutes": 2,
+    "prerequisiteId": "",
+    "icon": "ic_banking"
+  },
+  {
+    "id": "lesson_08",
+    "title": "Income tax basics (India)",
+    "topic": "Tax",
+    "readTimeMinutes": 2,
+    "prerequisiteId": "",
+    "icon": "ic_tax"
+  },
+  {
+    "id": "lesson_09",
+    "title": "What is inflation and why it matters",
+    "topic": "Economics",
+    "readTimeMinutes": 2,
+    "prerequisiteId": "",
+    "icon": "ic_economics"
+  },
+  {
+    "id": "lesson_10",
+    "title": "Building an emergency fund",
+    "topic": "Planning",
+    "readTimeMinutes": 2,
+    "prerequisiteId": "lesson_03",
+    "icon": "ic_planning"
+  }
+]

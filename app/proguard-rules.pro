@@ -18,6 +18,8 @@
 -keep class com.example.bachatkhata.Category { *; }
 -keep class com.example.bachatkhata.Budget { *; }
 -keep class com.example.bachatkhata.SavingsGoal { *; }
+-keep class com.example.bachatkhata.Customer { *; }
+-keep class com.example.bachatkhata.CustomerTransaction { *; }
 
 # MPAndroidChart
 -keep class com.github.mikephil.charting.** { *; }
@@ -41,3 +43,11 @@
 # AndroidX Biometric
 -keep class androidx.biometric.** { *; }
 -dontwarn androidx.biometric.**
+
+# ML Kit Text Recognition
+-keep class com.google.mlkit.vision.text.** { *; }
+-dontwarn com.google.mlkit.vision.text.**
+
+# Speech Recognizer & Voice Input
+-keep class android.speech.** { *; }
+-dontwarn android.speech.**

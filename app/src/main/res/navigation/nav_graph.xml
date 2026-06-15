@@ -58,4 +58,58 @@
         android:label="@string/add_transaction"
         tools:layout="@layout/activity_add_transaction" />
 
+    <fragment
+        android:id="@+id/navigation_customer_ledger"
+        android:name="com.example.bachatkhata.CustomerLedgerFragment"
+        android:label="Customer Ledger"
+        tools:layout="@layout/fragment_customer_ledger" />
+
+    <fragment
+        android:id="@+id/navigation_subscriptions"
+        android:name="com.example.bachatkhata.SubscriptionTrackerFragment"
+        android:label="Subscriptions"
+        tools:layout="@layout/fragment_subscription_tracker" />
+
+    <fragment
+        android:id="@+id/navigation_emi_tracker"
+        android:name="com.example.bachatkhata.EmiTrackerFragment"
+        android:label="EMI Tracker"
+        tools:layout="@layout/fragment_emi_tracker" />
+
+    <fragment
+        android:id="@+id/navigation_family_wallet"
+        android:name="com.example.bachatkhata.FamilyWalletFragment"
+        android:label="Family Wallet"
+        tools:layout="@layout/fragment_family_wallet" />
+
+    <fragment
+        android:id="@+id/navigation_achievements"
+        android:name="com.example.bachatkhata.AchievementsFragment"
+        android:label="Achievements"
+        tools:layout="@layout/fragment_achievements" />
+
+    <fragment
+        android:id="@+id/navigation_health_score"
+        android:name="com.example.bachatkhata.HealthScoreFragment"
+        android:label="Financial Health Score"
+        tools:layout="@layout/fragment_health_score" />
+
+    <fragment
+        android:id="@+id/navigation_roundup_settings"
+        android:name="com.example.bachatkhata.RoundUpSettingsFragment"
+        android:label="Round-Up Settings"
+        tools:layout="@layout/fragment_roundup_settings" />
+
+    <fragment
+        android:id="@+id/navigation_literacy_lessons"
+        android:name="com.example.bachatkhata.LiteracyLessonsFragment"
+        android:label="Financial School"
+        tools:layout="@layout/fragment_literacy_lessons" />
+
+    <fragment
+        android:id="@+id/navigation_carbon_tracker"
+        android:name="com.example.bachatkhata.CarbonTrackerFragment"
+        android:label="Carbon Footprint"
+        tools:layout="@layout/fragment_carbon_tracker" />
+
 </navigation>

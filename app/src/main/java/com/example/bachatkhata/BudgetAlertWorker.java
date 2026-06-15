@@ -126,24 +126,35 @@ public class BudgetAlertWorker extends Worker {
 
     private void triggerLocalNotification(String title, String message, String uid) {
         NotificationManager notificationManager = (NotificationManager) getApplicationContext().getSystemService(Context.NOTIFICATION_SERVICE);
-        String channelId = "BudgetPeriodicWorkerAlerts";
+        String channelId = "budget_alerts";
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             NotificationChannel channel = new NotificationChannel(
                     channelId,
-                    "Budget Background Alerts",
-                    NotificationManager.IMPORTANCE_DEFAULT
+                    "Budget Alerts",
+                    NotificationManager.IMPORTANCE_HIGH
             );
-            channel.setDescription("Background periodic checks for category budgets.");
+            channel.setDescription("Budgets warnings and thresholds exceeded alerts.");
             notificationManager.createNotificationChannel(channel);
         }
+
+        android.content.Intent intent = new android.content.Intent(getApplicationContext(), MainActivity.class);
+        intent.putExtra("destination", "budget");
+        intent.setFlags(android.content.Intent.FLAG_ACTIVITY_NEW_TASK | android.content.Intent.FLAG_ACTIVITY_CLEAR_TASK);
+        android.app.PendingIntent pendingIntent = android.app.PendingIntent.getActivity(
+                getApplicationContext(),
+                (int) System.currentTimeMillis(),
+                intent,
+                android.app.PendingIntent.FLAG_UPDATE_CURRENT | android.app.PendingIntent.FLAG_IMMUTABLE
+        );
 
         NotificationCompat.Builder builder = new NotificationCompat.Builder(getApplicationContext(), channelId)
                 .setSmallIcon(R.mipmap.ic_launcher)
                 .setContentTitle(title)
                 .setContentText(message)
                 .setStyle(new NotificationCompat.BigTextStyle().bigText(message))
-                .setPriority(NotificationCompat.PRIORITY_DEFAULT)
+                .setPriority(NotificationCompat.PRIORITY_HIGH)
+                .setContentIntent(pendingIntent)
                 .setAutoCancel(true);
 
         notificationManager.notify((int) System.currentTimeMillis(), builder.build());

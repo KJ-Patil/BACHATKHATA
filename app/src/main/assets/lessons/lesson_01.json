@@ -1,0 +1,54 @@
+{
+  "id": "lesson_01",
+  "title": "What is CIBIL score?",
+  "sections": [
+    {
+      "heading": "The short answer",
+      "body": "A CIBIL score is a 3-digit number between 300 and 900 that tells lenders how reliable you are at repaying debt."
+    },
+    {
+      "heading": "Why does it matter?",
+      "body": "When you apply for a loan or credit card, the bank checks your CIBIL score first. Score above 750 = easy approval and low interest rate. Below 600 = likely rejection."
+    },
+    {
+      "heading": "What builds your score?",
+      "body": "35% — paying on time. 30% — keeping credit card usage below 30% of limit. 15% — having old credit accounts. 10% — having different types of credit (card + loan). 10% — not applying for too many loans at once."
+    },
+    {
+      "heading": "What damages your score?",
+      "body": "Missing EMI payments (even by 1 day). Using more than 30% of your credit card limit. Closing old credit card accounts. Applying for multiple loans in a short time."
+    }
+  ],
+  "quiz": [
+    {
+      "question": "What is the range of a CIBIL score?",
+      "options": [
+        "0 to 100",
+        "300 to 900",
+        "1 to 1000",
+        "500 to 850"
+      ],
+      "correctIndex": 1
+    },
+    {
+      "question": "What is the most important factor in your CIBIL score?",
+      "options": [
+        "Credit age",
+        "Credit mix",
+        "Payment history",
+        "Number of accounts"
+      ],
+      "correctIndex": 2
+    },
+    {
+      "question": "A score of 780 is considered:",
+      "options": [
+        "Poor",
+        "Average",
+        "Good — easy approvals",
+        "Does not exist"
+      ],
+      "correctIndex": 2
+    }
+  ]
+}

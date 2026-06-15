@@ -13,7 +13,7 @@ import com.example.bachatkhata.databinding.FragmentOnboardingPageBinding;
 
 public class OnboardingPageFragment extends Fragment {
 
-    private static final String ARG_LOTTIE_RES = "lottie_res";
+    private static final String ARG_LOTTIE_RAW_RES = "lottie_raw_res";
     private static final String ARG_TITLE = "title";
     private static final String ARG_SUBTITLE = "subtitle";
 
@@ -23,10 +23,10 @@ public class OnboardingPageFragment extends Fragment {
         // Required empty public constructor
     }
 
-    public static OnboardingPageFragment newInstance(int lottieRes, String title, String subtitle) {
+    public static OnboardingPageFragment newInstance(int lottieRawRes, String title, String subtitle) {
         OnboardingPageFragment fragment = new OnboardingPageFragment();
         Bundle args = new Bundle();
-        args.putInt(ARG_LOTTIE_RES, lottieRes);
+        args.putInt(ARG_LOTTIE_RAW_RES, lottieRawRes);
         args.putString(ARG_TITLE, title);
         args.putString(ARG_SUBTITLE, subtitle);
         fragment.setArguments(args);
@@ -44,23 +44,23 @@ public class OnboardingPageFragment extends Fragment {
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
         if (getArguments() != null) {
-            int lottieRes = getArguments().getInt(ARG_LOTTIE_RES);
+            int lottieRawRes = getArguments().getInt(ARG_LOTTIE_RAW_RES);
             String title = getArguments().getString(ARG_TITLE);
             String subtitle = getArguments().getString(ARG_SUBTITLE);
 
-            binding.imgOnboarding.setImageResource(lottieRes);
+            binding.lottieOnboarding.setAnimation(lottieRawRes);
             binding.txtOnboardingTitle.setText(title);
             binding.txtOnboardingSubtitle.setText(subtitle);
 
             // Animate onboarding entry fluidly
-            binding.imgOnboarding.setAlpha(0f);
-            binding.imgOnboarding.setTranslationY(40f);
+            binding.lottieOnboarding.setAlpha(0f);
+            binding.lottieOnboarding.setTranslationY(40f);
             binding.txtOnboardingTitle.setAlpha(0f);
             binding.txtOnboardingTitle.setTranslationY(20f);
             binding.txtOnboardingSubtitle.setAlpha(0f);
             binding.txtOnboardingSubtitle.setTranslationY(20f);
 
-            binding.imgOnboarding.animate()
+            binding.lottieOnboarding.animate()
                     .alpha(1f)
                     .translationY(0f)
                     .setDuration(400)

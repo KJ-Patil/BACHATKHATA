@@ -7,69 +7,83 @@
     android:background="@color/colorBackground"
     android:padding="24dp">
 
-    <!-- Handle Indicator for Bottom Sheet -->
+    <!-- Top drag handle / decoration -->
     <View
         android:layout_width="40dp"
         android:layout_height="4dp"
         android:layout_gravity="center_horizontal"
-        android:layout_marginBottom="20dp"
-        android:background="@color/colorCardBorder" />
+        android:background="#D1CFF5"
+        android:layout_marginBottom="20dp" />
 
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="Sort Transactions"
         android:textColor="@color/colorTextPrimary"
-        android:textSize="18sp"
+        android:textSize="20sp"
         android:textStyle="bold"
+        android:layout_marginBottom="4dp" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Choose how you want to order your transaction list"
+        android:textColor="@color/colorTextSecondary"
+        android:textSize="14sp"
         android:layout_marginBottom="20dp" />
 
-    <!-- Radio Group for Sort Logic -->
+    <!-- RadioGroup for Sorting Options -->
     <RadioGroup
         android:id="@+id/rgSort"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:orientation="vertical"
         android:layout_marginBottom="24dp">
 
-        <com.google.android.material.radiobutton.MaterialRadioButton
+        <RadioButton
             android:id="@+id/rbNewest"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Date: Newest first"
+            android:text="Newest First"
             android:textColor="@color/colorTextPrimary"
-            android:textSize="15sp"
-            android:checked="true"
+            android:textSize="16sp"
             android:padding="12dp"
+            android:buttonTint="@color/colorPrimary"
             android:layout_marginBottom="8dp" />
 
-        <com.google.android.material.radiobutton.MaterialRadioButton
+        <RadioButton
             android:id="@+id/rbOldest"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Date: Oldest first"
+            android:text="Oldest First"
             android:textColor="@color/colorTextPrimary"
-            android:textSize="15sp"
+            android:textSize="16sp"
             android:padding="12dp"
+            android:buttonTint="@color/colorPrimary"
             android:layout_marginBottom="8dp" />
 
-        <com.google.android.material.radiobutton.MaterialRadioButton
+        <RadioButton
             android:id="@+id/rbHighest"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Amount: Highest first"
+            android:text="Highest Amount"
             android:textColor="@color/colorTextPrimary"
-            android:textSize="15sp"
+            android:textSize="16sp"
             android:padding="12dp"
+            android:buttonTint="@color/colorPrimary"
             android:layout_marginBottom="8dp" />
 
-        <com.google.android.material.radiobutton.MaterialRadioButton
+        <RadioButton
             android:id="@+id/rbLowest"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Amount: Lowest first"
+            android:text="Lowest Amount"
             android:textColor="@color/colorTextPrimary"
-            android:textSize="15sp"
-            android:padding="12dp" />
+            android:textSize="16sp"
+            android:padding="12dp"
+            android:buttonTint="@color/colorPrimary"
+            android:layout_marginBottom="8dp" />
+
     </RadioGroup>
 
     <!-- Apply Button -->
@@ -78,6 +92,6 @@
         style="@style/ClayButton"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Apply" />
+        android:text="Apply Sorting" />
 
 </LinearLayout>

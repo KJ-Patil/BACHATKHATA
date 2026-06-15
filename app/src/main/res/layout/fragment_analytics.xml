@@ -19,11 +19,45 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_centerInParent="true"
-            android:text="Analytics"
+            android:text="Financial Analytics"
             android:textColor="@color/colorTextPrimary"
             android:textSize="18sp"
             android:textStyle="bold" />
     </RelativeLayout>
+
+    <!-- Period TabLayout -->
+    <com.google.android.material.tabs.TabLayout
+        android:id="@+id/tabPeriod"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="@color/colorBackground"
+        app:tabMode="fixed"
+        app:tabGravity="fill"
+        app:tabIndicatorColor="@color/colorPrimary"
+        app:tabSelectedTextColor="@color/colorPrimary"
+        app:tabTextColor="@color/colorTextSecondary"
+        app:layout_constraintTop_toBottomOf="@+id/layoutAppBar">
+
+        <com.google.android.material.tabs.TabItem
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="This Month" />
+
+        <com.google.android.material.tabs.TabItem
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Last Month" />
+
+        <com.google.android.material.tabs.TabItem
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Last 3 Months" />
+
+        <com.google.android.material.tabs.TabItem
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="This Year" />
+    </com.google.android.material.tabs.TabLayout>
 
     <!-- Scrollable content -->
     <androidx.core.widget.NestedScrollView
@@ -31,7 +65,7 @@
         android:layout_height="0dp"
         android:fillViewport="true"
         app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/layoutAppBar">
+        app:layout_constraintTop_toBottomOf="@+id/tabPeriod">
 
         <LinearLayout
             android:layout_width="match_parent"
@@ -39,7 +73,83 @@
             android:orientation="vertical"
             android:padding="16dp">
 
-            <!-- Toggle Segmented Control for Income vs Expense -->
+            <!-- 2-card KPI row (Income / Expense) -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:layout_marginBottom="16dp">
+
+                <!-- Income KPI -->
+                <com.google.android.material.card.MaterialCardView
+                    style="@style/ClayCard"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:layout_marginEnd="6dp"
+                    app:strokeColor="@color/colorSecondary">
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical"
+                        android:padding="12dp">
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Total Income"
+                            android:textColor="@color/colorTextSecondary"
+                            android:textSize="12sp" />
+
+                        <TextView
+                            android:id="@+id/txtKpiIncome"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="4dp"
+                            android:text="₹0.00"
+                            android:textColor="@color/colorSecondary"
+                            android:textSize="16sp"
+                            android:textStyle="bold" />
+                    </LinearLayout>
+                </com.google.android.material.card.MaterialCardView>
+
+                <!-- Expense KPI -->
+                <com.google.android.material.card.MaterialCardView
+                    style="@style/ClayCard"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:layout_marginStart="6dp"
+                    app:strokeColor="@color/colorDanger">
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical"
+                        android:padding="12dp">
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Total Expense"
+                            android:textColor="@color/colorTextSecondary"
+                            android:textSize="12sp" />
+
+                        <TextView
+                            android:id="@+id/txtKpiExpense"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="4dp"
+                            android:text="₹0.00"
+                            android:textColor="@color/colorDanger"
+                            android:textSize="16sp"
+                            android:textStyle="bold" />
+                    </LinearLayout>
+                </com.google.android.material.card.MaterialCardView>
+            </LinearLayout>
+
+            <!-- Toggle Segmented Control for Income vs Expense distributions -->
             <com.google.android.material.button.MaterialButtonToggleGroup
                 android:id="@+id/toggleTypeGroup"
                 android:layout_width="match_parent"
@@ -69,7 +179,7 @@
                     app:strokeColor="@color/colorCardBorder" />
             </com.google.android.material.button.MaterialButtonToggleGroup>
 
-            <!-- Category Distribution Pie Chart Card -->
+            <!-- PieChart Card (260dp, Legend below) -->
             <com.google.android.material.card.MaterialCardView
                 style="@style/ClayCard"
                 android:layout_width="match_parent"
@@ -85,52 +195,33 @@
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="Category Breakdown"
+                        android:text="Category Distribution"
                         android:textColor="@color/colorTextPrimary"
                         android:textSize="15sp"
                         android:textStyle="bold"
                         android:layout_marginBottom="12dp" />
 
-                    <!-- Pie Chart -->
                     <com.github.mikephil.charting.charts.PieChart
                         android:id="@+id/pieChart"
                         android:layout_width="match_parent"
-                        android:layout_height="240dp" />
+                        android:layout_height="260dp" />
 
                     <TextView
                         android:id="@+id/txtEmptyPieChart"
                         android:layout_width="match_parent"
-                        android:layout_height="240dp"
+                        android:layout_height="260dp"
                         android:gravity="center"
-                        android:text="No transaction data available for this category type."
+                        android:text="No transaction data available for selected period."
                         android:textColor="@color/colorTextSecondary"
                         android:textSize="13sp"
                         android:visibility="gone" />
-                </LinearLayout>
-            </com.google.android.material.card.MaterialCardView>
 
-            <!-- Category Legend list -->
-            <com.google.android.material.card.MaterialCardView
-                style="@style/ClayCard"
-                android:id="@+id/cardCategoryList"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginBottom="16dp">
-
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:orientation="vertical"
-                    android:padding="16dp">
-
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="Category Details"
-                        android:textColor="@color/colorTextPrimary"
-                        android:textSize="15sp"
-                        android:textStyle="bold"
-                        android:layout_marginBottom="12dp" />
+                    <!-- Custom legend inside same card -->
+                    <View
+                        android:layout_width="match_parent"
+                        android:layout_height="1dp"
+                        android:background="@color/colorCardBorder"
+                        android:layout_marginVertical="12dp" />
 
                     <androidx.recyclerview.widget.RecyclerView
                         android:id="@+id/rvCategoryBreakdown"
@@ -140,7 +231,65 @@
                 </LinearLayout>
             </com.google.android.material.card.MaterialCardView>
 
-            <!-- Monthly Comparison Bar Chart Card -->
+            <!-- Grouped BarChart Card (Monthly comparison per category) -->
+            <com.google.android.material.card.MaterialCardView
+                style="@style/ClayCard"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="16dp">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:padding="16dp">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Monthly Comparison (Current vs Previous)"
+                        android:textColor="@color/colorTextPrimary"
+                        android:textSize="15sp"
+                        android:textStyle="bold"
+                        android:layout_marginBottom="12dp" />
+
+                    <com.github.mikephil.charting.charts.BarChart
+                        android:id="@+id/barChart"
+                        android:layout_width="match_parent"
+                        android:layout_height="240dp" />
+                </LinearLayout>
+            </com.google.android.material.card.MaterialCardView>
+
+            <!-- LineChart Card (Income vs Expense over time) -->
+            <com.google.android.material.card.MaterialCardView
+                style="@style/ClayCard"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="16dp">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:padding="16dp">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Cash Flow Trend Over Time"
+                        android:textColor="@color/colorTextPrimary"
+                        android:textSize="15sp"
+                        android:textStyle="bold"
+                        android:layout_marginBottom="12dp" />
+
+                    <com.github.mikephil.charting.charts.LineChart
+                        android:id="@+id/lineChart"
+                        android:layout_width="match_parent"
+                        android:layout_height="240dp" />
+                </LinearLayout>
+            </com.google.android.material.card.MaterialCardView>
+
+            <!-- Top 5 Spending Ranked List -->
             <com.google.android.material.card.MaterialCardView
                 style="@style/ClayCard"
                 android:layout_width="match_parent"
@@ -156,17 +305,17 @@
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="Monthly Cash Flow"
+                        android:text="Top 5 Spending Categories"
                         android:textColor="@color/colorTextPrimary"
                         android:textSize="15sp"
                         android:textStyle="bold"
                         android:layout_marginBottom="12dp" />
 
-                    <!-- Bar Chart -->
-                    <com.github.mikephil.charting.charts.BarChart
-                        android:id="@+id/barChart"
+                    <androidx.recyclerview.widget.RecyclerView
+                        android:id="@+id/rvTop5"
                         android:layout_width="match_parent"
-                        android:layout_height="240dp" />
+                        android:layout_height="wrap_content"
+                        android:nestedScrollingEnabled="false" />
                 </LinearLayout>
             </com.google.android.material.card.MaterialCardView>
 

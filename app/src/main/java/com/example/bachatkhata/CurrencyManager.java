@@ -57,6 +57,11 @@ public class CurrencyManager {
         return supportedCurrencies;
     }
 
+    // Overloaded loadFromFirestore for compatibility
+    public void loadFromFirestore(String uid) {
+        loadFromFirestore(uid, null);
+    }
+
     public void loadFromFirestore(String uid, Runnable onLoaded) {
         FirebaseFirestore.getInstance().collection("users").document(uid).get()
                 .addOnSuccessListener(documentSnapshot -> {
@@ -71,6 +76,11 @@ public class CurrencyManager {
                 .addOnFailureListener(e -> {
                     if (onLoaded != null) onLoaded.run();
                 });
+    }
+
+    // Overloaded saveToFirestore for compatibility
+    public void saveToFirestore(String uid, String code, String symbol) {
+        saveToFirestore(uid, code, symbol, null);
     }
 
     public void saveToFirestore(String uid, String code, String symbol, Runnable onSaved) {
@@ -91,26 +101,42 @@ public class CurrencyManager {
                 });
     }
 
+    // Indian number format for INR (e.g. 1,23,456.00), standard for others
     public String formatAmount(double amount) {
-        try {
-            NumberFormat formatter;
-            if ("INR".equals(currentCurrencyCode)) {
-                // Indian formatting grouping (e.g. ₹1,23,456.00)
-                formatter = NumberFormat.getCurrencyInstance(new Locale("en", "IN"));
-            } else {
-                formatter = NumberFormat.getCurrencyInstance(Locale.US);
-            }
-            String formatted = formatter.format(amount);
-            // Replace local currency symbols with current currency symbol configured
-            // (e.g. formatting can produce Rs. or USD, we replace with current symbol for cleanliness)
-            String symbolToReplace = formatter.getCurrency().getSymbol(new Locale("en", "IN"));
-            if ("INR".equals(currentCurrencyCode)) {
-                return formatted.replace(symbolToReplace, currentCurrencySymbol).trim();
-            }
+        if ("INR".equals(currentCurrencyCode)) {
+            return currentCurrencySymbol + formatIndian(amount);
+        } else {
             return currentCurrencySymbol + String.format(Locale.US, "%,.2f", amount);
-        } catch (Exception e) {
-            return currentCurrencySymbol + String.format(Locale.US, "%.2f", amount);
         }
+    }
+
+    private String formatIndian(double amount) {
+        boolean negative = amount < 0;
+        amount = Math.abs(amount);
+        String amountStr = String.format(Locale.US, "%.2f", amount);
+        int dotIndex = amountStr.indexOf('.');
+        String integerPart = amountStr.substring(0, dotIndex);
+        String decimalPart = amountStr.substring(dotIndex);
+        
+        int len = integerPart.length();
+        if (len <= 3) {
+            return (negative ? "-" : "") + integerPart + decimalPart;
+        }
+        
+        String lastThree = integerPart.substring(len - 3);
+        String remaining = integerPart.substring(0, len - 3);
+        
+        StringBuilder builder = new StringBuilder();
+        int remLen = remaining.length();
+        for (int i = remLen - 1; i >= 0; i--) {
+            builder.append(remaining.charAt(i));
+            int posFromRight = remLen - i;
+            if (posFromRight % 2 == 0 && i > 0) {
+                builder.append(',');
+            }
+        }
+        String groupedRemaining = builder.reverse().toString();
+        return (negative ? "-" : "") + groupedRemaining + "," + lastThree + decimalPart;
     }
 
     public String getSymbol(String code) {

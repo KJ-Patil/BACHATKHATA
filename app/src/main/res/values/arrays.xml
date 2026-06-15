@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string-array name="asset_types">
+        <item>Cash</item>
+        <item>Savings Account</item>
+        <item>Fixed Deposit</item>
+        <item>Gold</item>
+        <item>Mutual Funds</item>
+        <item>Stocks</item>
+        <item>Real Estate</item>
+        <item>Vehicles</item>
+        <item>Others</item>
+    </string-array>
+
+    <string-array name="liability_types">
+        <item>Credit Card Debt</item>
+        <item>Personal Loan</item>
+        <item>Home Loan</item>
+        <item>Car Loan</item>
+        <item>Education Loan</item>
+        <item>Outstanding Bills</item>
+        <item>Others</item>
+    </string-array>
+</resources>

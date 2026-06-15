@@ -47,157 +47,197 @@
             android:orientation="vertical"
             android:padding="20dp">
 
-            <!-- Selection card -->
-            <com.google.android.material.card.MaterialCardView
-                style="@style/ClayCard"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginBottom="20dp">
-
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:orientation="vertical"
-                    android:padding="16dp">
-
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="Date Filter"
-                        android:textColor="@color/colorTextPrimary"
-                        android:textSize="15sp"
-                        android:textStyle="bold"
-                        android:layout_marginBottom="12dp" />
-
-                    <!-- Start Date Picker -->
-                    <com.google.android.material.card.MaterialCardView
-                        android:id="@+id/cardStartDate"
-                        style="@style/ClayCard"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:layout_marginBottom="12dp"
-                        android:clickable="true"
-                        android:focusable="true">
-
-                        <RelativeLayout
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:padding="14dp">
-
-                            <ImageView
-                                android:id="@+id/imgCalendarStart"
-                                android:layout_width="20dp"
-                                android:layout_height="20dp"
-                                android:layout_centerVertical="true"
-                                android:src="@drawable/ic_calendar" />
-
-                            <TextView
-                                android:id="@+id/txtStartDate"
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:layout_centerVertical="true"
-                                android:layout_marginStart="12dp"
-                                android:layout_toEndOf="@+id/imgCalendarStart"
-                                android:text="Start Date: 01 Jan 2026"
-                                android:textColor="@color/colorTextPrimary"
-                                android:textSize="13sp"
-                                android:textStyle="bold" />
-                        </RelativeLayout>
-                    </com.google.android.material.card.MaterialCardView>
-
-                    <!-- End Date Picker -->
-                    <com.google.android.material.card.MaterialCardView
-                        android:id="@+id/cardEndDate"
-                        style="@style/ClayCard"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:clickable="true"
-                        android:focusable="true">
-
-                        <RelativeLayout
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:padding="14dp">
-
-                            <ImageView
-                                android:id="@+id/imgCalendarEnd"
-                                android:layout_width="20dp"
-                                android:layout_height="20dp"
-                                android:layout_centerVertical="true"
-                                android:src="@drawable/ic_calendar" />
-
-                            <TextView
-                                android:id="@+id/txtEndDate"
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:layout_centerVertical="true"
-                                android:layout_marginStart="12dp"
-                                android:layout_toEndOf="@+id/imgCalendarEnd"
-                                android:text="End Date: Today"
-                                android:textColor="@color/colorTextPrimary"
-                                android:textSize="13sp"
-                                android:textStyle="bold" />
-                        </RelativeLayout>
-                    </com.google.android.material.card.MaterialCardView>
-
-                </LinearLayout>
-            </com.google.android.material.card.MaterialCardView>
-
-            <!-- Export Format Selector -->
+            <!-- Date range selector card -->
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Choose Format"
+                android:text="Select Date Range"
                 android:textColor="@color/colorTextPrimary"
                 android:textSize="14sp"
                 android:textStyle="bold"
                 android:layout_marginBottom="8dp" />
 
             <com.google.android.material.card.MaterialCardView
+                android:id="@+id/cardDateRange"
+                style="@style/ClayCard"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="20dp"
+                android:clickable="true"
+                android:focusable="true"
+                android:foreground="?attr/selectableItemBackground">
+
+                <RelativeLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:padding="16dp">
+
+                    <ImageView
+                        android:id="@+id/imgCalendar"
+                        android:layout_width="24dp"
+                        android:layout_height="24dp"
+                        android:layout_centerVertical="true"
+                        android:src="@drawable/ic_calendar"
+                        app:tint="@color/colorPrimary" />
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_toEndOf="@+id/imgCalendar"
+                        android:layout_marginStart="16dp"
+                        android:layout_centerVertical="true"
+                        android:orientation="vertical">
+
+                        <TextView
+                            android:id="@+id/txtDateRangeLabel"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Choose Date Range"
+                            android:textColor="@color/colorTextPrimary"
+                            android:textSize="14sp"
+                            android:textStyle="bold" />
+
+                        <TextView
+                            android:id="@+id/txtSelectedRange"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="2dp"
+                            android:text="01 Jun 2026 - 14 Jun 2026"
+                            android:textColor="@color/colorTextSecondary"
+                            android:textSize="12sp" />
+                    </LinearLayout>
+                </RelativeLayout>
+            </com.google.android.material.card.MaterialCardView>
+
+            <!-- Format Toggle (Side by Side cards) -->
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Select Document Format"
+                android:textColor="@color/colorTextPrimary"
+                android:textSize="14sp"
+                android:textStyle="bold"
+                android:layout_marginBottom="8dp" />
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:layout_marginBottom="20dp">
+
+                <!-- PDF Format Card -->
+                <com.google.android.material.card.MaterialCardView
+                    android:id="@+id/cardFormatPdf"
+                    style="@style/ClayCard"
+                    android:layout_width="0dp"
+                    android:layout_height="100dp"
+                    android:layout_weight="1"
+                    android:layout_marginEnd="8dp"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:foreground="?attr/selectableItemBackground"
+                    app:strokeColor="@color/colorPrimary"
+                    app:strokeWidth="2dp">
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:orientation="vertical"
+                        android:gravity="center"
+                        android:padding="12dp">
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="📄"
+                            android:textSize="28sp" />
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="6dp"
+                            android:text="PDF Report"
+                            android:textColor="@color/colorTextPrimary"
+                            android:textSize="13sp"
+                            android:textStyle="bold" />
+                    </LinearLayout>
+                </com.google.android.material.card.MaterialCardView>
+
+                <!-- CSV Format Card -->
+                <com.google.android.material.card.MaterialCardView
+                    android:id="@+id/cardFormatCsv"
+                    style="@style/ClayCard"
+                    android:layout_width="0dp"
+                    android:layout_height="100dp"
+                    android:layout_weight="1"
+                    android:layout_marginStart="8dp"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:foreground="?attr/selectableItemBackground"
+                    app:strokeColor="@color/colorCardBorder"
+                    app:strokeWidth="1dp">
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:orientation="vertical"
+                        android:gravity="center"
+                        android:padding="12dp">
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="📊"
+                            android:textSize="28sp" />
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="6dp"
+                            android:text="CSV Sheet"
+                            android:textColor="@color/colorTextPrimary"
+                            android:textSize="13sp"
+                            android:textStyle="bold" />
+                    </LinearLayout>
+                </com.google.android.material.card.MaterialCardView>
+            </LinearLayout>
+
+            <!-- PDF Options (Include charts switch) -->
+            <com.google.android.material.card.MaterialCardView
+                android:id="@+id/cardPdfOptions"
                 style="@style/ClayCard"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="24dp">
 
-                <LinearLayout
+                <RelativeLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:orientation="vertical"
                     android:padding="16dp">
 
-                    <com.google.android.material.chip.ChipGroup
-                        android:id="@+id/chipGroupFormat"
-                        android:layout_width="match_parent"
+                    <TextView
+                        android:id="@+id/txtIncludeChartsLabel"
+                        android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        app:checkedButton="@id/chipFormatPdf"
-                        app:singleSelection="true">
+                        android:layout_centerVertical="true"
+                        android:text="Include Charts Summary"
+                        android:textColor="@color/colorTextPrimary"
+                        android:textSize="14sp" />
 
-                        <com.google.android.material.chip.Chip
-                            android:id="@+id/chipFormatPdf"
-                            style="@style/Widget.MaterialComponents.Chip.Choice"
-                            android:layout_width="0dp"
-                            android:layout_height="wrap_content"
-                            android:layout_weight="1"
-                            android:text="PDF Report"
-                            android:textAlignment="center" />
-
-                        <com.google.android.material.chip.Chip
-                            android:id="@+id/chipFormatCsv"
-                            style="@style/Widget.MaterialComponents.Chip.Choice"
-                            android:layout_width="0dp"
-                            android:layout_height="wrap_content"
-                            android:layout_weight="1"
-                            android:text="CSV Spreadsheet"
-                            android:textAlignment="center" />
-                    </com.google.android.material.chip.ChipGroup>
-
-                </LinearLayout>
+                    <com.google.android.material.switchmaterial.SwitchMaterial
+                        android:id="@+id/switchIncludeCharts"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_alignParentEnd="true"
+                        android:layout_centerVertical="true"
+                        android:checked="true" />
+                </RelativeLayout>
             </com.google.android.material.card.MaterialCardView>
 
             <TextView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="Reports will be saved to your device's default downloads folder."
+                android:text="Statements will be compiled in the background and opened via system sharing intents."
                 android:textColor="@color/colorTextSecondary"
                 android:textSize="12sp"
                 android:gravity="center"
@@ -213,26 +253,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_margin="20dp"
-        android:text="Export Report"
+        android:text="Generate Report"
         app:layout_constraintBottom_toBottomOf="parent" />
-
-    <!-- Overlay Loader -->
-    <FrameLayout
-        android:id="@+id/loaderOverlay"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:background="#8012101E"
-        android:visibility="gone"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent">
-
-        <ProgressBar
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_gravity="center"
-            android:indeterminateTint="@color/colorPrimary" />
-    </FrameLayout>
 
 </androidx.constraintlayout.widget.ConstraintLayout>

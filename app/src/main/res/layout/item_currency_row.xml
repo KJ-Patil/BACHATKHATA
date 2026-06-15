@@ -1,75 +1,71 @@
 <?xml version="1.0" encoding="utf-8"?>
 <com.google.android.material.card.MaterialCardView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    style="@style/ClayCard"
     android:id="@+id/cardCurrency"
+    style="@style/ClayCard"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:layout_marginBottom="8dp"
-    app:cardCornerRadius="16dp"
+    android:layout_marginHorizontal="4dp"
+    android:layout_marginVertical="6dp"
     android:clickable="true"
     android:focusable="true">
 
-    <RelativeLayout
+    <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:padding="16dp">
+        android:orientation="horizontal"
+        android:padding="16dp"
+        android:gravity="center_vertical">
 
+        <!-- Flag Emoji -->
         <TextView
             android:id="@+id/txtFlag"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_centerVertical="true"
-            android:text="🇮🇳"
-            android:textSize="20sp" />
+            android:textSize="24sp"
+            android:layout_marginEnd="16dp" />
 
+        <!-- Code & Name -->
         <LinearLayout
-            android:layout_width="wrap_content"
+            android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:layout_centerVertical="true"
-            android:layout_marginStart="16dp"
-            android:layout_toEndOf="@+id/txtFlag"
+            android:layout_weight="1"
             android:orientation="vertical">
 
             <TextView
                 android:id="@+id/txtCurrencyCode"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="INR"
                 android:textColor="@color/colorTextPrimary"
-                android:textSize="14sp"
+                android:textSize="16sp"
                 android:textStyle="bold" />
 
             <TextView
                 android:id="@+id/txtCurrencyName"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Indian Rupee"
                 android:textColor="@color/colorTextSecondary"
                 android:textSize="12sp" />
         </LinearLayout>
 
+        <!-- Symbol -->
         <TextView
             android:id="@+id/txtCurrencySymbol"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_centerVertical="true"
-            android:layout_marginEnd="16dp"
-            android:layout_toStartOf="@+id/imgCheckmark"
-            android:text="₹"
             android:textColor="@color/colorPrimary"
             android:textSize="18sp"
-            android:textStyle="bold" />
+            android:textStyle="bold"
+            android:layout_marginEnd="16dp" />
 
+        <!-- Checkmark -->
         <ImageView
             android:id="@+id/imgCheckmark"
             android:layout_width="20dp"
             android:layout_height="20dp"
-            android:layout_alignParentEnd="true"
-            android:layout_centerVertical="true"
             android:src="@drawable/ic_check"
-            app:tint="@color/colorSecondary"
-            android:visibility="gone" />
+            app:tint="@color/colorPrimary"
+            android:contentDescription="Selected" />
 
-    </RelativeLayout>
+    </LinearLayout>
 </com.google.android.material.card.MaterialCardView>

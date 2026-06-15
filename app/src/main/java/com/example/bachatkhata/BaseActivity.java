@@ -1,10 +1,17 @@
 package com.example.bachatkhata;
 
+import android.content.Context;
 import android.content.Intent;
+import android.graphics.Color;
 import android.os.Bundle;
+import android.view.View;
+import android.view.inputmethod.InputMethodManager;
+import android.widget.ProgressBar;
 
+import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 
+import com.google.android.material.snackbar.Snackbar;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.FirebaseFirestore;
 
@@ -13,6 +20,7 @@ public class BaseActivity extends AppCompatActivity {
     private static int activeActivitiesCount = 0;
     private static long backgroundTimeMs = -1;
     private static boolean isAppLocked = false;
+    private AlertDialog loadingDialog;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -23,18 +31,28 @@ public class BaseActivity extends AppCompatActivity {
     protected void onStart() {
         super.onStart();
 
-        // If returned from background
+        // Check background timeout on start
         if (activeActivitiesCount == 0 && backgroundTimeMs != -1) {
             long idleTime = System.currentTimeMillis() - backgroundTimeMs;
-            if (idleTime > 60000) { // backgrounded for > 60s
+            SharedPreferencesManager sp = SharedPreferencesManager.getInstance(this);
+            int timeoutMs = sp.getLockTimeoutSeconds() * 1000;
+            if (sp.isAppLockEnabled() && idleTime > timeoutMs) {
                 isAppLocked = true;
             }
         }
 
         activeActivitiesCount++;
-        backgroundTimeMs = -1; // Reset background time
+        backgroundTimeMs = -1; // Reset
 
-        // Check if lock should be enforced
+        if (isAppLocked && shouldEnforceLock()) {
+            checkPinConfigAndLock();
+        }
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        // Double check lock state on resume if required
         if (isAppLocked && shouldEnforceLock()) {
             checkPinConfigAndLock();
         }
@@ -46,13 +64,11 @@ public class BaseActivity extends AppCompatActivity {
         activeActivitiesCount--;
 
         if (activeActivitiesCount == 0) {
-            // App entered background
             backgroundTimeMs = System.currentTimeMillis();
         }
     }
 
     private boolean shouldEnforceLock() {
-        // Exempt auth/setup activities from locking
         String className = getClass().getSimpleName();
         return !className.equals("PinSetupActivity")
                 && !className.equals("SplashActivity")
@@ -66,27 +82,22 @@ public class BaseActivity extends AppCompatActivity {
     private void checkPinConfigAndLock() {
         FirebaseAuth auth = FirebaseAuth.getInstance();
         if (auth.getCurrentUser() == null) {
-            // No user is logged in, no need to lock
             isAppLocked = false;
             return;
         }
 
         String uid = auth.getCurrentUser().getUid();
-
-        // Fetch user from Firestore to see if they actually have a PIN configured
         FirebaseFirestore.getInstance().collection("users").document(uid).get()
                 .addOnSuccessListener(documentSnapshot -> {
                     if (documentSnapshot.exists()) {
                         String pinHash = documentSnapshot.getString("pinHash");
                         if (pinHash != null && !pinHash.trim().isEmpty()) {
-                            // PIN is configured, launch verification activity
                             Intent intent = new Intent(BaseActivity.this, PinSetupActivity.class);
                             intent.putExtra("mode", "VERIFY");
                             intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
                             startActivity(intent);
                             finish();
                         } else {
-                            // PIN not set up, unlock
                             isAppLocked = false;
                         }
                     } else {
@@ -94,7 +105,6 @@ public class BaseActivity extends AppCompatActivity {
                     }
                 })
                 .addOnFailureListener(e -> {
-                    // Fallback to unlock on failure so we don't lock user out
                     isAppLocked = false;
                 });
     }
@@ -102,5 +112,65 @@ public class BaseActivity extends AppCompatActivity {
     public static void setAppUnlocked() {
         isAppLocked = false;
         backgroundTimeMs = -1;
+    }
+
+    // Utility: Show Clay loading ProgressBar Dialog
+    public void showLoadingDialog() {
+        if (isFinishing() || isDestroyed()) return;
+
+        if (loadingDialog == null) {
+            ProgressBar progressBar = new ProgressBar(this);
+            progressBar.setIndeterminate(true);
+            
+            loadingDialog = new AlertDialog.Builder(this)
+                    .setView(progressBar)
+                    .setCancelable(false)
+                    .create();
+            
+            if (loadingDialog.getWindow() != null) {
+                loadingDialog.getWindow().setBackgroundDrawableResource(android.R.color.transparent);
+            }
+        }
+        if (!loadingDialog.isShowing()) {
+            loadingDialog.show();
+        }
+    }
+
+    public void hideLoadingDialog() {
+        if (loadingDialog != null && loadingDialog.isShowing()) {
+            loadingDialog.dismiss();
+        }
+    }
+
+    // Utility: Show Clay styled Snackbar
+    public void showSnackbar(String message, String type) {
+        View rootView = findViewById(android.R.id.content);
+        if (rootView == null) return;
+
+        Snackbar snackbar = Snackbar.make(rootView, message, Snackbar.LENGTH_LONG);
+        int color = Color.parseColor("#7C6FE0"); // Default INFO colorPrimary (soft purple)
+
+        if ("SUCCESS".equalsIgnoreCase(type)) {
+            color = Color.parseColor("#5DCAA5"); // soft green (colorSecondary)
+        } else if ("ERROR".equalsIgnoreCase(type)) {
+            color = Color.parseColor("#E24B4A"); // soft red (colorDanger)
+        } else if ("INFO".equalsIgnoreCase(type)) {
+            color = Color.parseColor("#7C6FE0"); // soft purple (colorPrimary)
+        }
+
+        snackbar.setBackgroundTint(color);
+        snackbar.setTextColor(Color.WHITE);
+        snackbar.show();
+    }
+
+    // Utility: Hide keyboard
+    public void hideKeyboard() {
+        View view = this.getCurrentFocus();
+        if (view != null) {
+            InputMethodManager imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
+            if (imm != null) {
+                imm.hideSoftInputFromWindow(view.getWindowToken(), 0);
+            }
+        }
     }
 }

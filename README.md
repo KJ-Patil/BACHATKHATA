@@ -10,12 +10,12 @@ BachatKhata is a secure, visually stunning personal finance management and expen
 2. **MVVM Architecture**: Clean separation of concerns using `ViewModel`, `LiveData`, `Repository` and clean event callbacks.
 3. **Firebase Cloud Backend**:
    - **Firebase Authentication**: Email/Password registry + Google Sign-In credentials.
-   - **Cloud Firestore**: Real-time listeners syncing transactions, categories, budgets, and savings goals.
+   - **Cloud Firestore**: Real-time listeners syncing transactions, categories, budgets, savings goals, and alerts.
 4. **Offline Resilience**: Real-time connection indicators (online/offline banner warning) with offline database caching.
 5. **Smart Alerts & Budgets**: Periodically monitors category thresholds (80% warn, 100% exceeded) via background `WorkManager` daily alerts.
 6. **Savings Goal Tracker**: Interactive progress indicators drawing remaining values, deadlines, and automatically projecting the monthly savings needed to hit milestones.
 7. **Interactive Analytics Graphs**: Beautiful PieChart and BarChart breakdowns utilizing custom `MPAndroidChart` rendering.
-8. **AppLock Security**: Intercepts active app sessions on idle background time exceeding 60 seconds, forcing verification via a custom 4-digit PIN lock or biometric fingerprints.
+8. **AppLock Security**: Intercepts active app sessions on idle background time exceeding the user-configured lock timeout, forcing verification via a custom 4-digit PIN lock or biometric fingerprints.
 9. **PDF & CSV Exporting**: Generates clean formatted CSV spreadsheets and multi-page Canvas-drawn PDF tables written directly to the system Downloads directory.
 
 ---
@@ -69,39 +69,62 @@ BACHATKHATA/
 
 ---
 
-## 🚀 Step-by-Step Deployment Guide
+## 🚀 Step-by-Step Setup Guide
 
-### Prerequisites
-1. **Android Studio**: Android Studio Jellyfish (or newer)
-2. **Java JDK**: JDK 17 (configured in Gradle setting options)
-3. **Active Firebase Console Account**
+Follow these instructions to deploy and run BachatKhata on your system:
 
-### Setup Firebase Project
-1. Go to the [Firebase Console](https://console.firebase.google.com/).
-2. Click **Add Project** and name it `BachatKhata`.
-3. Disable Google Analytics (optional, for rapid deployment).
-4. Register a new **Android App** inside your project:
-   - **Android Package Name**: `com.example.bachatkhata`
-   - **Signing Certificate SHA-1**: Generate yours using Gradle command `./gradlew signingReport` (Required for Google Sign-In).
-5. Download the configuration file: **`google-services.json`**
-6. Copy this file into your project's **`app/`** directory.
+### 1. Clone & Import
+Clone the repository and open the project using **Android Studio Ladybug (2024.2) or newer**. Ensure Gradle is allowed to index and sync the dependencies.
 
-### Enable Firebase Services
-1. **Authentication**: Go to *Build -> Authentication -> Get Started*. Enable **Email/Password** and **Google** sign-in providers.
-2. **Cloud Firestore**: Go to *Build -> Firestore Database -> Create Database*. Select your preferred region and start in **test mode** (or configure secure read/write rules for `users/{uid}`).
+### 2. Firebase Configuration file
+Generate and add the **`google-services.json`** configuration file inside the **`app/`** module folder.
 
-### Build and Launch
-1. Open the project in Android Studio.
-2. Let Gradle sync complete and index.
-3. Build and compile the debug application target:
-   ```powershell
-   ./gradlew assembleDebug
-   ```
-4. Run the application on your target physical device or emulator.
+### 3. Enable Authentication Sign-In Providers
+Navigate to your project in the **Firebase Console**, go to *Build -> Authentication -> Sign-in method*, and enable the **Email/Password** and **Google** sign-in providers.
+
+### 4. Register SHA Certificates
+Generate your application's SHA fingerprints (via `./gradlew signingReport` in the Android Studio terminal) and add both the **SHA-1** and **SHA-256** certificate fingerprints to the settings panel of your Firebase Android app. (SHA-1 is required for Google Sign-In, and SHA-256 is recommended for app lock biometrics/app check).
+
+### 5. Initialize Firestore Database & Rules
+Create a Cloud Firestore database in **Native Mode**. Under the *Rules* tab, paste and publish the following security rules:
+
+```javascript
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    match /users/{userId} {
+      allow read, write: if request.auth != null && request.auth.uid == userId;
+      match /{document=**} {
+        allow read, write: if request.auth != null && request.auth.uid == userId;
+      }
+    }
+  }
+}
+```
+
+### 6. Enable Firebase Storage
+In the Firebase console, navigate to *Build -> Storage* and click **Get Started** to enable cloud storage (used to upload and load profile pictures securely).
+
+### 7. Place Lottie Assets
+Download the required Lottie animation JSON files and copy them into the app's raw resources folder (**`app/src/main/res/raw/`**):
+* `coins_splash.json` (for splash screens)
+* `empty_state.json` (for transaction and budget search placeholders)
+* `onboarding_1.json`, `onboarding_2.json`, `onboarding_3.json` (for onboarding slides)
+* `confetti.json` (for savings milestone progress completions)
+* `lesson_complete.json` (for budget warnings)
+
+### 8. SMS Permissions
+Grant the **SMS Read** permissions on the first launch of the application on a **physical device** (since standard emulators cannot receive actual carrier SMS broadcasts to support automatic log imports).
+
+### 9. Test Biometrics
+Test the biometric unlock screen on a physical device. If running on an emulator, configure fingerprint emulation in the emulator settings first.
+
+### 10. Best Testing Environment
+For the best visual and performance testing experience, build and run on a physical Android device targeting **minSdk 26** or newer.
 
 ---
 
 ## 🔒 Security Specifications
 
-- **PIN Verification**: Encrypted locally via custom standard `SHA-256` hashing functions before performing user auth checks or storing remote credentials.
-- **AppLock Interceptor**: Monitors active task cycles. If the app is minimized/backgrounded for over 60 seconds, `BaseActivity` intercepts navigation and launches `PinSetupActivity` in `VERIFY` mode.
+* **PIN Verification**: Encrypted locally via custom standard `SHA-256` hashing functions before performing user auth checks or storing remote credentials.
+* **AppLock Interceptor**: Monitors active task cycles. If the app is minimized/backgrounded for over the user-selected timeout duration (saved in `SharedPreferences`), `BaseActivity` intercepts navigation and launches `PinSetupActivity` in `VERIFY` mode.

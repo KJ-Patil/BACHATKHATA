@@ -10,11 +10,18 @@ public class SharedPreferencesManager {
     private final SharedPreferences sharedPreferences;
     private final SharedPreferences.Editor editor;
 
-    // Pref Keys
-    private static final String KEY_ONBOARDING_COMPLETE = "onboarding_complete";
-    private static final String KEY_USER_NAME = "cached_user_name";
-    private static final String KEY_USER_EMAIL = "cached_user_email";
-    private static final String KEY_BIOMETRIC_PREF = "cached_biometric_enabled";
+    // Required Keys
+    public static final String KEY_APP_LOCK_ENABLED = "APP_LOCK_ENABLED";
+    public static final String KEY_LAST_PAUSED_TIME = "LAST_PAUSED_TIME";
+    public static final String KEY_SELECTED_PERIOD = "SELECTED_PERIOD";
+    public static final String KEY_ONBOARDING_SHOWN = "ONBOARDING_SHOWN";
+    public static final String KEY_USER_UID = "USER_UID";
+    public static final String KEY_USER_CURRENCY = "USER_CURRENCY";
+    public static final String KEY_USER_CURRENCY_SYMBOL = "USER_CURRENCY_SYMBOL";
+    public static final String KEY_BIOMETRIC_ENABLED = "BIOMETRIC_ENABLED";
+    public static final String KEY_LOCK_TIMEOUT_SECONDS = "LOCK_TIMEOUT_SECONDS";
+    public static final String KEY_ROUNDUP_ENABLED = "ROUNDUP_ENABLED";
+    public static final String KEY_ROUNDUP_LIMIT = "ROUNDUP_LIMIT";
 
     private SharedPreferencesManager(Context context) {
         sharedPreferences = context.getApplicationContext().getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE);
@@ -28,42 +35,116 @@ public class SharedPreferencesManager {
         return instance;
     }
 
-    public void setOnboardingComplete(boolean complete) {
-        editor.putBoolean(KEY_ONBOARDING_COMPLETE, complete);
+    // Round-up Settings
+    public void setRoundUpEnabled(boolean enabled) {
+        editor.putBoolean(KEY_ROUNDUP_ENABLED, enabled);
         editor.apply();
     }
 
-    public boolean isOnboardingComplete() {
-        return sharedPreferences.getBoolean(KEY_ONBOARDING_COMPLETE, false);
+    public boolean isRoundUpEnabled() {
+        return sharedPreferences.getBoolean(KEY_ROUNDUP_ENABLED, false);
     }
 
-    public void setCachedUserName(String name) {
-        editor.putString(KEY_USER_NAME, name);
+    public void setRoundUpLimit(int limit) {
+        editor.putInt(KEY_ROUNDUP_LIMIT, limit);
         editor.apply();
     }
 
-    public String getCachedUserName() {
-        return sharedPreferences.getString(KEY_USER_NAME, "");
+    public int getRoundUpLimit() {
+        return sharedPreferences.getInt(KEY_ROUNDUP_LIMIT, 10); // Default ₹10 rounding
     }
 
-    public void setCachedUserEmail(String email) {
-        editor.putString(KEY_USER_EMAIL, email);
+    // App Lock Enabled
+    public void setAppLockEnabled(boolean enabled) {
+        editor.putBoolean(KEY_APP_LOCK_ENABLED, enabled);
         editor.apply();
     }
 
-    public String getCachedUserEmail() {
-        return sharedPreferences.getString(KEY_USER_EMAIL, "");
+    public boolean isAppLockEnabled() {
+        return sharedPreferences.getBoolean(KEY_APP_LOCK_ENABLED, false);
     }
 
+    // Last Paused Time (for timeout tracking)
+    public void setLastPausedTime(long timeMs) {
+        editor.putLong(KEY_LAST_PAUSED_TIME, timeMs);
+        editor.apply();
+    }
+
+    public long getLastPausedTime() {
+        return sharedPreferences.getLong(KEY_LAST_PAUSED_TIME, -1);
+    }
+
+    // Selected Period
+    public void setSelectedPeriod(int period) {
+        editor.putInt(KEY_SELECTED_PERIOD, period);
+        editor.apply();
+    }
+
+    public int getSelectedPeriod() {
+        return sharedPreferences.getInt(KEY_SELECTED_PERIOD, 0); // 0 = This Month
+    }
+
+    // Onboarding Shown
+    public void setOnboardingShown(boolean shown) {
+        editor.putBoolean(KEY_ONBOARDING_SHOWN, shown);
+        editor.apply();
+    }
+
+    public boolean isOnboardingShown() {
+        return sharedPreferences.getBoolean(KEY_ONBOARDING_SHOWN, false);
+    }
+
+    // User UID
+    public void setUserUid(String uid) {
+        editor.putString(KEY_USER_UID, uid);
+        editor.apply();
+    }
+
+    public String getUserUid() {
+        return sharedPreferences.getString(KEY_USER_UID, "");
+    }
+
+    // User Currency
+    public void setUserCurrency(String currencyCode) {
+        editor.putString(KEY_USER_CURRENCY, currencyCode);
+        editor.apply();
+    }
+
+    public String getUserCurrency() {
+        return sharedPreferences.getString(KEY_USER_CURRENCY, "INR");
+    }
+
+    // User Currency Symbol
+    public void setUserCurrencySymbol(String symbol) {
+        editor.putString(KEY_USER_CURRENCY_SYMBOL, symbol);
+        editor.apply();
+    }
+
+    public String getUserCurrencySymbol() {
+        return sharedPreferences.getString(KEY_USER_CURRENCY_SYMBOL, "₹");
+    }
+
+    // Biometric Enabled
     public void setBiometricEnabled(boolean enabled) {
-        editor.putBoolean(KEY_BIOMETRIC_PREF, enabled);
+        editor.putBoolean(KEY_BIOMETRIC_ENABLED, enabled);
         editor.apply();
     }
 
     public boolean isBiometricEnabled() {
-        return sharedPreferences.getBoolean(KEY_BIOMETRIC_PREF, false);
+        return sharedPreferences.getBoolean(KEY_BIOMETRIC_ENABLED, false);
     }
 
+    // Lock Timeout Seconds
+    public void setLockTimeoutSeconds(int seconds) {
+        editor.putInt(KEY_LOCK_TIMEOUT_SECONDS, seconds);
+        editor.apply();
+    }
+
+    public int getLockTimeoutSeconds() {
+        return sharedPreferences.getInt(KEY_LOCK_TIMEOUT_SECONDS, 60); // default 60s
+    }
+
+    // Clear settings
     public void clearAll() {
         editor.clear();
         editor.apply();

@@ -5,17 +5,15 @@ import android.animation.AnimatorListenerAdapter;
 import android.animation.ValueAnimator;
 import android.view.View;
 import android.view.animation.CycleInterpolator;
+import android.view.animation.DecelerateInterpolator;
 import android.view.animation.OvershootInterpolator;
 import android.widget.TextView;
 
+import java.util.List;
 import java.util.Locale;
 
 public class AnimationHelper {
 
-    /**
-     * Animates a view sliding up from the bottom while fading in.
-     * Useful for cards and list item entry animations.
-     */
     public static void animateSlideUpIn(View view, int duration, int delay) {
         view.setAlpha(0f);
         view.setTranslationY(100f);
@@ -30,17 +28,39 @@ public class AnimationHelper {
                 .start();
     }
 
-    /**
-     * Apply a scale spring animation to a view.
-     * Useful for button click feedback.
-     */
-    public static void applySpringPress(View view) {
+    // Card entry: translateY(-20dp -> 0) + alpha(0 -> 1), 300ms, DecelerateInterpolator
+    public static void cardEntryAnimation(View view, int delayMs) {
+        view.setAlpha(0f);
+        // Translate up by 20dp in pixels
+        float density = view.getContext().getResources().getDisplayMetrics().density;
+        view.setTranslationY(-20f * density);
+        view.setVisibility(View.VISIBLE);
+
+        view.animate()
+                .alpha(1f)
+                .translationY(0f)
+                .setDuration(300)
+                .setStartDelay(delayMs)
+                .setInterpolator(new DecelerateInterpolator())
+                .start();
+    }
+
+    // Staggered entry animation for lists/grid items
+    public static void staggeredEntry(List<View> views, int startDelay, int stepDelay) {
+        for (int i = 0; i < views.size(); i++) {
+            cardEntryAnimation(views.get(i), startDelay + (i * stepDelay));
+        }
+    }
+
+    // Button press: scale to 0.96 with spring (stiffness=400, damping=0.7)
+    // We will simulate the spring overshoot using an OvershootInterpolator
+    public static void buttonPressAnimation(View view) {
         view.setScaleX(1f);
         view.setScaleY(1f);
 
         view.animate()
-                .scaleX(0.92f)
-                .scaleY(0.92f)
+                .scaleX(0.96f)
+                .scaleY(0.96f)
                 .setDuration(100)
                 .setListener(new AnimatorListenerAdapter() {
                     @Override
@@ -48,8 +68,8 @@ public class AnimationHelper {
                         view.animate()
                                 .scaleX(1f)
                                 .scaleY(1f)
-                                .setDuration(150)
-                                .setInterpolator(new OvershootInterpolator(1.8f))
+                                .setDuration(200)
+                                .setInterpolator(new OvershootInterpolator(1.5f))
                                 .setListener(null)
                                 .start();
                     }
@@ -57,14 +77,12 @@ public class AnimationHelper {
                 .start();
     }
 
-    /**
-     * Shakes a view horizontally (useful for incorrect PIN entries or input errors).
-     */
-    public static void animateShake(View view) {
+    // Shake animation for incorrect PIN inputs
+    public static void shakeAnimation(View view) {
         view.animate()
                 .translationX(15f)
                 .setDuration(350)
-                .setInterpolator(new CycleInterpolator(5))
+                .setInterpolator(new CycleInterpolator(4))
                 .setListener(new AnimatorListenerAdapter() {
                     @Override
                     public void onAnimationEnd(Animator animation) {
@@ -74,25 +92,23 @@ public class AnimationHelper {
                 .start();
     }
 
-    /**
-     * Starts a continuous pulse animation (scaling up/down slightly).
-     */
-    public static void startPulseAnimation(View view) {
+    // Continuous pulse scale animation
+    public static void pulseAnimation(View view) {
         view.animate()
-                .scaleX(1.05f)
-                .scaleY(1.05f)
-                .setDuration(800)
+                .scaleX(1.04f)
+                .scaleY(1.04f)
+                .setDuration(600)
                 .setListener(new AnimatorListenerAdapter() {
                     @Override
                     public void onAnimationEnd(Animator animation) {
                         view.animate()
                                 .scaleX(1f)
                                 .scaleY(1f)
-                                .setDuration(800)
+                                .setDuration(600)
                                 .setListener(new AnimatorListenerAdapter() {
                                     @Override
                                     public void onAnimationEnd(Animator animation) {
-                                        startPulseAnimation(view); // Infinite loop
+                                        pulseAnimation(view); // repeat indefinitely
                                     }
                                 })
                                 .start();
@@ -101,28 +117,41 @@ public class AnimationHelper {
                 .start();
     }
 
-    /**
-     * Stops any running animation on the view and resets scales.
-     */
     public static void stopPulseAnimation(View view) {
         view.animate().cancel();
         view.setScaleX(1f);
         view.setScaleY(1f);
     }
 
-    /**
-     * Animates numeric text in a TextView from a starting value to an ending value.
-     */
-    public static void animateTextCount(TextView textView, double startValue, double endValue, String currencySymbol) {
-        ValueAnimator animator = ValueAnimator.ofFloat((float) startValue, (float) endValue);
-        animator.setDuration(1200);
+    // Count up anim for numeric views
+    public static void countUpAnimation(TextView textView, double from, double to, int durationMs, String prefix) {
+        ValueAnimator animator = ValueAnimator.ofFloat((float) from, (float) to);
+        animator.setDuration(durationMs);
         animator.addUpdateListener(animation -> {
-            float animatedValue = (float) animation.getAnimatedValue();
-            if (currencySymbol != null) {
-                textView.setText(String.format(Locale.US, "%s%,.2f", currencySymbol, animatedValue));
-            } else {
-                textView.setText(String.format(Locale.US, "%,.2f", animatedValue));
-            }
+            float val = (float) animation.getAnimatedValue();
+            String prefixText = prefix != null ? prefix : "";
+            // Use local currency symbols or format helper if available
+            textView.setText(String.format(Locale.US, "%s%,.2f", prefixText, val));
+        });
+        animator.start();
+    }
+
+    public static void countUpAmountAnimation(TextView textView, double from, double to, int durationMs) {
+        ValueAnimator animator = ValueAnimator.ofFloat((float) from, (float) to);
+        animator.setDuration(durationMs);
+        animator.addUpdateListener(animation -> {
+            float val = (float) animation.getAnimatedValue();
+            textView.setText(CurrencyManager.getInstance().formatAmount(val));
+        });
+        animator.start();
+    }
+
+    public static void countUpIntegerAnimation(TextView textView, int from, int to, int durationMs) {
+        ValueAnimator animator = ValueAnimator.ofInt(from, to);
+        animator.setDuration(durationMs);
+        animator.addUpdateListener(animation -> {
+            int val = (int) animation.getAnimatedValue();
+            textView.setText(String.valueOf(val));
         });
         animator.start();
     }

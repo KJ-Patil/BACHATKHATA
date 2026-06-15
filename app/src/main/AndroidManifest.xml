@@ -3,11 +3,34 @@
     xmlns:tools="http://schemas.android.com/tools">
 
     <!-- Permissions -->
+    <!-- Core -->
     <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+
+    <!-- SMS auto-import -->
+    <uses-permission android:name="android.permission.READ_SMS" />
+    <uses-permission android:name="android.permission.RECEIVE_SMS" />
+
+    <!-- Voice logging -->
+    <uses-permission android:name="android.permission.RECORD_AUDIO" />
+
+    <!-- Receipt OCR -->
+    <uses-permission android:name="android.permission.CAMERA" />
+    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE"
+        android:maxSdkVersion="32" />
+    <uses-permission android:name="android.permission.READ_MEDIA_IMAGES" />
+
+    <!-- Notifications -->
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+    <uses-permission android:name="android.permission.VIBRATE" />
+
+    <!-- Biometric -->
     <uses-permission android:name="android.permission.USE_FINGERPRINT" />
     <uses-permission android:name="android.permission.USE_BIOMETRIC" />
-    <uses-permission android:name="android.permission.VIBRATE" />
-    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+
+    <!-- PDF export to Downloads -->
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"
+        android:maxSdkVersion="28" />
 
     <application
         android:name=".BachatKhataApplication"
@@ -24,7 +47,6 @@
         <activity
             android:name=".SplashActivity"
             android:exported="true"
-            android:noHistory="true"
             android:theme="@style/Theme.BachatKhata">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -35,8 +57,7 @@
         <!-- Authentication & Onboarding -->
         <activity
             android:name=".LoginActivity"
-            android:exported="false"
-            android:noHistory="true" />
+            android:exported="false" />
         <activity
             android:name=".RegisterActivity"
             android:exported="false" />
@@ -85,6 +106,108 @@
         <activity
             android:name=".ExportActivity"
             android:exported="false" />
+
+        <!-- Customer Ledger -->
+        <activity
+            android:name=".CustomerDetailActivity"
+            android:exported="false" />
+        <activity
+            android:name=".AddCustomerActivity"
+            android:exported="false" />
+
+        <!-- EMI & Loans -->
+        <activity
+            android:name=".AddEmiActivity"
+            android:exported="false" />
+
+        <!-- Family / Group Wallet -->
+        <activity
+            android:name=".CreateGroupActivity"
+            android:exported="false" />
+        <activity
+            android:name=".GroupDetailActivity"
+            android:exported="false" />
+
+        <!-- Bill Calendar -->
+        <activity
+            android:name=".BillCalendarActivity"
+            android:exported="false" />
+
+        <!-- Financial Health -->
+        <activity
+            android:name=".NetWorthActivity"
+            android:exported="false" />
+
+        <!-- Receipt Scanner -->
+        <activity
+            android:name=".ReceiptScannerActivity"
+            android:exported="false" />
+
+        <!-- CIBIL Score Simulator -->
+        <activity
+            android:name=".CibilSimulatorActivity"
+            android:exported="false" />
+
+        <!-- Learning Center -->
+        <activity
+            android:name=".LessonDetailActivity"
+            android:exported="false" />
+
+        <!-- Bill Splitter -->
+        <activity
+            android:name=".BillSplitterActivity"
+            android:exported="false" />
+
+        <!-- Money & Mood Correlation -->
+        <activity
+            android:name=".MoodInsightActivity"
+            android:exported="false" />
+
+        <!-- Event Fund Pool -->
+        <activity
+            android:name=".EventFundActivity"
+            android:exported="false" />
+
+        <!-- Organisation Donation Tracker -->
+        <activity
+            android:name=".OrgDonationTrackerActivity"
+            android:exported="false" />
+
+        <!-- Mood Action Broadcast Receiver -->
+        <receiver
+            android:name=".MoodBroadcastReceiver"
+            android:exported="false" />
+
+        <!-- SMS Broadcast Receiver -->
+        <receiver
+            android:name=".SmsReceiver"
+            android:exported="true"
+            android:permission="android.permission.BROADCAST_SMS">
+            <intent-filter>
+                <action android:name="android.provider.Telephony.SMS_RECEIVED" />
+            </intent-filter>
+        </receiver>
+
+        <!-- Disable EmojiCompat automatic initialization to prevent FontsProvider crashes -->
+        <provider
+            android:name="androidx.startup.InitializationProvider"
+            android:authorities="${applicationId}.androidx-startup"
+            android:exported="false"
+            tools:node="merge">
+            <meta-data
+                android:name="androidx.emoji2.text.EmojiCompatInitializer"
+                tools:node="remove" />
+        </provider>
+
+        <provider
+            android:name="androidx.core.content.FileProvider"
+            android:authorities="com.example.bachatkhata.fileprovider"
+            android:exported="false"
+            android:grantUriPermissions="true">
+            <meta-data
+                android:name="android.support.FILE_PROVIDER_PATHS"
+                android:resource="@xml/file_paths" />
+        </provider>
 
     </application>
 

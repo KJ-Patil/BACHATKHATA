@@ -5,18 +5,18 @@
     android:layout_height="match_parent"
     android:padding="24dp">
 
-    <!-- Onboarding Illustration Image -->
-    <ImageView
-        android:id="@+id/imgOnboarding"
-        android:layout_width="160dp"
-        android:layout_height="160dp"
-        android:layout_margin="24dp"
+    <!-- Lottie Animation View -->
+    <com.airbnb.lottie.LottieAnimationView
+        android:id="@+id/lottieOnboarding"
+        android:layout_width="240dp"
+        android:layout_height="240dp"
+        app:lottie_autoPlay="true"
+        app:lottie_loop="true"
         app:layout_constraintBottom_toTopOf="@+id/txtOnboardingTitle"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintVertical_chainStyle="packed"
-        app:tint="@color/colorPrimary" />
+        app:layout_constraintVertical_chainStyle="packed" />
 
     <!-- Onboarding Title -->
     <TextView

@@ -14,7 +14,7 @@ public class NetworkStateManager {
 
     private static NetworkStateManager instance;
     private final ConnectivityManager connectivityManager;
-    private final MutableLiveData<Boolean> isOnlineLiveData = new MutableLiveData<>(true);
+    private final MutableLiveData<Boolean> isNetworkAvailable = new MutableLiveData<>(true);
 
     private NetworkStateManager(Context context) {
         connectivityManager = (ConnectivityManager) context.getApplicationContext().getSystemService(Context.CONNECTIVITY_SERVICE);
@@ -29,20 +29,26 @@ public class NetworkStateManager {
         return instance;
     }
 
+    // Expose both getters for full compatibility
     public LiveData<Boolean> getIsOnline() {
-        return isOnlineLiveData;
+        return isNetworkAvailable;
+    }
+
+    public LiveData<Boolean> getIsNetworkAvailable() {
+        return isNetworkAvailable;
     }
 
     private void checkCurrentState() {
         try {
             NetworkCapabilities capabilities = connectivityManager.getNetworkCapabilities(connectivityManager.getActiveNetwork());
             boolean isConnected = capabilities != null &&
-                    (capabilities.hasTransport(NetworkCapabilities.TRANSPORT_WIFI) ||
-                            capabilities.hasTransport(NetworkCapabilities.TRANSPORT_CELLULAR) ||
-                            capabilities.hasTransport(NetworkCapabilities.TRANSPORT_ETHERNET));
-            isOnlineLiveData.postValue(isConnected);
+                    (capabilities.hasCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET) &&
+                     (capabilities.hasTransport(NetworkCapabilities.TRANSPORT_WIFI) ||
+                      capabilities.hasTransport(NetworkCapabilities.TRANSPORT_CELLULAR) ||
+                      capabilities.hasTransport(NetworkCapabilities.TRANSPORT_ETHERNET)));
+            isNetworkAvailable.postValue(isConnected);
         } catch (Exception e) {
-            isOnlineLiveData.postValue(false);
+            isNetworkAvailable.postValue(false);
         }
     }
 
@@ -54,18 +60,18 @@ public class NetworkStateManager {
         connectivityManager.registerNetworkCallback(networkRequest, new ConnectivityManager.NetworkCallback() {
             @Override
             public void onAvailable(@NonNull Network network) {
-                isOnlineLiveData.postValue(true);
+                isNetworkAvailable.postValue(true);
             }
 
             @Override
             public void onLost(@NonNull Network network) {
-                isOnlineLiveData.postValue(false);
+                isNetworkAvailable.postValue(false);
             }
 
             @Override
             public void onCapabilitiesChanged(@NonNull Network network, @NonNull NetworkCapabilities networkCapabilities) {
                 boolean hasInternet = networkCapabilities.hasCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET);
-                isOnlineLiveData.postValue(hasInternet);
+                isNetworkAvailable.postValue(hasInternet);
             }
         });
     }

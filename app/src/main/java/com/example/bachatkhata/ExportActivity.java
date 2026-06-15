@@ -2,6 +2,7 @@ package com.example.bachatkhata;
 
 import android.content.ContentResolver;
 import android.content.ContentValues;
+import android.content.Intent;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
@@ -14,11 +15,12 @@ import android.os.Environment;
 import android.provider.MediaStore;
 import android.view.View;
 
-import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.content.ContextCompat;
+import androidx.core.content.FileProvider;
+import androidx.core.util.Pair;
 
 import com.example.bachatkhata.databinding.ActivityExportBinding;
 import com.google.android.material.datepicker.MaterialDatePicker;
-import com.google.android.material.snackbar.Snackbar;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
@@ -31,8 +33,10 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 
 public class ExportActivity extends BaseActivity {
 
@@ -42,6 +46,8 @@ public class ExportActivity extends BaseActivity {
 
     private Date startDate;
     private Date endDate;
+    private boolean isPdfSelected = true;
+
     private final SimpleDateFormat displayDateFormat = new SimpleDateFormat("dd MMM yyyy", Locale.US);
 
     @Override
@@ -55,133 +61,171 @@ public class ExportActivity extends BaseActivity {
 
         initDates();
         setupListeners();
+        updateFormatUI();
     }
 
     private void initDates() {
         Calendar cal = Calendar.getInstance();
         endDate = cal.getTime();
 
-        // Start date defaults to 30 days ago
-        cal.add(Calendar.DAY_OF_MONTH, -30);
+        // Defaults to start of current month
+        cal.set(Calendar.DAY_OF_MONTH, 1);
         startDate = cal.getTime();
 
-        binding.txtStartDate.setText(String.format("Start Date: %s", displayDateFormat.format(startDate)));
-        binding.txtEndDate.setText(String.format("End Date: %s", displayDateFormat.format(endDate)));
+        updateDateRangeLabel();
+    }
+
+    private void updateDateRangeLabel() {
+        String rangeStr = displayDateFormat.format(startDate) + " - " + displayDateFormat.format(endDate);
+        binding.txtSelectedRange.setText(rangeStr);
     }
 
     private void setupListeners() {
         binding.btnBack.setOnClickListener(v -> finish());
 
-        binding.cardStartDate.setOnClickListener(v -> {
-            MaterialDatePicker<Long> datePicker = MaterialDatePicker.Builder.datePicker()
-                    .setTitleText("Select Start Date")
-                    .setSelection(startDate.getTime())
-                    .build();
+        binding.cardDateRange.setOnClickListener(v -> showDateRangePicker());
 
-            datePicker.addOnPositiveButtonClickListener(selection -> {
-                startDate = new Date(selection);
-                binding.txtStartDate.setText(String.format("Start Date: %s", displayDateFormat.format(startDate)));
-            });
-
-            datePicker.show(getSupportFragmentManager(), "START_DATE_PICKER");
+        binding.cardFormatPdf.setOnClickListener(v -> {
+            isPdfSelected = true;
+            updateFormatUI();
         });
 
-        binding.cardEndDate.setOnClickListener(v -> {
-            MaterialDatePicker<Long> datePicker = MaterialDatePicker.Builder.datePicker()
-                    .setTitleText("Select End Date")
-                    .setSelection(endDate.getTime())
-                    .build();
-
-            datePicker.addOnPositiveButtonClickListener(selection -> {
-                endDate = new Date(selection);
-                binding.txtEndDate.setText(String.format("End Date: %s", displayDateFormat.format(endDate)));
-            });
-
-            datePicker.show(getSupportFragmentManager(), "END_DATE_PICKER");
+        binding.cardFormatCsv.setOnClickListener(v -> {
+            isPdfSelected = false;
+            updateFormatUI();
         });
 
         binding.btnExport.setOnClickListener(v -> performExport());
     }
 
-    private void performExport() {
-        if (startDate.after(endDate)) {
-            showError("Start date cannot be after end date.");
-            return;
-        }
+    private void updateFormatUI() {
+        int activeBorder = ContextCompat.getColor(this, R.color.colorPrimary);
+        int inactiveBorder = ContextCompat.getColor(this, R.color.colorCardBorder);
 
+        if (isPdfSelected) {
+            binding.cardFormatPdf.setStrokeColor(activeBorder);
+            binding.cardFormatPdf.setStrokeWidth(4);
+            binding.cardFormatCsv.setStrokeColor(inactiveBorder);
+            binding.cardFormatCsv.setStrokeWidth(2);
+            binding.cardPdfOptions.setVisibility(View.VISIBLE);
+        } else {
+            binding.cardFormatCsv.setStrokeColor(activeBorder);
+            binding.cardFormatCsv.setStrokeWidth(4);
+            binding.cardFormatPdf.setStrokeColor(inactiveBorder);
+            binding.cardFormatPdf.setStrokeWidth(2);
+            binding.cardPdfOptions.setVisibility(View.GONE);
+        }
+    }
+
+    private void showDateRangePicker() {
+        MaterialDatePicker<Pair<Long, Long>> dateRangePicker = MaterialDatePicker.Builder.dateRangePicker()
+                .setTitleText("Select Date Range")
+                .setSelection(new Pair<>(startDate.getTime(), endDate.getTime()))
+                .build();
+
+        dateRangePicker.addOnPositiveButtonClickListener(selection -> {
+            if (selection.first != null && selection.second != null) {
+                startDate = new Date(selection.first);
+                endDate = new Date(selection.second);
+                updateDateRangeLabel();
+            }
+        });
+
+        dateRangePicker.show(getSupportFragmentManager(), "DATE_RANGE_PICKER");
+    }
+
+    private void performExport() {
         if (mAuth.getCurrentUser() == null) return;
-        showLoading(true);
+        showLoadingDialog();
         String uid = mAuth.getCurrentUser().getUid();
 
-        // Set start boundary to start of day, end boundary to end of day
+        // Query date boundaries
         Calendar cal = Calendar.getInstance();
         cal.setTime(startDate);
         cal.set(Calendar.HOUR_OF_DAY, 0);
         cal.set(Calendar.MINUTE, 0);
         cal.set(Calendar.SECOND, 0);
-        Date queryStartDate = cal.getTime();
+        Date queryStart = cal.getTime();
 
         cal.setTime(endDate);
         cal.set(Calendar.HOUR_OF_DAY, 23);
         cal.set(Calendar.MINUTE, 59);
         cal.set(Calendar.SECOND, 59);
-        Date queryEndDate = cal.getTime();
+        Date queryEnd = cal.getTime();
 
-        mFirestore.collection("users").document(uid)
-                .collection("transactions")
+        mFirestore.collection("users").document(uid).collection("transactions")
                 .orderBy("date", Query.Direction.DESCENDING)
                 .get()
                 .addOnSuccessListener(queryDocumentSnapshots -> {
-                    List<Transaction> filteredList = new ArrayList<>();
+                    List<Transaction> list = new ArrayList<>();
                     for (DocumentSnapshot doc : queryDocumentSnapshots.getDocuments()) {
                         Transaction t = Transaction.fromDocument(doc);
                         if (t.getDate() != null &&
-                                (t.getDate().after(queryStartDate) || t.getDate().equals(queryStartDate)) &&
-                                (t.getDate().before(queryEndDate) || t.getDate().equals(queryEndDate))) {
-                            filteredList.add(t);
+                                (t.getDate().after(queryStart) || t.getDate().equals(queryStart)) &&
+                                (t.getDate().before(queryEnd) || t.getDate().equals(queryEnd))) {
+                            list.add(t);
                         }
                     }
 
-                    if (filteredList.isEmpty()) {
-                        showLoading(false);
-                        showError("No transactions found in the selected date range.");
+                    if (list.isEmpty()) {
+                        hideLoadingDialog();
+                        showSnackbar("No transactions in selected range", "ERROR");
                         return;
                     }
 
-                    boolean isPdf = binding.chipFormatPdf.isChecked();
                     try {
                         String timeStamp = new SimpleDateFormat("yyyyMMdd_HHmmss", Locale.US).format(new Date());
-                        if (isPdf) {
-                            String fileName = "BachatKhata_Report_" + timeStamp + ".pdf";
-                            byte[] pdfBytes = generatePdf(filteredList);
+                        File tempFile;
+                        String mimeType;
+
+                        if (isPdfSelected) {
+                            String fileName = "BachatKhata_" + timeStamp + ".pdf";
+                            tempFile = new File(getCacheDir(), fileName);
+                            boolean includeCharts = binding.switchIncludeCharts.isChecked();
+                            byte[] pdfBytes = generatePdf(list, includeCharts);
+                            
+                            // Save to temp file
+                            FileOutputStream fos = new FileOutputStream(tempFile);
+                            fos.write(pdfBytes);
+                            fos.close();
+
+                            // Also write copy directly to system Downloads for convenience
                             saveFileToDownloads(fileName, "application/pdf", pdfBytes);
+                            mimeType = "application/pdf";
                         } else {
-                            String fileName = "BachatKhata_Report_" + timeStamp + ".csv";
-                            byte[] csvBytes = generateCsv(filteredList);
+                            String fileName = "BachatKhata_" + timeStamp + ".csv";
+                            tempFile = new File(getCacheDir(), fileName);
+                            byte[] csvBytes = generateCsv(list);
+
+                            FileOutputStream fos = new FileOutputStream(tempFile);
+                            fos.write(csvBytes);
+                            fos.close();
+
                             saveFileToDownloads(fileName, "text/csv", csvBytes);
+                            mimeType = "text/csv";
                         }
-                        showLoading(false);
-                        showSuccess("Report exported to Downloads folder!");
+
+                        hideLoadingDialog();
+                        shareFile(tempFile, mimeType);
                     } catch (Exception e) {
-                        showLoading(false);
-                        showError("Export failed: " + e.getMessage());
+                        hideLoadingDialog();
+                        showSnackbar("Export failed: " + e.getMessage(), "ERROR");
                     }
                 })
                 .addOnFailureListener(e -> {
-                    showLoading(false);
-                    showError("Failed to retrieve transactions: " + e.getMessage());
+                    hideLoadingDialog();
+                    showSnackbar("Failed to query data: " + e.getMessage(), "ERROR");
                 });
     }
 
     private byte[] generateCsv(List<Transaction> transactions) {
         StringBuilder csv = new StringBuilder();
-        // CSV Header
         csv.append("Date,Type,Category,Amount,Currency,Note,Account\n");
 
         SimpleDateFormat csvDateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.US);
         for (Transaction t : transactions) {
             String dateStr = t.getDate() != null ? csvDateFormat.format(t.getDate()) : "";
-            String note = t.getNote() != null ? t.getNote().replace(",", " ") : ""; // remove commas to prevent breakage
+            String note = t.getNote() != null ? t.getNote().replace(",", " ").replace("\n", " ") : "";
             csv.append(String.format(Locale.US, "%s,%s,%s,%.2f,%s,%s,%s\n",
                     dateStr,
                     t.getType(),
@@ -195,49 +239,55 @@ public class ExportActivity extends BaseActivity {
         return csv.toString().getBytes();
     }
 
-    private byte[] generatePdf(List<Transaction> transactions) throws Exception {
+    private byte[] generatePdf(List<Transaction> transactions, boolean includeCharts) throws Exception {
         PdfDocument document = new PdfDocument();
-        int pageWidth = 595; // A4 width in pixels
-        int pageHeight = 842; // A4 height in pixels
+        int pageWidth = 595;  // A4 size
+        int pageHeight = 842;
 
-        // Paint setup
         Paint paint = new Paint();
         Paint titlePaint = new Paint();
         titlePaint.setTypeface(Typeface.create(Typeface.DEFAULT, Typeface.BOLD));
         titlePaint.setTextSize(18);
-        titlePaint.setColor(Color.parseColor("#7C6FE0")); // Clay primary
+        titlePaint.setColor(Color.parseColor("#7C6FE0"));
 
         Paint headerPaint = new Paint();
         headerPaint.setTypeface(Typeface.create(Typeface.DEFAULT, Typeface.BOLD));
         headerPaint.setTextSize(11);
-        headerPaint.setColor(Color.parseColor("#12101E"));
+        headerPaint.setColor(Color.parseColor("#1A1A2E"));
 
         Paint textPaint = new Paint();
         textPaint.setTypeface(Typeface.create(Typeface.DEFAULT, Typeface.NORMAL));
         textPaint.setTextSize(10);
-        textPaint.setColor(Color.parseColor("#12101E"));
+        textPaint.setColor(Color.parseColor("#1A1A2E"));
 
         Paint metaPaint = new Paint();
         metaPaint.setTypeface(Typeface.create(Typeface.DEFAULT, Typeface.BOLD));
         metaPaint.setTextSize(11);
         metaPaint.setColor(Color.parseColor("#6B6B8A"));
 
-        // Compute metadata
+        // Totals
         double totalIncome = 0;
         double totalExpense = 0;
+        Map<String, Double> categoryTotals = new HashMap<>();
+
         for (Transaction t : transactions) {
+            double amt = t.getAmount();
             if ("income".equalsIgnoreCase(t.getType())) {
-                totalIncome += t.getAmount();
+                totalIncome += amt;
             } else {
-                totalExpense += t.getAmount();
+                totalExpense += amt;
+                String cat = t.getCategory() != null ? t.getCategory() : "Other";
+                categoryTotals.put(cat, categoryTotals.getOrDefault(cat, 0.0) + amt);
             }
         }
         double netSavings = totalIncome - totalExpense;
 
-        int rowHeight = 25;
-        int maxRowsPerPage = 22;
         int pageNumber = 1;
         int transactionIndex = 0;
+
+        int rowHeight = 24;
+        int startY = includeCharts ? 310 : 170;
+        int maxRowsPerPage = includeCharts ? 16 : 22;
 
         while (transactionIndex < transactions.size()) {
             PdfDocument.PageInfo pageInfo = new PdfDocument.PageInfo.Builder(pageWidth, pageHeight, pageNumber).create();
@@ -245,37 +295,74 @@ public class ExportActivity extends BaseActivity {
             Canvas canvas = page.getCanvas();
 
             // Background
-            canvas.drawColor(Color.parseColor("#FBFBFF"));
+            canvas.drawColor(Color.parseColor("#F5F3FF")); // Lavender white background
 
-            // Header Frame/Clay Rounded look
+            // Header Frame
             Paint cardBg = new Paint();
-            cardBg.setColor(Color.parseColor("#F4F3FF"));
-            canvas.drawRoundRect(20, 20, pageWidth - 20, 140, 16, 16, cardBg);
+            cardBg.setColor(Color.WHITE);
+            canvas.drawRoundRect(20, 20, pageWidth - 20, 140, 20, 20, cardBg);
 
-            // Title
-            canvas.drawText("BachatKhata - Transaction Report", 35, 55, titlePaint);
+            // Header title & info
+            canvas.drawText("BachatKhata Financial Statement", 40, 55, titlePaint);
+            canvas.drawText("Period: " + displayDateFormat.format(startDate) + " - " + displayDateFormat.format(endDate), 40, 80, textPaint);
 
-            // Dates and KPI overview
-            canvas.drawText(String.format("Period: %s - %s", displayDateFormat.format(startDate), displayDateFormat.format(endDate)), 35, 80, textPaint);
-            canvas.drawText(String.format("Total Income: %s", CurrencyManager.getInstance().formatAmount(totalIncome)), 35, 105, metaPaint);
-            canvas.drawText(String.format("Total Expense: %s", CurrencyManager.getInstance().formatAmount(totalExpense)), 210, 105, metaPaint);
-            canvas.drawText(String.format("Net Savings: %s", CurrencyManager.getInstance().formatAmount(netSavings)), 385, 105, metaPaint);
+            canvas.drawText("Income: " + CurrencyManager.getInstance().formatAmount(totalIncome), 40, 110, metaPaint);
+            canvas.drawText("Expense: " + CurrencyManager.getInstance().formatAmount(totalExpense), 210, 110, metaPaint);
+            canvas.drawText("Savings: " + CurrencyManager.getInstance().formatAmount(netSavings), 380, 110, metaPaint);
 
-            // Draw table headers
-            int startY = 170;
-            canvas.drawText("Date", 30, startY, headerPaint);
-            canvas.drawText("Category", 130, startY, headerPaint);
-            canvas.drawText("Note", 240, startY, headerPaint);
+            // Draw Charts if requested (Only on first page)
+            if (includeCharts && pageNumber == 1) {
+                // Draw white background card for chart summary
+                canvas.drawRoundRect(20, 150, pageWidth - 20, 280, 20, 20, cardBg);
+
+                // Simple Category Expense Summary Bar chart drawing
+                Paint chartLabelPaint = new Paint(textPaint);
+                chartLabelPaint.setTypeface(Typeface.create(Typeface.DEFAULT, Typeface.BOLD));
+                canvas.drawText("Category Expenditure Summary", 40, 175, chartLabelPaint);
+
+                int drawIndex = 0;
+                int barY = 195;
+                for (Map.Entry<String, Double> entry : categoryTotals.entrySet()) {
+                    if (drawIndex >= 3) break; // Limit visual clutter to top 3
+                    
+                    String category = entry.getKey();
+                    double val = entry.getValue();
+                    float pct = totalExpense > 0 ? (float) (val / totalExpense) : 0;
+                    
+                    canvas.drawText(category + " (" + String.format(Locale.US, "%.1f%%", pct * 100) + ")", 40, barY, textPaint);
+                    
+                    // Draw Progress bar background
+                    Paint barBgPaint = new Paint();
+                    barBgPaint.setColor(Color.parseColor("#E0DEFF"));
+                    canvas.drawRoundRect(180, barY - 10, pageWidth - 120, barY - 2, 4, 4, barBgPaint);
+
+                    // Draw actual spent progress
+                    Paint barFillPaint = new Paint();
+                    barFillPaint.setColor(Color.parseColor("#7C6FE0"));
+                    float fillWidth = 180 + (pct * (pageWidth - 300));
+                    canvas.drawRoundRect(180, barY - 10, fillWidth, barY - 2, 4, 4, barFillPaint);
+
+                    // Draw amount
+                    canvas.drawText(CurrencyManager.getInstance().formatAmount(val), pageWidth - 105, barY, textPaint);
+
+                    barY += 25;
+                    drawIndex++;
+                }
+            }
+
+            // Draw Table Headers
+            canvas.drawText("Date", 35, startY, headerPaint);
+            canvas.drawText("Category", 125, startY, headerPaint);
+            canvas.drawText("Note", 230, startY, headerPaint);
             canvas.drawText("Account", 380, startY, headerPaint);
-            canvas.drawText("Amount", 500, startY, headerPaint);
+            canvas.drawText("Amount", 495, startY, headerPaint);
 
-            // Draw line below headers
-            Paint linePaint = new Paint();
-            linePaint.setColor(Color.parseColor("#E0DEFF"));
-            linePaint.setStrokeWidth(1.5f);
-            canvas.drawLine(20, startY + 5, pageWidth - 20, startY + 5, linePaint);
+            Paint borderPaint = new Paint();
+            borderPaint.setColor(Color.parseColor("#E0DEFF"));
+            borderPaint.setStrokeWidth(1.5f);
+            canvas.drawLine(20, startY + 6, pageWidth - 20, startY + 6, borderPaint);
 
-            int currentY = startY + 25;
+            int currentY = startY + 24;
             int rowsThisPage = 0;
 
             SimpleDateFormat pdfDateFormat = new SimpleDateFormat("dd-MM-yyyy", Locale.US);
@@ -283,36 +370,33 @@ public class ExportActivity extends BaseActivity {
             while (transactionIndex < transactions.size() && rowsThisPage < maxRowsPerPage) {
                 Transaction t = transactions.get(transactionIndex);
 
-                // Row Alternating background
+                // Alternating backgrounds
                 if (rowsThisPage % 2 == 1) {
                     Paint altBg = new Paint();
-                    altBg.setColor(Color.parseColor("#FDFDFD"));
-                    canvas.drawRect(20, currentY - 15, pageWidth - 20, currentY + 10, altBg);
+                    altBg.setColor(Color.parseColor("#FFFFFF"));
+                    canvas.drawRoundRect(20, currentY - 15, pageWidth - 20, currentY + 9, 8, 8, altBg);
                 }
 
                 String dateStr = t.getDate() != null ? pdfDateFormat.format(t.getDate()) : "";
-                canvas.drawText(dateStr, 30, currentY, textPaint);
-                canvas.drawText(t.getCategory() != null ? t.getCategory() : "", 130, currentY, textPaint);
-                
+                canvas.drawText(dateStr, 35, currentY, textPaint);
+                canvas.drawText(t.getCategory() != null ? t.getCategory() : "", 125, currentY, textPaint);
+
                 String note = t.getNote() != null ? t.getNote() : "";
-                if (note.length() > 22) {
-                    note = note.substring(0, 20) + "..";
-                }
-                canvas.drawText(note, 240, currentY, textPaint);
+                if (note.length() > 22) note = note.substring(0, 20) + "..";
+                canvas.drawText(note, 230, currentY, textPaint);
                 canvas.drawText(t.getAccount() != null ? t.getAccount() : "", 380, currentY, textPaint);
 
-                // Style income/expense amount
+                // Format values
                 String sign = "income".equalsIgnoreCase(t.getType()) ? "+" : "-";
                 int color = "income".equalsIgnoreCase(t.getType()) ? Color.parseColor("#3DAF85") : Color.parseColor("#E24B4A");
                 Paint amountPaint = new Paint(textPaint);
                 amountPaint.setColor(color);
                 amountPaint.setTypeface(Typeface.create(Typeface.DEFAULT, Typeface.BOLD));
 
-                String amtStr = String.format("%s%s", sign, CurrencyManager.getInstance().formatAmount(t.getAmount()));
-                canvas.drawText(amtStr, 500, currentY, amountPaint);
+                String amtStr = sign + CurrencyManager.getInstance().formatAmount(t.getAmount());
+                canvas.drawText(amtStr, 495, currentY, amountPaint);
 
-                // Row grid boundary line
-                canvas.drawLine(20, currentY + 10, pageWidth - 20, currentY + 10, linePaint);
+                canvas.drawLine(20, currentY + 9, pageWidth - 20, currentY + 9, borderPaint);
 
                 currentY += rowHeight;
                 transactionIndex++;
@@ -320,11 +404,15 @@ public class ExportActivity extends BaseActivity {
             }
 
             // Footer
-            canvas.drawText(String.format(Locale.US, "Page %d of %d", pageNumber, (int) Math.ceil((double) transactions.size() / maxRowsPerPage)), pageWidth / 2f - 30, pageHeight - 30, textPaint);
-            canvas.drawText("Generated via BachatKhata", 30, pageHeight - 30, textPaint);
+            int totalPages = (int) Math.ceil((double) transactions.size() / maxRowsPerPage);
+            canvas.drawText("Page " + pageNumber + " of " + totalPages, pageWidth / 2f - 30, pageHeight - 30, textPaint);
+            canvas.drawText("Generated via BachatKhata", 35, pageHeight - 30, textPaint);
 
             document.finishPage(page);
             pageNumber++;
+            // Subsequent pages don't show charts, adjust start boundary & rows capacity
+            startY = 170;
+            maxRowsPerPage = 22;
         }
 
         File tempFile = File.createTempFile("pdf_report", ".pdf", getCacheDir());
@@ -333,7 +421,6 @@ public class ExportActivity extends BaseActivity {
         document.close();
         fos.close();
 
-        // Read bytes from temp file to return
         byte[] bytes = new byte[(int) tempFile.length()];
         java.io.FileInputStream fis = new java.io.FileInputStream(tempFile);
         fis.read(bytes);
@@ -345,7 +432,6 @@ public class ExportActivity extends BaseActivity {
 
     private void saveFileToDownloads(String fileName, String mimeType, byte[] contentBytes) throws Exception {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-            // Android 10+ MediaStore approach (No permissions needed)
             ContentResolver resolver = getContentResolver();
             ContentValues contentValues = new ContentValues();
             contentValues.put(MediaStore.MediaColumns.DISPLAY_NAME, fileName);
@@ -353,23 +439,16 @@ public class ExportActivity extends BaseActivity {
             contentValues.put(MediaStore.MediaColumns.RELATIVE_PATH, Environment.DIRECTORY_DOWNLOADS);
 
             Uri uri = resolver.insert(MediaStore.Downloads.EXTERNAL_CONTENT_URI, contentValues);
-            if (uri == null) {
-                throw new Exception("Failed to insert MediaStore download record.");
-            }
-
-            OutputStream os = resolver.openOutputStream(uri);
-            if (os != null) {
-                os.write(contentBytes);
-                os.close();
-            } else {
-                throw new Exception("Failed to open output stream.");
+            if (uri != null) {
+                OutputStream os = resolver.openOutputStream(uri);
+                if (os != null) {
+                    os.write(contentBytes);
+                    os.close();
+                }
             }
         } else {
-            // Legacy approach
             File downloadsDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS);
-            if (!downloadsDir.exists()) {
-                downloadsDir.mkdirs();
-            }
+            if (!downloadsDir.exists()) downloadsDir.mkdirs();
             File file = new File(downloadsDir, fileName);
             FileOutputStream fos = new FileOutputStream(file);
             fos.write(contentBytes);
@@ -377,19 +456,16 @@ public class ExportActivity extends BaseActivity {
         }
     }
 
-    private void showLoading(boolean isLoading) {
-        binding.loaderOverlay.setVisibility(isLoading ? View.VISIBLE : View.GONE);
-    }
-
-    private void showError(String message) {
-        Snackbar snackbar = Snackbar.make(binding.getRoot(), message, Snackbar.LENGTH_LONG);
-        snackbar.setBackgroundTint(getResources().getColor(R.color.colorDanger));
-        snackbar.show();
-    }
-
-    private void showSuccess(String message) {
-        Snackbar snackbar = Snackbar.make(binding.getRoot(), message, Snackbar.LENGTH_LONG);
-        snackbar.setBackgroundTint(getResources().getColor(R.color.colorSecondary));
-        snackbar.show();
+    private void shareFile(File file, String mimeType) {
+        Uri fileUri = FileProvider.getUriForFile(this, "com.example.bachatkhata.fileprovider", file);
+        
+        Intent shareIntent = new Intent(Intent.ACTION_SEND);
+        shareIntent.setType(mimeType);
+        shareIntent.putExtra(Intent.EXTRA_STREAM, fileUri);
+        shareIntent.putExtra(Intent.EXTRA_SUBJECT, "BachatKhata Export Report");
+        shareIntent.putExtra(Intent.EXTRA_TEXT, "Here is my financial statement summary.");
+        shareIntent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
+        
+        startActivity(Intent.createChooser(shareIntent, "Share Statement via"));
     }
 }

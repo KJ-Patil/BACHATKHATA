@@ -27,6 +27,8 @@ public class HomeViewModel extends ViewModel {
     private final MutableLiveData<Double> totalSaved = new MutableLiveData<>(0.0);
     private final MutableLiveData<List<Transaction>> recentTransactions = new MutableLiveData<>(new ArrayList<>());
     
+    private final MutableLiveData<Double> todaySpent = new MutableLiveData<>(0.0);
+    
     private final MutableLiveData<List<Entry>> lineChartData = new MutableLiveData<>(new ArrayList<>());
     private final MutableLiveData<List<BarEntry>> barChartData = new MutableLiveData<>(new ArrayList<>());
     private final MutableLiveData<List<String>> barChartLabels = new MutableLiveData<>(new ArrayList<>());
@@ -41,6 +43,7 @@ public class HomeViewModel extends ViewModel {
     public LiveData<Double> getTotalBalance() { return totalBalance; }
     public LiveData<Double> getTotalSaved() { return totalSaved; }
     public LiveData<List<Transaction>> getRecentTransactions() { return recentTransactions; }
+    public LiveData<Double> getTodaySpent() { return todaySpent; }
     public LiveData<List<Entry>> getLineChartData() { return lineChartData; }
     public LiveData<List<BarEntry>> getBarChartData() { return barChartData; }
     public LiveData<List<String>> getBarChartLabels() { return barChartLabels; }
@@ -92,6 +95,26 @@ public class HomeViewModel extends ViewModel {
             recent.add(filtered.get(i));
         }
         recentTransactions.setValue(recent);
+
+        // Calculate today's spent amount from all transactions
+        double spentToday = 0;
+        Calendar todayCal = Calendar.getInstance();
+        int todayYear = todayCal.get(Calendar.YEAR);
+        int todayMonth = todayCal.get(Calendar.MONTH);
+        int todayDay = todayCal.get(Calendar.DAY_OF_MONTH);
+        
+        for (Transaction t : allTransactionsList) {
+            if ("expense".equalsIgnoreCase(t.getType()) && t.getDate() != null) {
+                Calendar tCal = Calendar.getInstance();
+                tCal.setTime(t.getDate());
+                if (tCal.get(Calendar.YEAR) == todayYear &&
+                    tCal.get(Calendar.MONTH) == todayMonth &&
+                    tCal.get(Calendar.DAY_OF_MONTH) == todayDay) {
+                    spentToday += t.getAmount();
+                }
+            }
+        }
+        todaySpent.setValue(spentToday);
 
         // Build charts
         buildLineChartData(filtered);

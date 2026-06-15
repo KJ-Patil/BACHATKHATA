@@ -143,7 +143,7 @@ public class RegisterActivity extends AppCompatActivity {
         mFirestore.collection("users").document(uid).set(userData)
                 .addOnSuccessListener(aVoid -> {
                     // Seed defaults and navigate to onboarding
-                    DefaultDataSeeder.seedDefaultCategories(uid, aVoid2 -> {
+                    DefaultDataSeeder.seedDefaultData(uid, aVoid2 -> {
                         showLoading(false);
                         startActivity(new Intent(RegisterActivity.this, OnboardingActivity.class));
                         finish();

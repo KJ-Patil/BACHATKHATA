@@ -9,7 +9,6 @@ import android.view.View;
 import android.view.animation.OvershootInterpolator;
 
 import androidx.annotation.NonNull;
-import androidx.appcompat.app.AppCompatActivity;
 import androidx.biometric.BiometricManager;
 import androidx.biometric.BiometricPrompt;
 import androidx.core.app.ActivityCompat;
@@ -22,7 +21,9 @@ import com.example.bachatkhata.databinding.ActivityMainBinding;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.FirebaseFirestore;
 
+import java.util.Calendar;
 import java.util.concurrent.Executor;
+import java.util.concurrent.TimeUnit;
 
 public class MainActivity extends BaseActivity {
 
@@ -74,28 +75,158 @@ public class MainActivity extends BaseActivity {
             }
         });
 
-        // 5. Schedule Background Budget Alerts Periodic Task
-        scheduleBudgetAlerts();
+        // 5. Schedule Background Periodic Tasks (WorkManager)
+        scheduleAllWorkers();
+
+        // 6. Handle deep links from intent (if launched from notification)
+        handleIntent(getIntent());
     }
 
-    private void scheduleBudgetAlerts() {
-        androidx.work.PeriodicWorkRequest budgetCheckRequest =
-                new androidx.work.PeriodicWorkRequest.Builder(
-                        BudgetAlertWorker.class,
-                        24, java.util.concurrent.TimeUnit.HOURS)
-                        .build();
+    @Override
+    protected void onNewIntent(Intent intent) {
+        super.onNewIntent(intent);
+        setIntent(intent);
+        handleIntent(intent);
+    }
 
-        androidx.work.WorkManager.getInstance(this).enqueueUniquePeriodicWork(
+    private void handleIntent(Intent intent) {
+        if (intent == null || navController == null) return;
+
+        if (intent.hasExtra("parsed_transaction")) {
+            SmsParser.ParsedTransaction txn = (SmsParser.ParsedTransaction) intent.getSerializableExtra("parsed_transaction");
+            if (txn != null) {
+                SmsImportBottomSheet bottomSheet = SmsImportBottomSheet.newInstance(txn);
+                bottomSheet.show(getSupportFragmentManager(), "SmsImportBottomSheet");
+            }
+            intent.removeExtra("parsed_transaction");
+        }
+
+        String destination = intent.getStringExtra("destination");
+        if (destination != null) {
+            switch (destination) {
+                case "budget":
+                    navController.navigate(R.id.navigation_budget);
+                    break;
+                case "notifications":
+                case "alert":
+                case "bill":
+                    navController.navigate(R.id.navigation_notifications);
+                    break;
+                case "transactions":
+                    navController.navigate(R.id.navigation_transactions);
+                    break;
+                case "savings":
+                    navController.navigate(R.id.navigation_savings);
+                    break;
+                case "health":
+                    navController.navigate(R.id.navigation_health_score);
+                    break;
+                case "mood":
+                    Intent moodIntent = new Intent(this, MoodInsightActivity.class);
+                    startActivity(moodIntent);
+                    break;
+                default:
+                    // Navigate to home by default
+                    navController.navigate(R.id.navigation_home);
+                    break;
+            }
+        }
+    }
+
+    private void scheduleAllWorkers() {
+        androidx.work.WorkManager workManager = androidx.work.WorkManager.getInstance(this);
+
+        // 1. BudgetAlertWorker - Daily 9 AM
+        long budgetDelay = calculateDailyDelay(9);
+        androidx.work.PeriodicWorkRequest budgetCheckRequest =
+                new androidx.work.PeriodicWorkRequest.Builder(BudgetAlertWorker.class, 24, TimeUnit.HOURS)
+                        .setInitialDelay(budgetDelay, TimeUnit.MILLISECONDS)
+                        .build();
+        workManager.enqueueUniquePeriodicWork(
                 "BudgetAlertCheck",
                 androidx.work.ExistingPeriodicWorkPolicy.KEEP,
                 budgetCheckRequest
         );
+
+        // 2. WeeklyInsightWorker - Monday 8 AM
+        long weeklyDelay = calculateWeeklyDelay(Calendar.MONDAY, 8);
+        androidx.work.PeriodicWorkRequest weeklyInsightRequest =
+                new androidx.work.PeriodicWorkRequest.Builder(WeeklyInsightWorker.class, 7, TimeUnit.DAYS)
+                        .setInitialDelay(weeklyDelay, TimeUnit.MILLISECONDS)
+                        .build();
+        workManager.enqueueUniquePeriodicWork(
+                "WeeklyInsightCheck",
+                androidx.work.ExistingPeriodicWorkPolicy.KEEP,
+                weeklyInsightRequest
+        );
+
+        // 3. BillReminderWorker - Daily 8 AM
+        long billDelay = calculateDailyDelay(8);
+        androidx.work.PeriodicWorkRequest billReminderRequest =
+                new androidx.work.PeriodicWorkRequest.Builder(BillReminderWorker.class, 24, TimeUnit.HOURS)
+                        .setInitialDelay(billDelay, TimeUnit.MILLISECONDS)
+                        .build();
+        workManager.enqueueUniquePeriodicWork(
+                "BillReminderCheck",
+                androidx.work.ExistingPeriodicWorkPolicy.KEEP,
+                billReminderRequest
+        );
+
+        // 4. HealthScoreWorker - Weekly Sunday 9 AM
+        long healthDelay = calculateWeeklyDelay(Calendar.SUNDAY, 9);
+        androidx.work.PeriodicWorkRequest healthCheckRequest =
+                new androidx.work.PeriodicWorkRequest.Builder(HealthScoreWorker.class, 7, TimeUnit.DAYS)
+                        .setInitialDelay(healthDelay, TimeUnit.MILLISECONDS)
+                        .build();
+        workManager.enqueueUniquePeriodicWork(
+                "HealthScoreCheck",
+                androidx.work.ExistingPeriodicWorkPolicy.KEEP,
+                healthCheckRequest
+        );
+
+        // 5. MoodCheckInWorker - Weekly Sunday 7 PM
+        long moodDelay = calculateWeeklyDelay(Calendar.SUNDAY, 19);
+        androidx.work.PeriodicWorkRequest moodCheckRequest =
+                new androidx.work.PeriodicWorkRequest.Builder(MoodCheckInWorker.class, 7, TimeUnit.DAYS)
+                        .setInitialDelay(moodDelay, TimeUnit.MILLISECONDS)
+                        .build();
+        workManager.enqueueUniquePeriodicWork(
+                "MoodCheckInCheck",
+                androidx.work.ExistingPeriodicWorkPolicy.KEEP,
+                moodCheckRequest
+        );
+    }
+
+    private long calculateDailyDelay(int targetHour) {
+        Calendar now = Calendar.getInstance();
+        Calendar target = Calendar.getInstance();
+        target.set(Calendar.HOUR_OF_DAY, targetHour);
+        target.set(Calendar.MINUTE, 0);
+        target.set(Calendar.SECOND, 0);
+        target.set(Calendar.MILLISECOND, 0);
+        if (target.before(now)) {
+            target.add(Calendar.DAY_OF_YEAR, 1);
+        }
+        return target.getTimeInMillis() - now.getTimeInMillis();
+    }
+
+    private long calculateWeeklyDelay(int targetDayOfWeek, int targetHour) {
+        Calendar now = Calendar.getInstance();
+        Calendar target = Calendar.getInstance();
+        target.set(Calendar.DAY_OF_WEEK, targetDayOfWeek);
+        target.set(Calendar.HOUR_OF_DAY, targetHour);
+        target.set(Calendar.MINUTE, 0);
+        target.set(Calendar.SECOND, 0);
+        target.set(Calendar.MILLISECOND, 0);
+        if (target.before(now)) {
+            target.add(Calendar.WEEK_OF_YEAR, 1);
+        }
+        return target.getTimeInMillis() - now.getTimeInMillis();
     }
 
     @Override
     protected void onResume() {
         super.onResume();
-        // Prompt biometrics on resume if enabled
         if (isBiometricEnabled && !isBiometricPromptShown) {
             promptBiometrics();
         }
@@ -133,7 +264,6 @@ public class MainActivity extends BaseActivity {
                         Boolean bioEnabled = documentSnapshot.getBoolean("biometricEnabled");
                         if (bioEnabled != null) {
                             isBiometricEnabled = bioEnabled;
-                            // Prompt immediately on initial load if enabled
                             if (isBiometricEnabled && !isBiometricPromptShown) {
                                 promptBiometrics();
                             }
@@ -154,7 +284,6 @@ public class MainActivity extends BaseActivity {
                         @Override
                         public void onAuthenticationError(int errorCode, @NonNull CharSequence errString) {
                             super.onAuthenticationError(errorCode, errString);
-                            // Fallback to PIN lock screen on error or user cancel
                             isBiometricPromptShown = false;
                             Intent intent = new Intent(MainActivity.this, PinSetupActivity.class);
                             intent.putExtra("mode", "VERIFY");
@@ -164,7 +293,7 @@ public class MainActivity extends BaseActivity {
                         @Override
                         public void onAuthenticationSucceeded(@NonNull BiometricPrompt.AuthenticationResult result) {
                             super.onAuthenticationSucceeded(result);
-                            isBiometricPromptShown = false; // reset for next backgrounding
+                            isBiometricPromptShown = false;
                         }
 
                         @Override

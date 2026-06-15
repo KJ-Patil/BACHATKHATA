@@ -11,10 +11,12 @@ import java.util.Map;
 
 public class DefaultDataSeeder {
 
-    public static void seedDefaultCategories(String uid, OnSuccessListener<Void> listener) {
+    public static void seedDefaultData(String uid, OnSuccessListener<Void> listener) {
         FirebaseFirestore db = FirebaseFirestore.getInstance();
         WriteBatch batch = db.batch();
+
         CollectionReference catColRef = db.collection("users").document(uid).collection("categories");
+        CollectionReference billColRef = db.collection("users").document(uid).collection("bills");
 
         // Seed 12 Expense Categories
         addCategoryToBatch(batch, catColRef, "Food", "🍛", "#EF9F27", "expense");
@@ -35,9 +37,22 @@ public class DefaultDataSeeder {
         addCategoryToBatch(batch, catColRef, "Freelance", "💻", "#5DCAA5", "income");
         addCategoryToBatch(batch, catColRef, "Other income", "📥", "#B4B2A9", "income");
 
+        // Seed 3 default bills: Electricity (28th), Mobile Recharge (1st), Internet (5th)
+        addBillToBatch(batch, billColRef, "Electricity", 0.0, 28, "Bills");
+        addBillToBatch(batch, billColRef, "Mobile Recharge", 0.0, 1, "Bills");
+        addBillToBatch(batch, billColRef, "Internet", 0.0, 5, "Bills");
+
         batch.commit()
-                .addOnSuccessListener(aVoid -> listener.onSuccess(null))
-                .addOnFailureListener(e -> listener.onSuccess(null)); // Fallback, proceed anyway to not block user
+                .addOnSuccessListener(aVoid -> {
+                    if (listener != null) {
+                        listener.onSuccess(null);
+                    }
+                })
+                .addOnFailureListener(e -> {
+                    if (listener != null) {
+                        listener.onSuccess(null); // Fallback to let execution continue
+                    }
+                });
     }
 
     private static void addCategoryToBatch(WriteBatch batch, CollectionReference col, String name, String icon, String color, String type) {
@@ -50,5 +65,20 @@ public class DefaultDataSeeder {
         category.put("type", type);
         category.put("isDefault", true);
         batch.set(docRef, category);
+    }
+
+    private static void addBillToBatch(WriteBatch batch, CollectionReference col, String name, double amount, int dueDay, String category) {
+        DocumentReference docRef = col.document();
+        Map<String, Object> bill = new HashMap<>();
+        bill.put("id", docRef.getId());
+        bill.put("name", name);
+        bill.put("amount", amount);
+        bill.put("dueDay", dueDay);
+        bill.put("category", category);
+        bill.put("isRecurring", true);
+        bill.put("lastPaidDate", null);
+        bill.put("isActive", true);
+        bill.put("isDefault", true);
+        batch.set(docRef, bill);
     }
 }

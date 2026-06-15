@@ -1,0 +1,50 @@
+{
+  "id": "lesson_03",
+  "title": "Compound interest magic",
+  "sections": [
+    {
+      "heading": "What is Compound Interest?",
+      "body": "Compound interest is the addition of interest to the principal sum of a loan or deposit, or in other words, interest on interest. It is the result of reinvesting interest, rather than paying it out, so that interest in the next period is then earned on the principal sum plus previously accumulated interest."
+    },
+    {
+      "heading": "Simple vs Compound Interest",
+      "body": "Simple interest is calculated only on the initial amount of money. Compound interest grows your money exponentially. The rule of 72 tells you how long it takes to double your money: divide 72 by your annual interest rate!"
+    },
+    {
+      "heading": "Start Early to Win",
+      "body": "Because compound interest is exponential, the key factor is time. Starting to invest at age 20 with ₹1000 per month will grow to a much larger sum by age 60 than starting at age 30 with ₹2000 per month."
+    }
+  ],
+  "quiz": [
+    {
+      "question": "What is compound interest?",
+      "options": [
+        "Interest on the principal only",
+        "Interest on interest plus principal",
+        "Flat rate interest",
+        "Tax on interest"
+      ],
+      "correctIndex": 1
+    },
+    {
+      "question": "If you earn 8% interest per year, how long will it take to double your money using the Rule of 72?",
+      "options": [
+        "6 years",
+        "9 years",
+        "12 years",
+        "72 years"
+      ],
+      "correctIndex": 1
+    },
+    {
+      "question": "Which of these is the most important factor in compounding growth?",
+      "options": [
+        "The size of the initial investment",
+        "The compounding frequency and time",
+        "The bank you choose",
+        "The type of currency"
+      ],
+      "correctIndex": 1
+    }
+  ]
+}

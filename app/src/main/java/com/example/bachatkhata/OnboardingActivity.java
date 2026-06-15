@@ -112,20 +112,20 @@ public class OnboardingActivity extends AppCompatActivity {
             switch (position) {
                 case 0:
                     return OnboardingPageFragment.newInstance(
-                            R.drawable.ic_wallet,
+                            R.raw.onboarding_1,
                             getString(R.string.onboarding_title_1),
                             getString(R.string.onboarding_subtitle_1)
                     );
                 case 1:
                     return OnboardingPageFragment.newInstance(
-                            R.drawable.ic_piggy_bank,
+                            R.raw.onboarding_2,
                             getString(R.string.onboarding_title_2),
                             getString(R.string.onboarding_subtitle_2)
                     );
                 case 2:
                 default:
                     return OnboardingPageFragment.newInstance(
-                            R.drawable.ic_budget,
+                            R.raw.onboarding_3,
                             getString(R.string.onboarding_title_3),
                             getString(R.string.onboarding_subtitle_3)
                     );
