@@ -69,6 +69,10 @@ public class AddBillBottomSheet extends BottomSheetDialogFragment {
                 .get()
                 .addOnSuccessListener(queryDocumentSnapshots -> {
                     if (binding == null) return;
+                    if (queryDocumentSnapshots.isEmpty()) {
+                        DefaultDataSeeder.seedDefaultData(uid, aVoid -> loadCategories());
+                        return;
+                    }
                     binding.chipGroupCategory.removeAllViews();
                     for (DocumentSnapshot doc : queryDocumentSnapshots.getDocuments()) {
                         String catName = doc.getString("name");

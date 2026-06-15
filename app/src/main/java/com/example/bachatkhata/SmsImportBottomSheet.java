@@ -173,6 +173,10 @@ public class SmsImportBottomSheet extends BottomSheetDialogFragment {
                 .get()
                 .addOnSuccessListener(queryDocumentSnapshots -> {
                     if (binding == null) return;
+                    if (queryDocumentSnapshots.isEmpty()) {
+                        DefaultDataSeeder.seedDefaultData(uid, aVoid -> loadCategories(type, selectedCategoryName));
+                        return;
+                    }
                     binding.chipGroupCategory.removeAllViews();
                     for (DocumentSnapshot doc : queryDocumentSnapshots.getDocuments()) {
                         String catName = doc.getString("name");

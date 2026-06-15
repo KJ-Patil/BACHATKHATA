@@ -227,12 +227,17 @@ public class AddTransactionActivity extends BaseActivity {
                 .whereEqualTo("type", transactionType)
                 .get()
                 .addOnSuccessListener(queryDocumentSnapshots -> {
-                    availableCategories.clear();
-                    for (DocumentSnapshot doc : queryDocumentSnapshots.getDocuments()) {
-                        availableCategories.add(Category.fromDocument(doc));
+                    if (queryDocumentSnapshots.isEmpty()) {
+                        // Categories are empty (e.g. newly signed-in Google users). Seed defaults and reload.
+                        DefaultDataSeeder.seedDefaultData(uid, aVoid -> loadCategories());
+                    } else {
+                        availableCategories.clear();
+                        for (DocumentSnapshot doc : queryDocumentSnapshots.getDocuments()) {
+                            availableCategories.add(Category.fromDocument(doc));
+                        }
+                        categoryGridAdapter.setCategories(availableCategories);
+                        selectedCategory = null;
                     }
-                    categoryGridAdapter.setCategories(availableCategories);
-                    selectedCategory = null;
                 });
     }
 

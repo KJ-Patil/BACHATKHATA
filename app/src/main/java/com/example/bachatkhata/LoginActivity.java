@@ -154,7 +154,9 @@ public class LoginActivity extends AppCompatActivity {
                                         userData.put("createdAt", com.google.firebase.Timestamp.now());
 
                                         mFirestore.collection("users").document(user.getUid()).set(userData)
-                                                .addOnSuccessListener(aVoid -> checkUserStatusAndRoute())
+                                                .addOnSuccessListener(aVoid -> {
+                                                    DefaultDataSeeder.seedDefaultData(user.getUid(), aVoid2 -> checkUserStatusAndRoute());
+                                                })
                                                 .addOnFailureListener(e -> {
                                                     showLoading(false);
                                                     showError("Failed to initialize Google profile: " + e.getMessage());

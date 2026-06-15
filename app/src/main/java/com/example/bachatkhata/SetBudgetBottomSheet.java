@@ -94,6 +94,10 @@ public class SetBudgetBottomSheet extends BottomSheetDialogFragment {
                 .whereEqualTo("type", "expense")
                 .get()
                 .addOnSuccessListener(queryDocumentSnapshots -> {
+                    if (queryDocumentSnapshots.isEmpty()) {
+                        DefaultDataSeeder.seedDefaultData(uid, aVoid -> loadExpenseCategories());
+                        return;
+                    }
                     expenseCategories.clear();
                     for (DocumentSnapshot doc : queryDocumentSnapshots.getDocuments()) {
                         expenseCategories.add(Category.fromDocument(doc));
