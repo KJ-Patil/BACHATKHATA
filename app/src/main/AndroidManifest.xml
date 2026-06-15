@@ -209,6 +209,11 @@
                 android:resource="@xml/file_paths" />
         </provider>
 
+        <!-- Automatically download ML Kit OCR model -->
+        <meta-data
+            android:name="com.google.mlkit.vision.DEPENDENCIES"
+            android:value="ocr" />
+
     </application>
 
 </manifest>
