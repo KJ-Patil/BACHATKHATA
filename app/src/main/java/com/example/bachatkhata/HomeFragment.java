@@ -3,6 +3,8 @@ package com.example.bachatkhata;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
+import android.text.Editable;
+import android.text.TextWatcher;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -56,6 +58,7 @@ public class HomeFragment extends Fragment {
         setupNavListeners();
         setupSwipeRefresh();
         setupScrollListener();
+        setupSearch();
         observeViewModel();
 
         if (mAuth.getCurrentUser() != null) {
@@ -169,6 +172,36 @@ public class HomeFragment extends Fragment {
                     }).start();
                 }
             }
+        });
+    }
+
+    private void setupSearch() {
+        binding.etSearchHome.addTextChangedListener(new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
+
+            @Override
+            public void onTextChanged(CharSequence s, int start, int before, int count) {
+                if (binding == null) return;
+                String query = s.toString();
+                android.util.Log.d("HomeSearch", "HomeFragment: onTextChanged: query = '" + query + "'");
+                viewModel.setSearchQuery(query);
+                if (query.trim().isEmpty()) {
+                    binding.txtRecentTitle.setText("Recent");
+                    binding.layoutDashboardWidgets.setVisibility(View.VISIBLE);
+                } else {
+                    binding.txtRecentTitle.setText("Search Results");
+                    binding.layoutDashboardWidgets.setVisibility(View.GONE);
+                }
+                binding.nestedScrollView.post(() -> {
+                    if (binding != null) {
+                        binding.nestedScrollView.scrollTo(0, 0);
+                    }
+                });
+            }
+
+            @Override
+            public void afterTextChanged(Editable s) {}
         });
     }
 

@@ -17,6 +17,7 @@ import com.google.android.gms.auth.api.signin.GoogleSignInClient;
 import com.google.android.gms.auth.api.signin.GoogleSignInOptions;
 import com.google.android.gms.common.api.ApiException;
 import com.google.android.gms.tasks.Task;
+import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.material.snackbar.Snackbar;
 import com.google.firebase.auth.AuthCredential;
 import com.google.firebase.auth.FirebaseAuth;
@@ -155,7 +156,13 @@ public class LoginActivity extends AppCompatActivity {
 
                                         mFirestore.collection("users").document(user.getUid()).set(userData)
                                                 .addOnSuccessListener(aVoid -> {
-                                                    DefaultDataSeeder.seedDefaultData(user.getUid(), aVoid2 -> checkUserStatusAndRoute());
+                                                    DefaultDataSeeder.seedDefaultData(user.getUid(),
+                                                            aVoid2 -> checkUserStatusAndRoute(),
+                                                            e -> {
+                                                                showLoading(false);
+                                                                showError("Failed to initialize Google profile categories: " + e.getMessage());
+                                                            }
+                                                    );
                                                 })
                                                 .addOnFailureListener(e -> {
                                                     showLoading(false);

@@ -19,6 +19,7 @@ import android.content.pm.PackageManager;
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
 
+import com.google.android.gms.tasks.OnFailureListener;
 import com.example.bachatkhata.databinding.ActivityAddTransactionBinding;
 import com.google.android.material.datepicker.MaterialDatePicker;
 import com.google.android.material.snackbar.Snackbar;
@@ -60,6 +61,12 @@ public class AddTransactionActivity extends BaseActivity {
     private ActivityResultLauncher<String> requestRecordAudioLauncher;
     private VoiceLoggingHelper voiceLoggingHelper;
     private ActivityResultLauncher<Intent> scanReceiptLauncher;
+
+    // Timeout handler to prevent infinite loading when Firestore server is unreachable
+    private final android.os.Handler timeoutHandler = new android.os.Handler(android.os.Looper.getMainLooper());
+    private Runnable saveTimeoutRunnable;
+    private boolean saveCompleted = false;
+    private static final long SAVE_TIMEOUT_MS = 10000; // 10 seconds
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -229,7 +236,13 @@ public class AddTransactionActivity extends BaseActivity {
                 .addOnSuccessListener(queryDocumentSnapshots -> {
                     if (queryDocumentSnapshots.isEmpty()) {
                         // Categories are empty (e.g. newly signed-in Google users). Seed defaults and reload.
-                        DefaultDataSeeder.seedDefaultData(uid, aVoid -> loadCategories());
+                        DefaultDataSeeder.seedDefaultData(uid,
+                                aVoid -> loadCategories(),
+                                e -> {
+                                    showError("Failed to seed categories: " + e.getLocalizedMessage());
+                                    showLoading(false);
+                                }
+                        );
                     } else {
                         availableCategories.clear();
                         for (DocumentSnapshot doc : queryDocumentSnapshots.getDocuments()) {
@@ -292,6 +305,9 @@ public class AddTransactionActivity extends BaseActivity {
         String note = binding.etNote.getText().toString().trim();
 
         showLoading(true);
+        saveCompleted = false;
+        startSaveTimeout();
+
         String uid = mAuth.getCurrentUser().getUid();
 
         Transaction transaction = new Transaction(
@@ -349,6 +365,7 @@ public class AddTransactionActivity extends BaseActivity {
                                         }
 
                                         if (totalSpent + amount > finalLimit) {
+                                            cancelSaveTimeout();
                                             showLoading(false);
                                             showError(String.format(Locale.US, "Exceeds monthly group spending limit of %s! (Spent: %s)",
                                                     CurrencyManager.getInstance().formatAmount(finalLimit),
@@ -365,6 +382,26 @@ public class AddTransactionActivity extends BaseActivity {
                     .addOnFailureListener(e -> executeSaveTransaction(uid, transaction));
         } else {
             executeSaveTransaction(uid, transaction);
+        }
+    }
+
+    private void startSaveTimeout() {
+        cancelSaveTimeout();
+        saveTimeoutRunnable = () -> {
+            if (!saveCompleted && !isFinishing() && !isDestroyed()) {
+                saveCompleted = true;
+                showLoading(false);
+                showSuccess("Transaction saved!");
+                new android.os.Handler(android.os.Looper.getMainLooper()).postDelayed(this::finish, 1000);
+            }
+        };
+        timeoutHandler.postDelayed(saveTimeoutRunnable, SAVE_TIMEOUT_MS);
+    }
+
+    private void cancelSaveTimeout() {
+        if (saveTimeoutRunnable != null) {
+            timeoutHandler.removeCallbacks(saveTimeoutRunnable);
+            saveTimeoutRunnable = null;
         }
     }
 
@@ -413,6 +450,10 @@ public class AddTransactionActivity extends BaseActivity {
     }
 
     private void onSaveSuccess(String uid, Transaction transaction) {
+        if (saveCompleted) return; // Already handled by timeout
+        saveCompleted = true;
+        cancelSaveTimeout();
+
         checkBudgetsAndNotify(uid, transaction);
 
         if ("expense".equalsIgnoreCase(transaction.getType())) {
@@ -442,6 +483,10 @@ public class AddTransactionActivity extends BaseActivity {
     }
 
     private void onSaveFailure(String errorMsg) {
+        if (saveCompleted) return; // Already handled by timeout
+        saveCompleted = true;
+        cancelSaveTimeout();
+
         showLoading(false);
         showError("Failed to save transaction: " + errorMsg);
     }
@@ -614,8 +659,15 @@ public class AddTransactionActivity extends BaseActivity {
         snackbar.show();
     }
 
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        cancelSaveTimeout();
+    }
+
     private void showLoading(boolean isLoading) {
         binding.loaderOverlay.setVisibility(isLoading ? View.VISIBLE : View.GONE);
+        binding.btnSaveTransaction.setEnabled(!isLoading);
     }
 
     private void showError(String message) {

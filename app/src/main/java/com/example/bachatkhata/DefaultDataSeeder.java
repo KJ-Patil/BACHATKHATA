@@ -1,5 +1,6 @@
 package com.example.bachatkhata;
 
+import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.firebase.firestore.CollectionReference;
 import com.google.firebase.firestore.DocumentReference;
@@ -11,7 +12,7 @@ import java.util.Map;
 
 public class DefaultDataSeeder {
 
-    public static void seedDefaultData(String uid, OnSuccessListener<Void> listener) {
+    public static void seedDefaultData(String uid, OnSuccessListener<Void> successListener, OnFailureListener failureListener) {
         FirebaseFirestore db = FirebaseFirestore.getInstance();
         WriteBatch batch = db.batch();
 
@@ -43,16 +44,8 @@ public class DefaultDataSeeder {
         addBillToBatch(batch, billColRef, "Internet", 0.0, 5, "Bills");
 
         batch.commit()
-                .addOnSuccessListener(aVoid -> {
-                    if (listener != null) {
-                        listener.onSuccess(null);
-                    }
-                })
-                .addOnFailureListener(e -> {
-                    if (listener != null) {
-                        listener.onSuccess(null); // Fallback to let execution continue
-                    }
-                });
+                .addOnSuccessListener(successListener)
+                .addOnFailureListener(failureListener);
     }
 
     private static void addCategoryToBatch(WriteBatch batch, CollectionReference col, String name, String icon, String color, String type) {

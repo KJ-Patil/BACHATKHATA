@@ -90,6 +90,32 @@
                     </FrameLayout>
                 </RelativeLayout>
 
+                <!-- Search Box -->
+                <com.google.android.material.textfield.TextInputLayout
+                    android:id="@+id/tilSearchHome"
+                    style="@style/ClayInput"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="20dp"
+                    android:hint="Search transactions..."
+                    app:startIconDrawable="@drawable/ic_search"
+                    app:startIconTint="@color/colorTextSecondary">
+
+                    <com.google.android.material.textfield.TextInputEditText
+                        android:id="@+id/etSearchHome"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:inputType="text"
+                        android:textColor="@color/colorTextPrimary" />
+                </com.google.android.material.textfield.TextInputLayout>
+
+                <!-- Container for dashboard widgets to hide during search -->
+                <LinearLayout
+                    android:id="@+id/layoutDashboardWidgets"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical">
+
                 <!-- B. Balance Hero Card -->
                 <com.google.android.material.card.MaterialCardView
                     android:id="@+id/cardBalanceHero"
@@ -506,6 +532,8 @@
                     </LinearLayout>
                 </com.google.android.material.card.MaterialCardView>
 
+                </LinearLayout>
+
                 <!-- G. Recent Transactions -->
                 <LinearLayout
                     android:layout_width="match_parent"
@@ -517,6 +545,7 @@
                         android:layout_height="wrap_content"
                         android:layout_marginBottom="8dp">
                         <TextView
+                            android:id="@+id/txtRecentTitle"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:layout_centerVertical="true"

@@ -11,6 +11,7 @@ import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.example.bachatkhata.databinding.ActivityRegisterBinding;
+import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.material.snackbar.Snackbar;
 import com.google.firebase.Timestamp;
 import com.google.firebase.auth.FirebaseAuth;
@@ -143,11 +144,17 @@ public class RegisterActivity extends AppCompatActivity {
         mFirestore.collection("users").document(uid).set(userData)
                 .addOnSuccessListener(aVoid -> {
                     // Seed defaults and navigate to onboarding
-                    DefaultDataSeeder.seedDefaultData(uid, aVoid2 -> {
-                        showLoading(false);
-                        startActivity(new Intent(RegisterActivity.this, OnboardingActivity.class));
-                        finish();
-                    });
+                    DefaultDataSeeder.seedDefaultData(uid,
+                            aVoid2 -> {
+                                showLoading(false);
+                                startActivity(new Intent(RegisterActivity.this, OnboardingActivity.class));
+                                finish();
+                            },
+                            e -> {
+                                showLoading(false);
+                                showError("Failed to seed default categories: " + e.getLocalizedMessage());
+                            }
+                    );
                 })
                 .addOnFailureListener(e -> {
                     showLoading(false);

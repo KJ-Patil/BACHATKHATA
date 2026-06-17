@@ -10,6 +10,7 @@ import android.widget.Toast;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
+import com.google.android.gms.tasks.OnFailureListener;
 import com.example.bachatkhata.databinding.LayoutAddBillBinding;
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment;
 import com.google.android.material.chip.Chip;
@@ -70,7 +71,10 @@ public class AddBillBottomSheet extends BottomSheetDialogFragment {
                 .addOnSuccessListener(queryDocumentSnapshots -> {
                     if (binding == null) return;
                     if (queryDocumentSnapshots.isEmpty()) {
-                        DefaultDataSeeder.seedDefaultData(uid, aVoid -> loadCategories());
+                        DefaultDataSeeder.seedDefaultData(uid,
+                                aVoid -> loadCategories(),
+                                e -> Toast.makeText(getContext(), "Failed to seed categories: " + e.getLocalizedMessage(), Toast.LENGTH_SHORT).show()
+                        );
                         return;
                     }
                     binding.chipGroupCategory.removeAllViews();

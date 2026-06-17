@@ -14,6 +14,7 @@ import com.example.bachatkhata.databinding.LayoutSetBudgetBinding;
 import com.example.bachatkhata.databinding.ItemCategoryChipBinding;
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment;
 import com.google.android.material.chip.Chip;
+import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.material.snackbar.Snackbar;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.DocumentSnapshot;
@@ -95,7 +96,10 @@ public class SetBudgetBottomSheet extends BottomSheetDialogFragment {
                 .get()
                 .addOnSuccessListener(queryDocumentSnapshots -> {
                     if (queryDocumentSnapshots.isEmpty()) {
-                        DefaultDataSeeder.seedDefaultData(uid, aVoid -> loadExpenseCategories());
+                        DefaultDataSeeder.seedDefaultData(uid,
+                                aVoid -> loadExpenseCategories(),
+                                e -> Snackbar.make(binding.getRoot(), "Failed to seed categories: " + e.getLocalizedMessage(), Snackbar.LENGTH_LONG).show()
+                        );
                         return;
                     }
                     expenseCategories.clear();

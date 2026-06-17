@@ -33,6 +33,7 @@ public class HomeViewModel extends ViewModel {
     private final MutableLiveData<List<BarEntry>> barChartData = new MutableLiveData<>(new ArrayList<>());
     private final MutableLiveData<List<String>> barChartLabels = new MutableLiveData<>(new ArrayList<>());
     private final MutableLiveData<String> selectedPeriod = new MutableLiveData<>("Monthly");
+    private String currentSearchQuery = "";
 
     private final FirebaseFirestore mFirestore = FirebaseFirestore.getInstance();
     private ListenerRegistration savingsListener;
@@ -85,15 +86,36 @@ public class HomeViewModel extends ViewModel {
         processAndEmitData(period);
     }
 
+    public void setSearchQuery(String query) {
+        android.util.Log.d("HomeSearch", "HomeViewModel: setSearchQuery: query = '" + query + "'");
+        this.currentSearchQuery = query;
+        processAndEmitData(selectedPeriod.getValue());
+    }
+
     private void processAndEmitData(String period) {
         List<Transaction> filtered = filterByPeriod(allTransactionsList, period);
         calculateKPIs(filtered);
         
-        // Emit top 3 transactions for recent list
+        android.util.Log.d("HomeSearch", "HomeViewModel: processAndEmitData: allTransactions size = " + allTransactionsList.size() + ", filtered size = " + filtered.size());
+
+        // Emit top 3 transactions for recent list or matching search results
         List<Transaction> recent = new ArrayList<>();
-        for (int i = 0; i < Math.min(3, filtered.size()); i++) {
-            recent.add(filtered.get(i));
+        if (currentSearchQuery == null || currentSearchQuery.trim().isEmpty()) {
+            for (int i = 0; i < Math.min(3, filtered.size()); i++) {
+                recent.add(filtered.get(i));
+            }
+        } else {
+            String lowerQuery = currentSearchQuery.toLowerCase().trim();
+            for (Transaction t : allTransactionsList) {
+                boolean noteMatch = t.getNote() != null && t.getNote().toLowerCase().contains(lowerQuery);
+                boolean categoryMatch = t.getCategory() != null && t.getCategory().toLowerCase().contains(lowerQuery);
+                android.util.Log.d("HomeSearch", "HomeViewModel: comparing txn: note = '" + t.getNote() + "', cat = '" + t.getCategory() + "', noteMatch = " + noteMatch + ", categoryMatch = " + categoryMatch);
+                if (noteMatch || categoryMatch) {
+                    recent.add(t);
+                }
+            }
         }
+        android.util.Log.d("HomeSearch", "HomeViewModel: Emitting recentTransactions size = " + recent.size());
         recentTransactions.setValue(recent);
 
         // Calculate today's spent amount from all transactions

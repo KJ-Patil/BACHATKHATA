@@ -19,6 +19,7 @@ import com.example.bachatkhata.databinding.LayoutSmsImportBinding;
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment;
 import com.google.android.material.chip.Chip;
 import com.google.android.material.datepicker.MaterialDatePicker;
+import com.google.android.gms.tasks.OnFailureListener;
 import com.google.firebase.Timestamp;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.DocumentSnapshot;
@@ -174,7 +175,10 @@ public class SmsImportBottomSheet extends BottomSheetDialogFragment {
                 .addOnSuccessListener(queryDocumentSnapshots -> {
                     if (binding == null) return;
                     if (queryDocumentSnapshots.isEmpty()) {
-                        DefaultDataSeeder.seedDefaultData(uid, aVoid -> loadCategories(type, selectedCategoryName));
+                        DefaultDataSeeder.seedDefaultData(uid,
+                                aVoid -> loadCategories(type, selectedCategoryName),
+                                e -> Toast.makeText(getContext(), "Failed to seed categories: " + e.getLocalizedMessage(), Toast.LENGTH_SHORT).show()
+                        );
                         return;
                     }
                     binding.chipGroupCategory.removeAllViews();

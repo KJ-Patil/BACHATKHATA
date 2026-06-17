@@ -28,16 +28,17 @@ public class TransactionAdapter extends ListAdapter<Transaction, TransactionAdap
     private static final DiffUtil.ItemCallback<Transaction> DIFF_CALLBACK = new DiffUtil.ItemCallback<Transaction>() {
         @Override
         public boolean areItemsTheSame(@NonNull Transaction oldItem, @NonNull Transaction newItem) {
-            return oldItem.getId().equals(newItem.getId());
+            return java.util.Objects.equals(oldItem.getId(), newItem.getId());
         }
 
         @Override
         public boolean areContentsTheSame(@NonNull Transaction oldItem, @NonNull Transaction newItem) {
             return oldItem.getAmount() == newItem.getAmount() &&
-                    oldItem.getType().equals(newItem.getType()) &&
-                    oldItem.getCategory().equals(newItem.getCategory()) &&
-                    oldItem.getNote().equals(newItem.getNote()) &&
-                    oldItem.getDate().getTime() == newItem.getDate().getTime();
+                    java.util.Objects.equals(oldItem.getType(), newItem.getType()) &&
+                    java.util.Objects.equals(oldItem.getCategory(), newItem.getCategory()) &&
+                    java.util.Objects.equals(oldItem.getNote(), newItem.getNote()) &&
+                    (oldItem.getDate() == null ? newItem.getDate() == null :
+                     newItem.getDate() != null && oldItem.getDate().getTime() == newItem.getDate().getTime());
         }
     };
 
