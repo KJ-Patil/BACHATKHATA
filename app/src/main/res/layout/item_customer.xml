@@ -3,10 +3,14 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:id="@+id/cardCustomer"
     style="@style/ClayCard"
+    app:cardElevation="0dp"
+    app:cardBackgroundColor="@android:color/transparent"
+    app:strokeWidth="0dp"
+    app:cardCornerRadius="0dp"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:layout_marginHorizontal="16dp"
-    android:layout_marginVertical="6dp"
+    android:layout_marginVertical="5dp"
     android:clickable="true"
     android:focusable="true">
 
@@ -14,17 +18,18 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="horizontal"
-        android:padding="16dp"
-        android:gravity="center_vertical">
+        android:gravity="center_vertical"
+        android:background="@drawable/bg_card_3d"
+        android:padding="14dp">
 
-        <!-- Avatar Initials Circle -->
+        <!-- Avatar circle -->
         <com.google.android.material.card.MaterialCardView
             android:id="@+id/cardAvatar"
-            style="@style/ClayCard"
-            android:layout_width="48dp"
-            android:layout_height="48dp"
-            app:cardCornerRadius="24dp"
-            app:strokeWidth="1dp"
+            android:layout_width="46dp"
+            android:layout_height="46dp"
+            app:cardCornerRadius="23dp"
+            app:cardElevation="0dp"
+            app:strokeWidth="1.5dp"
             app:strokeColor="@color/colorCardBorder">
 
             <FrameLayout
@@ -45,12 +50,12 @@
             </FrameLayout>
         </com.google.android.material.card.MaterialCardView>
 
-        <!-- Customer Name & Phone -->
+        <!-- Name, phone, last activity -->
         <LinearLayout
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:layout_marginStart="16dp"
+            android:layout_marginHorizontal="12dp"
             android:orientation="vertical">
 
             <TextView
@@ -59,8 +64,10 @@
                 android:layout_height="wrap_content"
                 android:text="Customer Name"
                 android:textColor="@color/colorTextPrimary"
-                android:textSize="15sp"
-                android:textStyle="bold" />
+                android:textSize="14sp"
+                android:textStyle="bold"
+                android:maxLines="1"
+                android:ellipsize="end" />
 
             <TextView
                 android:id="@+id/txtCustomerPhone"
@@ -70,41 +77,69 @@
                 android:text="+91 98765 43210"
                 android:textColor="@color/colorTextSecondary"
                 android:textSize="12sp" />
+
+            <TextView
+                android:id="@+id/txtLastActivity"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="2dp"
+                android:text="Today"
+                android:textColor="@color/colorTextSecondary"
+                android:textSize="10sp" />
         </LinearLayout>
 
-        <!-- Balance display -->
+        <!-- Right side: type badge, balance, direction -->
         <LinearLayout
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:orientation="vertical"
             android:gravity="end"
-            android:layout_marginEnd="16dp">
+            android:layout_marginEnd="10dp">
 
+            <!-- Type badge pill -->
+            <TextView
+                android:id="@+id/txtTypeBadge"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="end"
+                android:layout_marginBottom="5dp"
+                android:paddingStart="8dp"
+                android:paddingEnd="8dp"
+                android:paddingTop="2dp"
+                android:paddingBottom="2dp"
+                android:text="CUSTOMER"
+                android:textSize="9sp"
+                android:textStyle="bold" />
+
+            <!-- Balance amount -->
             <TextView
                 android:id="@+id/txtCustomerBalance"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:layout_gravity="end"
                 android:text="₹0.00"
                 android:textColor="@color/colorTextPrimary"
-                android:textSize="15sp"
+                android:textSize="14sp"
                 android:textStyle="bold" />
 
+            <!-- Direction label -->
             <TextView
                 android:id="@+id/txtCustomerBalanceLabel"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:layout_gravity="end"
                 android:layout_marginTop="2dp"
-                android:text="Settled"
+                android:text="SETTLED"
                 android:textColor="@color/colorTextSecondary"
-                android:textSize="10sp"
+                android:textSize="9sp"
                 android:textStyle="bold" />
         </LinearLayout>
 
-        <!-- WhatsApp Quick Action Button -->
+        <!-- WhatsApp button -->
         <FrameLayout
             android:id="@+id/btnWhatsApp"
-            android:layout_width="36dp"
-            android:layout_height="36dp"
+            android:layout_width="34dp"
+            android:layout_height="34dp"
             android:clickable="true"
             android:focusable="true"
             android:background="?attr/selectableItemBackgroundBorderless">
@@ -114,7 +149,7 @@
                 android:layout_height="wrap_content"
                 android:layout_gravity="center"
                 android:text="💬"
-                android:textSize="20sp" />
+                android:textSize="18sp" />
         </FrameLayout>
 
     </LinearLayout>

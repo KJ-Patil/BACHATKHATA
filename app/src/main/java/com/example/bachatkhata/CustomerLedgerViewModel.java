@@ -1,5 +1,7 @@
 package com.example.bachatkhata;
 
+import android.util.Log;
+
 import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
 import androidx.lifecycle.ViewModel;
@@ -17,21 +19,15 @@ public class CustomerLedgerViewModel extends ViewModel {
     private final MutableLiveData<List<Customer>> customers = new MutableLiveData<>(new ArrayList<>());
     private final MutableLiveData<Double> totalToReceive = new MutableLiveData<>(0.0);
     private final MutableLiveData<Double> totalToPay = new MutableLiveData<>(0.0);
+    private final MutableLiveData<Double> netPosition = new MutableLiveData<>(0.0);
 
     private final FirebaseFirestore mFirestore = FirebaseFirestore.getInstance();
     private ListenerRegistration listenerRegistration;
 
-    public LiveData<List<Customer>> getCustomers() {
-        return customers;
-    }
-
-    public LiveData<Double> getTotalToReceive() {
-        return totalToReceive;
-    }
-
-    public LiveData<Double> getTotalToPay() {
-        return totalToPay;
-    }
+    public LiveData<List<Customer>> getCustomers() { return customers; }
+    public LiveData<Double> getTotalToReceive() { return totalToReceive; }
+    public LiveData<Double> getTotalToPay() { return totalToPay; }
+    public LiveData<Double> getNetPosition() { return netPosition; }
 
     public void observeCustomers(String uid) {
         if (listenerRegistration != null) {
@@ -41,7 +37,10 @@ public class CustomerLedgerViewModel extends ViewModel {
         listenerRegistration = mFirestore.collection("users").document(uid).collection("customers")
                 .orderBy("createdAt", Query.Direction.DESCENDING)
                 .addSnapshotListener((value, error) -> {
-                    if (error != null) return;
+                    if (error != null) {
+                        Log.e("CustomerLedgerVM", "Snapshot listener error: " + error.getMessage());
+                        return;
+                    }
 
                     List<Customer> customerList = new ArrayList<>();
                     double toReceive = 0;
@@ -64,6 +63,7 @@ public class CustomerLedgerViewModel extends ViewModel {
                     customers.setValue(customerList);
                     totalToReceive.setValue(toReceive);
                     totalToPay.setValue(toPay);
+                    netPosition.setValue(toReceive - toPay);
                 });
     }
 

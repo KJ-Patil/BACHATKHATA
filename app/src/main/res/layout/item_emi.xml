@@ -2,6 +2,10 @@
 <com.google.android.material.card.MaterialCardView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     style="@style/ClayCard"
+    app:cardElevation="0dp"
+    app:cardBackgroundColor="@android:color/transparent"
+    app:strokeWidth="0dp"
+    app:cardCornerRadius="0dp"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:layout_marginHorizontal="16dp"
@@ -11,6 +15,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="vertical"
+        android:background="@drawable/bg_card_3d"
         android:padding="16dp">
 
         <!-- Top Row: Loan Name & Type Badge -->
@@ -27,13 +32,27 @@
                 android:textSize="16sp"
                 android:textStyle="bold"
                 android:layout_alignParentStart="true"
+                android:layout_centerVertical="true"
                 android:layout_toStartOf="@+id/txtLoanType" />
+
+            <ImageView
+                android:id="@+id/btnDeleteEmi"
+                android:layout_width="24dp"
+                android:layout_height="24dp"
+                android:layout_alignParentEnd="true"
+                android:layout_centerVertical="true"
+                android:layout_marginStart="8dp"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:src="@drawable/ic_trash"
+                android:contentDescription="Delete EMI"
+                app:tint="@color/colorDanger" />
 
             <TextView
                 android:id="@+id/txtLoanType"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_alignParentEnd="true"
+                android:layout_toStartOf="@+id/btnDeleteEmi"
+                android:layout_centerVertical="true"
                 android:background="@drawable/bg_clay_button"
                 android:backgroundTint="@color/colorPrimary"
                 android:textColor="@android:color/white"

@@ -1,8 +1,8 @@
 package com.example.bachatkhata;
 
 import android.content.Intent;
-import android.content.res.ColorStateList;
 import android.graphics.Color;
+import android.graphics.drawable.GradientDrawable;
 import android.net.Uri;
 import android.os.Bundle;
 import android.text.Editable;
@@ -20,11 +20,15 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.bachatkhata.databinding.FragmentCustomerLedgerBinding;
 import com.example.bachatkhata.databinding.ItemCustomerBinding;
+import com.google.android.material.tabs.TabLayout;
 import com.google.firebase.auth.FirebaseAuth;
 
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.Date;
 import java.util.List;
 import java.util.Locale;
 
@@ -38,10 +42,12 @@ public class CustomerLedgerFragment extends Fragment {
     private final List<Customer> allCustomers = new ArrayList<>();
     private final List<Customer> filteredCustomers = new ArrayList<>();
     private String searchQuery = "";
+    private int activeTab = 0; // 0=All, 1=Credits, 2=Debits, 3=Settled
 
     @Nullable
     @Override
-    public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
+    public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container,
+                             @Nullable Bundle savedInstanceState) {
         binding = FragmentCustomerLedgerBinding.inflate(inflater, container, false);
         return binding.getRoot();
     }
@@ -54,6 +60,7 @@ public class CustomerLedgerFragment extends Fragment {
         viewModel = new ViewModelProvider(this).get(CustomerLedgerViewModel.class);
 
         setupRecyclerView();
+        setupTabs();
         setupListeners();
         observeViewModel();
 
@@ -68,30 +75,52 @@ public class CustomerLedgerFragment extends Fragment {
         binding.rvCustomers.setAdapter(adapter);
     }
 
+    private void setupTabs() {
+        binding.tabLayout.addTab(binding.tabLayout.newTab().setText("ALL BOOKS (0)"));
+        binding.tabLayout.addTab(binding.tabLayout.newTab().setText("CREDITS (0)"));
+        binding.tabLayout.addTab(binding.tabLayout.newTab().setText("DEBITS (0)"));
+        binding.tabLayout.addTab(binding.tabLayout.newTab().setText("SETTLED (0)"));
+
+        binding.tabLayout.addOnTabSelectedListener(new TabLayout.OnTabSelectedListener() {
+            @Override
+            public void onTabSelected(TabLayout.Tab tab) {
+                activeTab = tab.getPosition();
+                filterCustomers();
+            }
+            @Override public void onTabUnselected(TabLayout.Tab tab) {}
+            @Override public void onTabReselected(TabLayout.Tab tab) {}
+        });
+    }
+
+    private void updateTabCounts(int total, int credits, int debits, int settled) {
+        if (binding.tabLayout.getTabAt(0) != null)
+            binding.tabLayout.getTabAt(0).setText("ALL BOOKS (" + total + ")");
+        if (binding.tabLayout.getTabAt(1) != null)
+            binding.tabLayout.getTabAt(1).setText("CREDITS (" + credits + ")");
+        if (binding.tabLayout.getTabAt(2) != null)
+            binding.tabLayout.getTabAt(2).setText("DEBITS (" + debits + ")");
+        if (binding.tabLayout.getTabAt(3) != null)
+            binding.tabLayout.getTabAt(3).setText("SETTLED (" + settled + ")");
+    }
+
     private void setupListeners() {
         binding.btnBack.setOnClickListener(v -> {
-            if (getActivity() != null) {
-                getActivity().onBackPressed();
-            }
+            if (getActivity() != null) getActivity().onBackPressed();
         });
 
-        binding.fabAddCustomer.setOnClickListener(v -> {
-            Intent intent = new Intent(getContext(), AddCustomerActivity.class);
-            startActivity(intent);
+        binding.btnAddAccount.setOnClickListener(v -> {
+            AddAccountBookBottomSheet sheet = new AddAccountBookBottomSheet();
+            sheet.show(getChildFragmentManager(), "AddAccountBook");
         });
 
         binding.etSearch.addTextChangedListener(new TextWatcher() {
-            @Override
-            public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
-
+            @Override public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
             @Override
             public void onTextChanged(CharSequence s, int start, int before, int count) {
                 searchQuery = s.toString();
                 filterCustomers();
             }
-
-            @Override
-            public void afterTextChanged(Editable s) {}
+            @Override public void afterTextChanged(Editable s) {}
         });
     }
 
@@ -99,40 +128,61 @@ public class CustomerLedgerFragment extends Fragment {
         viewModel.getCustomers().observe(getViewLifecycleOwner(), list -> {
             allCustomers.clear();
             allCustomers.addAll(list);
+
+            int credits = 0, debits = 0, settled = 0;
+            for (Customer c : list) {
+                double b = c.getBalance();
+                if (b > 0) credits++;
+                else if (b < 0) debits++;
+                else settled++;
+            }
+            updateTabCounts(list.size(), credits, debits, settled);
             filterCustomers();
         });
 
-        viewModel.getTotalToReceive().observe(getViewLifecycleOwner(), val -> 
+        viewModel.getTotalToReceive().observe(getViewLifecycleOwner(), val ->
             binding.txtTotalToReceive.setText(CurrencyManager.getInstance().formatAmount(val))
         );
 
-        viewModel.getTotalToPay().observe(getViewLifecycleOwner(), val -> 
+        viewModel.getTotalToPay().observe(getViewLifecycleOwner(), val ->
             binding.txtTotalToPay.setText(CurrencyManager.getInstance().formatAmount(val))
         );
+
+        viewModel.getNetPosition().observe(getViewLifecycleOwner(), val -> {
+            String prefix = val >= 0 ? "+" : "";
+            binding.txtNetPosition.setText(prefix + CurrencyManager.getInstance().formatAmount(Math.abs(val)));
+            binding.txtNetPosition.setTextColor(val >= 0
+                    ? Color.parseColor("#3DAF85")
+                    : Color.parseColor("#E24B4A"));
+        });
     }
 
     private void filterCustomers() {
         filteredCustomers.clear();
-        String query = searchQuery.trim().toLowerCase();
+        String query = searchQuery.trim().toLowerCase(Locale.US);
 
         for (Customer c : allCustomers) {
-            boolean matches = query.isEmpty() ||
-                    (c.getName() != null && c.getName().toLowerCase().contains(query)) ||
-                    (c.getPhone() != null && c.getPhone().toLowerCase().contains(query));
+            double balance = c.getBalance();
+            boolean tabMatch;
+            switch (activeTab) {
+                case 1: tabMatch = balance > 0; break;
+                case 2: tabMatch = balance < 0; break;
+                case 3: tabMatch = balance == 0; break;
+                default: tabMatch = true; break;
+            }
 
-            if (matches) {
+            boolean searchMatch = query.isEmpty()
+                    || (c.getName() != null && c.getName().toLowerCase(Locale.US).contains(query))
+                    || (c.getPhone() != null && c.getPhone().toLowerCase(Locale.US).contains(query));
+
+            if (tabMatch && searchMatch) {
                 filteredCustomers.add(c);
             }
         }
 
-        if (filteredCustomers.isEmpty()) {
-            binding.layoutEmptyState.setVisibility(View.VISIBLE);
-            binding.rvCustomers.setVisibility(View.GONE);
-        } else {
-            binding.layoutEmptyState.setVisibility(View.GONE);
-            binding.rvCustomers.setVisibility(View.VISIBLE);
-        }
-
+        boolean empty = filteredCustomers.isEmpty();
+        binding.layoutEmptyState.setVisibility(empty ? View.VISIBLE : View.GONE);
+        binding.rvCustomers.setVisibility(empty ? View.GONE : View.VISIBLE);
         adapter.notifyDataSetChanged();
     }
 
@@ -141,35 +191,48 @@ public class CustomerLedgerFragment extends Fragment {
         if (phone == null || phone.trim().isEmpty()) return;
 
         String cleanPhone = phone.replaceAll("[^0-9]", "");
-        if (cleanPhone.length() == 10) {
-            cleanPhone = "91" + cleanPhone; // default country code for India
-        }
+        if (cleanPhone.length() == 10) cleanPhone = "91" + cleanPhone;
 
         double balance = customer.getBalance();
         String text;
         if (balance > 0) {
             text = String.format(Locale.US,
                     "Hello %s, this is a reminder from BachatKhata that a pending balance of %s is owed to me. Please settle it when possible. Thank you!",
-                    customer.getName(),
-                    CurrencyManager.getInstance().formatAmount(balance)
-            );
+                    customer.getName(), CurrencyManager.getInstance().formatAmount(balance));
         } else if (balance < 0) {
             text = String.format(Locale.US,
                     "Hello %s, please share your details so I can settle the balance of %s that I owe you. Thank you!",
-                    customer.getName(),
-                    CurrencyManager.getInstance().formatAmount(Math.abs(balance))
-            );
+                    customer.getName(), CurrencyManager.getInstance().formatAmount(Math.abs(balance)));
         } else {
-            text = String.format(Locale.US, "Hello %s, just checking in regarding our accounts. Thank you!", customer.getName());
+            text = String.format(Locale.US,
+                    "Hello %s, just checking in regarding our accounts. Thank you!", customer.getName());
         }
 
         try {
             Uri uri = Uri.parse("https://wa.me/" + cleanPhone + "?text=" + URLEncoder.encode(text, "UTF-8"));
-            Intent intent = new Intent(Intent.ACTION_VIEW, uri);
-            startActivity(intent);
+            startActivity(new Intent(Intent.ACTION_VIEW, uri));
         } catch (UnsupportedEncodingException e) {
             e.printStackTrace();
         }
+    }
+
+    static String formatLastActivity(com.google.firebase.Timestamp ts) {
+        if (ts == null) return "";
+        Date date = ts.toDate();
+        Calendar now = Calendar.getInstance();
+        Calendar activity = Calendar.getInstance();
+        activity.setTime(date);
+
+        if (now.get(Calendar.YEAR) == activity.get(Calendar.YEAR)
+                && now.get(Calendar.DAY_OF_YEAR) == activity.get(Calendar.DAY_OF_YEAR)) {
+            return "Today";
+        }
+        now.add(Calendar.DAY_OF_YEAR, -1);
+        if (now.get(Calendar.YEAR) == activity.get(Calendar.YEAR)
+                && now.get(Calendar.DAY_OF_YEAR) == activity.get(Calendar.DAY_OF_YEAR)) {
+            return "Yesterday";
+        }
+        return new SimpleDateFormat("MMM d", Locale.US).format(date);
     }
 
     private class CustomerAdapter extends RecyclerView.Adapter<CustomerAdapter.ViewHolder> {
@@ -193,11 +256,11 @@ public class CustomerLedgerFragment extends Fragment {
         }
 
         class ViewHolder extends RecyclerView.ViewHolder {
-            private final ItemCustomerBinding rowBinding;
+            private final ItemCustomerBinding b;
 
-            public ViewHolder(ItemCustomerBinding rowBinding) {
-                super(rowBinding.getRoot());
-                this.rowBinding = rowBinding;
+            ViewHolder(ItemCustomerBinding b) {
+                super(b.getRoot());
+                this.b = b;
 
                 itemView.setOnClickListener(v -> {
                     int pos = getAdapterPosition();
@@ -208,49 +271,64 @@ public class CustomerLedgerFragment extends Fragment {
                     }
                 });
 
-                rowBinding.btnWhatsApp.setOnClickListener(v -> {
+                b.btnWhatsApp.setOnClickListener(v -> {
                     int pos = getAdapterPosition();
-                    if (pos != RecyclerView.NO_POSITION) {
-                        openWhatsApp(filteredCustomers.get(pos));
-                    }
+                    if (pos != RecyclerView.NO_POSITION) openWhatsApp(filteredCustomers.get(pos));
                 });
             }
 
-            public void bind(Customer customer) {
-                rowBinding.txtCustomerName.setText(customer.getName());
-                rowBinding.txtCustomerPhone.setText(customer.getPhone());
+            void bind(Customer customer) {
+                b.txtCustomerName.setText(customer.getName());
+                b.txtCustomerPhone.setText(
+                        customer.getPhone() != null && !customer.getPhone().isEmpty()
+                                ? customer.getPhone() : "—");
+                b.txtLastActivity.setText(formatLastActivity(customer.getCreatedAt()));
 
                 if (customer.getName() != null && !customer.getName().trim().isEmpty()) {
-                    rowBinding.txtAvatarLetter.setText(customer.getName().substring(0, 1).toUpperCase(Locale.US));
+                    b.txtAvatarLetter.setText(
+                            customer.getName().substring(0, 1).toUpperCase(Locale.US));
                 } else {
-                    rowBinding.txtAvatarLetter.setText("C");
+                    b.txtAvatarLetter.setText("?");
                 }
 
+                // Type badge
+                boolean isCustomer = "customer".equals(customer.getType());
+                int badgeColor = isCustomer
+                        ? Color.parseColor("#3DAF85")
+                        : Color.parseColor("#EF9F27");
+                float r = 20f * itemView.getContext().getResources().getDisplayMetrics().density;
+                GradientDrawable badgeBg = new GradientDrawable();
+                badgeBg.setShape(GradientDrawable.RECTANGLE);
+                badgeBg.setCornerRadius(r);
+                badgeBg.setColor(Color.argb(40,
+                        Color.red(badgeColor), Color.green(badgeColor), Color.blue(badgeColor)));
+                b.txtTypeBadge.setBackground(badgeBg);
+                b.txtTypeBadge.setText(isCustomer ? "CUSTOMER" : "SUPPLIER");
+                b.txtTypeBadge.setTextColor(badgeColor);
+
+                // Balance
                 double balance = customer.getBalance();
-                String formattedBalance = CurrencyManager.getInstance().formatAmount(Math.abs(balance));
-                rowBinding.txtCustomerBalance.setText(formattedBalance);
+                b.txtCustomerBalance.setText(
+                        CurrencyManager.getInstance().formatAmount(Math.abs(balance)));
 
                 if (balance > 0) {
-                    // Owed to you (Receive) - Green
-                    rowBinding.txtCustomerBalance.setTextColor(Color.parseColor("#3DAF85"));
-                    rowBinding.txtCustomerBalanceLabel.setText("You will get");
-                    rowBinding.txtCustomerBalanceLabel.setTextColor(Color.parseColor("#3DAF85"));
-                    rowBinding.layoutAvatarBg.setBackgroundColor(Color.parseColor("#1A3DAF85")); // 10% green
-                    rowBinding.txtAvatarLetter.setTextColor(Color.parseColor("#3DAF85"));
+                    b.txtCustomerBalance.setTextColor(Color.parseColor("#3DAF85"));
+                    b.txtCustomerBalanceLabel.setText("YOU WILL GET");
+                    b.txtCustomerBalanceLabel.setTextColor(Color.parseColor("#3DAF85"));
+                    b.layoutAvatarBg.setBackgroundColor(Color.parseColor("#1A3DAF85"));
+                    b.txtAvatarLetter.setTextColor(Color.parseColor("#3DAF85"));
                 } else if (balance < 0) {
-                    // You owe them (Pay) - Red
-                    rowBinding.txtCustomerBalance.setTextColor(Color.parseColor("#E24B4A"));
-                    rowBinding.txtCustomerBalanceLabel.setText("You will pay");
-                    rowBinding.txtCustomerBalanceLabel.setTextColor(Color.parseColor("#E24B4A"));
-                    rowBinding.layoutAvatarBg.setBackgroundColor(Color.parseColor("#1AE24B4A")); // 10% red
-                    rowBinding.txtAvatarLetter.setTextColor(Color.parseColor("#E24B4A"));
+                    b.txtCustomerBalance.setTextColor(Color.parseColor("#E24B4A"));
+                    b.txtCustomerBalanceLabel.setText("YOU WILL GIVE");
+                    b.txtCustomerBalanceLabel.setTextColor(Color.parseColor("#E24B4A"));
+                    b.layoutAvatarBg.setBackgroundColor(Color.parseColor("#1AE24B4A"));
+                    b.txtAvatarLetter.setTextColor(Color.parseColor("#E24B4A"));
                 } else {
-                    // Settled - Gray
-                    rowBinding.txtCustomerBalance.setTextColor(Color.parseColor("#1A1A2E"));
-                    rowBinding.txtCustomerBalanceLabel.setText("Settled");
-                    rowBinding.txtCustomerBalanceLabel.setTextColor(Color.parseColor("#6B6B8A"));
-                    rowBinding.layoutAvatarBg.setBackgroundColor(Color.parseColor("#E0DEFF")); // border color
-                    rowBinding.txtAvatarLetter.setTextColor(Color.parseColor("#7C6FE0"));
+                    b.txtCustomerBalance.setTextColor(Color.parseColor("#1A1A2E"));
+                    b.txtCustomerBalanceLabel.setText("SETTLED");
+                    b.txtCustomerBalanceLabel.setTextColor(Color.parseColor("#6B6B8A"));
+                    b.layoutAvatarBg.setBackgroundColor(Color.parseColor("#E0DEFF"));
+                    b.txtAvatarLetter.setTextColor(Color.parseColor("#7C6FE0"));
                 }
             }
         }

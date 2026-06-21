@@ -173,6 +173,11 @@
             android:name=".OrgDonationTrackerActivity"
             android:exported="false" />
 
+        <!-- Organisation Expense Claims -->
+        <activity
+            android:name=".OrgExpenseClaimsActivity"
+            android:exported="false" />
+
         <!-- Mood Action Broadcast Receiver -->
         <receiver
             android:name=".MoodBroadcastReceiver"

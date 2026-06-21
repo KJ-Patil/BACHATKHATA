@@ -1,3 +1,13 @@
 <resources>
     <dimen name="fab_margin">48dp</dimen>
+
+    <!-- Shorter charts in landscape so they don't fill the whole viewport -->
+    <dimen name="chart_card_height">180dp</dimen>
+    <dimen name="chart_inner_height">160dp</dimen>
+
+    <!-- Tighter padding in landscape to save vertical space -->
+    <dimen name="home_content_padding">16dp</dimen>
+
+    <!-- Narrower content column in landscape -->
+    <dimen name="login_card_margin_h">60dp</dimen>
 </resources>

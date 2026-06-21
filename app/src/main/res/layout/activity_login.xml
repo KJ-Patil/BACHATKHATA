@@ -31,8 +31,8 @@
             <!-- Top App Branding Section -->
             <ImageView
                 android:id="@+id/imgAppLogo"
-                android:layout_width="80dp"
-                android:layout_height="80dp"
+                android:layout_width="@dimen/login_logo_size"
+                android:layout_height="@dimen/login_logo_size"
                 android:layout_marginTop="60dp"
                 android:background="@drawable/bg_clay_button"
                 android:backgroundTint="@color/colorPrimary"
@@ -49,7 +49,7 @@
                 android:layout_marginTop="16dp"
                 android:text="@string/welcome_back"
                 android:textColor="@color/colorTextPrimary"
-                android:textSize="28sp"
+                android:textSize="@dimen/text_size_welcome_title"
                 android:textStyle="bold"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintStart_toStartOf="parent"
@@ -73,9 +73,9 @@
                 style="@style/ClayCard"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginStart="20dp"
+                android:layout_marginStart="@dimen/login_card_margin_h"
                 android:layout_marginTop="32dp"
-                android:layout_marginEnd="20dp"
+                android:layout_marginEnd="@dimen/login_card_margin_h"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toBottomOf="@+id/txtTagline">

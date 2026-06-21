@@ -27,7 +27,7 @@
         android:name="androidx.navigation.fragment.NavHostFragment"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:layout_marginBottom="80dp"
+        android:layout_marginBottom="70dp"
         app:defaultNavHost="true"
         app:navGraph="@navigation/nav_graph" />
 
@@ -35,12 +35,12 @@
     <com.google.android.material.bottomappbar.BottomAppBar
         android:id="@+id/bottomAppBar"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
+        android:layout_height="68dp"
         android:layout_gravity="bottom"
         app:fabAlignmentMode="center"
-        app:fabCradleMargin="16dp"
-        app:fabCradleRoundedCornerRadius="24dp"
-        app:fabCradleVerticalOffset="8dp"
+        app:fabCradleMargin="10dp"
+        app:fabCradleRoundedCornerRadius="20dp"
+        app:fabCradleVerticalOffset="6dp"
         android:backgroundTint="@color/colorSurface"
         app:elevation="16dp"
         tools:ignore="BottomAppBar">
@@ -48,12 +48,14 @@
         <com.google.android.material.bottomnavigation.BottomNavigationView
             android:id="@+id/bottomNavigationView"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
+            android:layout_height="68dp"
             android:layout_marginEnd="16dp"
             android:background="@android:color/transparent"
             app:labelVisibilityMode="unlabeled"
+            app:itemIconSize="26dp"
             app:menu="@menu/bottom_nav_menu"
-            app:itemIconTint="@color/colorPrimary"
+            app:itemIconTint="@color/bottom_nav_icon_color"
+            app:itemActiveIndicatorStyle="@style/BottomNavActiveIndicator"
             app:itemRippleColor="@null"
             app:elevation="0dp" />
 
@@ -62,15 +64,15 @@
     <!-- Floating Action Button (FAB) -->
     <com.google.android.material.floatingactionbutton.FloatingActionButton
         android:id="@+id/fabAdd"
-        android:layout_width="60dp"
-        android:layout_height="60dp"
+        android:layout_width="54dp"
+        android:layout_height="54dp"
         app:layout_anchor="@id/bottomAppBar"
         android:src="@drawable/ic_add"
         app:tint="@color/colorSurface"
         android:backgroundTint="@color/colorPrimary"
         app:elevation="8dp"
-        app:fabCustomSize="60dp"
-        app:maxImageSize="32dp"
+        app:fabCustomSize="54dp"
+        app:maxImageSize="26dp"
         app:shapeAppearanceOverlay="@style/ShapeAppearanceOverlay.ClayFab"
         android:contentDescription="@string/add_transaction" />
 

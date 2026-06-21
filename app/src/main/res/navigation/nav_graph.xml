@@ -13,6 +13,9 @@
         <action
             android:id="@+id/action_home_to_notifications"
             app:destination="@id/navigation_notifications" />
+        <action
+            android:id="@+id/action_home_to_data_tools"
+            app:destination="@id/navigation_data_tools" />
     </fragment>
 
     <fragment
@@ -111,5 +114,11 @@
         android:name="com.example.bachatkhata.CarbonTrackerFragment"
         android:label="Carbon Footprint"
         tools:layout="@layout/fragment_carbon_tracker" />
+
+    <fragment
+        android:id="@+id/navigation_data_tools"
+        android:name="com.example.bachatkhata.DataToolsFragment"
+        android:label="Data &amp; Tools"
+        tools:layout="@layout/fragment_data_tools" />
 
 </navigation>

@@ -86,6 +86,15 @@ public class BillSplitterActivity extends BaseActivity {
         loadGroups();
     }
 
+    @Override
+    protected void onResume() {
+        super.onResume();
+        // Refresh the group list in case a group was created/edited on another screen.
+        // Note: loadCurrentUserAsParticipant() is intentionally NOT called here — it appends
+        // to participantsList and would duplicate the current user on every resume.
+        loadGroups();
+    }
+
     private void setupUI() {
         binding.btnBack.setOnClickListener(v -> finish());
 

@@ -1,3 +1,21 @@
 <resources>
     <dimen name="fab_margin">48dp</dimen>
+
+    <!-- Charts are taller on tablets -->
+    <dimen name="chart_card_height">320dp</dimen>
+    <dimen name="chart_inner_height">300dp</dimen>
+
+    <!-- More breathing room on larger screens -->
+    <dimen name="home_content_padding">32dp</dimen>
+
+    <!-- Constrain auth cards so they don't stretch edge-to-edge on tablets -->
+    <dimen name="login_card_margin_h">80dp</dimen>
+
+    <!-- Larger logo on tablets -->
+    <dimen name="login_logo_size">100dp</dimen>
+
+    <!-- Larger text on tablets -->
+    <dimen name="text_size_balance_hero">42sp</dimen>
+    <dimen name="text_size_greeting">26sp</dimen>
+    <dimen name="text_size_welcome_title">34sp</dimen>
 </resources>

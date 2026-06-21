@@ -21,7 +21,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="vertical"
-                android:padding="20dp">
+                android:padding="@dimen/home_content_padding">
 
                 <!-- A. Header Section -->
                 <RelativeLayout
@@ -41,7 +41,7 @@
                             android:layout_height="wrap_content"
                             android:text="Good morning, User"
                             android:textColor="@color/colorTextPrimary"
-                            android:textSize="22sp"
+                            android:textSize="@dimen/text_size_greeting"
                             android:textStyle="bold" />
 
                         <TextView
@@ -109,6 +109,72 @@
                         android:textColor="@color/colorTextPrimary" />
                 </com.google.android.material.textfield.TextInputLayout>
 
+                <!-- Quick Actions Row -->
+                <LinearLayout
+                    android:id="@+id/btnDataTools"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="20dp"
+                    android:background="?attr/selectableItemBackground"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal"
+                    android:paddingStart="4dp"
+                    android:paddingTop="4dp"
+                    android:paddingEnd="8dp"
+                    android:paddingBottom="4dp">
+
+                    <com.google.android.material.card.MaterialCardView
+                        style="@style/ClayCard"
+                        android:layout_width="40dp"
+                        android:layout_height="40dp"
+                        android:clickable="false"
+                        android:focusable="false"
+                        app:cardCornerRadius="14dp"
+                        app:cardElevation="2dp"
+                        app:strokeColor="@color/colorCardBorder"
+                        app:strokeWidth="1dp">
+
+                        <TextView
+                            android:layout_width="match_parent"
+                            android:layout_height="match_parent"
+                            android:background="@color/colorSurface"
+                            android:gravity="center"
+                            android:text="🧰"
+                            android:textSize="18sp" />
+                    </com.google.android.material.card.MaterialCardView>
+
+                    <LinearLayout
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="10dp"
+                        android:orientation="vertical">
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Data &amp; Tools"
+                            android:textColor="@color/colorTextPrimary"
+                            android:textSize="14sp"
+                            android:textStyle="bold" />
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Ledger, EMI, Export &amp; more"
+                            android:textColor="@color/colorTextSecondary"
+                            android:textSize="11sp" />
+                    </LinearLayout>
+
+                    <ImageView
+                        android:layout_width="20dp"
+                        android:layout_height="20dp"
+                        android:layout_marginStart="6dp"
+                        android:src="@drawable/ic_chevron_right"
+                        app:tint="@color/colorTextSecondary" />
+                </LinearLayout>
+
                 <!-- Container for dashboard widgets to hide during search -->
                 <LinearLayout
                     android:id="@+id/layoutDashboardWidgets"
@@ -123,13 +189,16 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginBottom="20dp"
-                    app:cardBackgroundColor="@color/colorPrimary"
-                    app:strokeColor="@color/colorPrimary">
+                    app:cardElevation="0dp"
+                    app:cardCornerRadius="0dp"
+                    app:cardBackgroundColor="@android:color/transparent"
+                    app:strokeWidth="0dp">
 
                     <LinearLayout
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:orientation="vertical"
+                        android:background="@drawable/bg_card_3d_primary"
                         android:padding="24dp">
 
                         <TextView
@@ -146,7 +215,7 @@
                             android:layout_marginTop="4dp"
                             android:text="₹0.00"
                             android:textColor="@android:color/white"
-                            android:textSize="34sp"
+                            android:textSize="@dimen/text_size_balance_hero"
                             android:textStyle="bold" />
 
                         <View
@@ -235,32 +304,44 @@
                         android:id="@+id/cardKpiIncome"
                         style="@style/ClayCard"
                         android:layout_width="0dp"
-                        android:layout_height="wrap_content"
+                        android:layout_height="120dp"
                         android:layout_rowWeight="1"
                         android:layout_columnWeight="1"
-                        android:layout_margin="4dp">
+                        android:layout_margin="4dp"
+                        app:strokeWidth="0dp"
+                        app:cardElevation="0dp"
+                        app:cardCornerRadius="0dp"
+                        app:cardBackgroundColor="@android:color/transparent">
                         <LinearLayout
                             android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
+                            android:layout_height="match_parent"
                             android:orientation="vertical"
+                            android:gravity="center_vertical"
+                            android:background="@drawable/bg_card_3d"
                             android:padding="16dp">
                             <View
                                 android:layout_width="32dp"
                                 android:layout_height="32dp"
-                                android:background="@drawable/bg_clay_button"
+                                android:background="@drawable/bg_kpi_dot"
                                 android:backgroundTint="@color/colorSecondary"/>
                             <TextView
                                 android:id="@+id/txtKpiIncome"
-                                android:layout_width="wrap_content"
+                                android:layout_width="match_parent"
                                 android:layout_height="wrap_content"
-                                android:layout_marginTop="8dp"
+                                android:layout_marginTop="10dp"
+                                android:ellipsize="end"
+                                android:maxLines="1"
                                 android:text="₹0.0"
                                 android:textColor="@color/colorTextPrimary"
-                                android:textSize="16sp"
+                                android:textSize="18sp"
                                 android:textStyle="bold"/>
                             <TextView
-                                android:layout_width="wrap_content"
+                                android:layout_width="match_parent"
                                 android:layout_height="wrap_content"
+                                android:layout_marginTop="2dp"
+                                android:ellipsize="end"
+                                android:maxLines="1"
+                                android:letterSpacing="0.02"
                                 android:text="Total Income"
                                 android:textColor="@color/colorTextSecondary"
                                 android:textSize="11sp"/>
@@ -272,32 +353,44 @@
                         android:id="@+id/cardKpiSpent"
                         style="@style/ClayCard"
                         android:layout_width="0dp"
-                        android:layout_height="wrap_content"
+                        android:layout_height="120dp"
                         android:layout_rowWeight="1"
                         android:layout_columnWeight="1"
-                        android:layout_margin="4dp">
+                        android:layout_margin="4dp"
+                        app:strokeWidth="0dp"
+                        app:cardElevation="0dp"
+                        app:cardCornerRadius="0dp"
+                        app:cardBackgroundColor="@android:color/transparent">
                         <LinearLayout
                             android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
+                            android:layout_height="match_parent"
                             android:orientation="vertical"
+                            android:gravity="center_vertical"
+                            android:background="@drawable/bg_card_3d"
                             android:padding="16dp">
                             <View
                                 android:layout_width="32dp"
                                 android:layout_height="32dp"
-                                android:background="@drawable/bg_clay_button"
+                                android:background="@drawable/bg_kpi_dot"
                                 android:backgroundTint="@color/colorDanger"/>
                             <TextView
                                 android:id="@+id/txtKpiSpent"
-                                android:layout_width="wrap_content"
+                                android:layout_width="match_parent"
                                 android:layout_height="wrap_content"
-                                android:layout_marginTop="8dp"
+                                android:layout_marginTop="10dp"
+                                android:ellipsize="end"
+                                android:maxLines="1"
                                 android:text="₹0.0"
                                 android:textColor="@color/colorTextPrimary"
-                                android:textSize="16sp"
+                                android:textSize="18sp"
                                 android:textStyle="bold"/>
                             <TextView
-                                android:layout_width="wrap_content"
+                                android:layout_width="match_parent"
                                 android:layout_height="wrap_content"
+                                android:layout_marginTop="2dp"
+                                android:ellipsize="end"
+                                android:maxLines="1"
+                                android:letterSpacing="0.02"
                                 android:text="Total Spent"
                                 android:textColor="@color/colorTextSecondary"
                                 android:textSize="11sp"/>
@@ -309,32 +402,44 @@
                         android:id="@+id/cardKpiSaved"
                         style="@style/ClayCard"
                         android:layout_width="0dp"
-                        android:layout_height="wrap_content"
+                        android:layout_height="120dp"
                         android:layout_rowWeight="1"
                         android:layout_columnWeight="1"
-                        android:layout_margin="4dp">
+                        android:layout_margin="4dp"
+                        app:strokeWidth="0dp"
+                        app:cardElevation="0dp"
+                        app:cardCornerRadius="0dp"
+                        app:cardBackgroundColor="@android:color/transparent">
                         <LinearLayout
                             android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
+                            android:layout_height="match_parent"
                             android:orientation="vertical"
+                            android:gravity="center_vertical"
+                            android:background="@drawable/bg_card_3d"
                             android:padding="16dp">
                             <View
                                 android:layout_width="32dp"
                                 android:layout_height="32dp"
-                                android:background="@drawable/bg_clay_button"
+                                android:background="@drawable/bg_kpi_dot"
                                 android:backgroundTint="@color/colorPrimary"/>
                             <TextView
                                 android:id="@+id/txtKpiSaved"
-                                android:layout_width="wrap_content"
+                                android:layout_width="match_parent"
                                 android:layout_height="wrap_content"
-                                android:layout_marginTop="8dp"
+                                android:layout_marginTop="10dp"
+                                android:ellipsize="end"
+                                android:maxLines="1"
                                 android:text="₹0.0"
                                 android:textColor="@color/colorTextPrimary"
-                                android:textSize="16sp"
+                                android:textSize="18sp"
                                 android:textStyle="bold"/>
                             <TextView
-                                android:layout_width="wrap_content"
+                                android:layout_width="match_parent"
                                 android:layout_height="wrap_content"
+                                android:layout_marginTop="2dp"
+                                android:ellipsize="end"
+                                android:maxLines="1"
+                                android:letterSpacing="0.02"
                                 android:text="Total Saved"
                                 android:textColor="@color/colorTextSecondary"
                                 android:textSize="11sp"/>
@@ -346,32 +451,44 @@
                         android:id="@+id/cardKpiTxnCount"
                         style="@style/ClayCard"
                         android:layout_width="0dp"
-                        android:layout_height="wrap_content"
+                        android:layout_height="120dp"
                         android:layout_rowWeight="1"
                         android:layout_columnWeight="1"
-                        android:layout_margin="4dp">
+                        android:layout_margin="4dp"
+                        app:strokeWidth="0dp"
+                        app:cardElevation="0dp"
+                        app:cardCornerRadius="0dp"
+                        app:cardBackgroundColor="@android:color/transparent">
                         <LinearLayout
                             android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
+                            android:layout_height="match_parent"
                             android:orientation="vertical"
+                            android:gravity="center_vertical"
+                            android:background="@drawable/bg_card_3d"
                             android:padding="16dp">
                             <View
                                 android:layout_width="32dp"
                                 android:layout_height="32dp"
-                                android:background="@drawable/bg_clay_button"
+                                android:background="@drawable/bg_kpi_dot"
                                 android:backgroundTint="@color/colorAccent"/>
                             <TextView
                                 android:id="@+id/txtKpiTxnCount"
-                                android:layout_width="wrap_content"
+                                android:layout_width="match_parent"
                                 android:layout_height="wrap_content"
-                                android:layout_marginTop="8dp"
+                                android:layout_marginTop="10dp"
+                                android:ellipsize="end"
+                                android:maxLines="1"
                                 android:text="0"
                                 android:textColor="@color/colorTextPrimary"
-                                android:textSize="16sp"
+                                android:textSize="18sp"
                                 android:textStyle="bold"/>
                             <TextView
-                                android:layout_width="wrap_content"
+                                android:layout_width="match_parent"
                                 android:layout_height="wrap_content"
+                                android:layout_marginTop="2dp"
+                                android:ellipsize="end"
+                                android:maxLines="1"
+                                android:letterSpacing="0.02"
                                 android:text="Transactions"
                                 android:textColor="@color/colorTextSecondary"
                                 android:textSize="11sp"/>
@@ -444,12 +561,21 @@
                     <com.google.android.material.card.MaterialCardView
                         style="@style/ClayCard"
                         android:layout_width="match_parent"
-                        android:layout_height="240dp">
-                        <com.github.mikephil.charting.charts.LineChart
-                            android:id="@+id/lineChart"
+                        android:layout_height="@dimen/chart_card_height"
+                        app:cardElevation="0dp"
+                        app:strokeWidth="0dp"
+                        app:cardCornerRadius="0dp"
+                        app:cardBackgroundColor="@android:color/transparent">
+                        <FrameLayout
                             android:layout_width="match_parent"
-                            android:layout_height="220dp"
-                            android:layout_gravity="center"/>
+                            android:layout_height="match_parent"
+                            android:background="@drawable/bg_card_3d">
+                            <com.github.mikephil.charting.charts.LineChart
+                                android:id="@+id/lineChart"
+                                android:layout_width="match_parent"
+                                android:layout_height="@dimen/chart_inner_height"
+                                android:layout_gravity="center"/>
+                        </FrameLayout>
                     </com.google.android.material.card.MaterialCardView>
                 </LinearLayout>
 
@@ -470,12 +596,21 @@
                     <com.google.android.material.card.MaterialCardView
                         style="@style/ClayCard"
                         android:layout_width="match_parent"
-                        android:layout_height="220dp">
-                        <com.github.mikephil.charting.charts.BarChart
-                            android:id="@+id/barChart"
+                        android:layout_height="@dimen/chart_card_height"
+                        app:cardElevation="0dp"
+                        app:strokeWidth="0dp"
+                        app:cardCornerRadius="0dp"
+                        app:cardBackgroundColor="@android:color/transparent">
+                        <FrameLayout
                             android:layout_width="match_parent"
-                            android:layout_height="200dp"
-                            android:layout_gravity="center"/>
+                            android:layout_height="match_parent"
+                            android:background="@drawable/bg_card_3d">
+                            <com.github.mikephil.charting.charts.BarChart
+                                android:id="@+id/barChart"
+                                android:layout_width="match_parent"
+                                android:layout_height="@dimen/chart_inner_height"
+                                android:layout_gravity="center"/>
+                        </FrameLayout>
                     </com.google.android.material.card.MaterialCardView>
                 </LinearLayout>
 
@@ -487,13 +622,16 @@
                     android:layout_height="wrap_content"
                     android:layout_marginBottom="20dp"
                     android:visibility="gone"
-                    app:cardBackgroundColor="#1AEF9F27"
-                    app:strokeColor="#EF9F27">
+                    app:cardElevation="0dp"
+                    app:cardCornerRadius="0dp"
+                    app:cardBackgroundColor="@android:color/transparent"
+                    app:strokeWidth="0dp">
 
                     <LinearLayout
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:orientation="vertical"
+                        android:background="@drawable/bg_card_3d_amber"
                         android:padding="16dp">
 
                         <RelativeLayout
@@ -583,16 +721,18 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_gravity="bottom|center_horizontal"
-        android:layout_marginBottom="24dp"
+        android:layout_marginBottom="78dp"
         android:visibility="gone"
-        app:cardBackgroundColor="@color/colorAccent"
-        app:strokeColor="@color/colorAccent"
-        app:cardElevation="8dp">
+        app:cardElevation="0dp"
+        app:cardCornerRadius="0dp"
+        app:cardBackgroundColor="@android:color/transparent"
+        app:strokeWidth="0dp">
 
         <LinearLayout
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:orientation="horizontal"
+            android:background="@drawable/bg_card_3d_accent"
             android:paddingHorizontal="16dp"
             android:paddingVertical="10dp"
             android:gravity="center">

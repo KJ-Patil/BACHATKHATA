@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Active tab = primary purple, inactive = muted grey, for clear selection. -->
+<selector xmlns:android="http://schemas.android.com/apk/res/android">
+    <item android:color="@color/colorPrimary" android:state_checked="true" />
+    <item android:color="@color/colorTextSecondary" android:state_checked="false" />
+    <item android:color="@color/colorTextSecondary" />
+</selector>

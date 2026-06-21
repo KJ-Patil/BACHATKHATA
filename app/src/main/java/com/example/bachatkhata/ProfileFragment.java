@@ -1,7 +1,9 @@
 package com.example.bachatkhata;
 
+import android.Manifest;
 import android.app.AlertDialog;
 import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.net.Uri;
 import android.os.Bundle;
 import android.text.InputType;
@@ -18,10 +20,14 @@ import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatDelegate;
+import androidx.core.content.ContextCompat;
+import androidx.core.content.FileProvider;
 import androidx.fragment.app.Fragment;
 
 import com.bumptech.glide.Glide;
 import com.example.bachatkhata.databinding.FragmentProfileBinding;
+import com.google.android.material.textfield.TextInputEditText;
+import com.google.android.material.textfield.TextInputLayout;
 import com.google.android.gms.auth.api.signin.GoogleSignIn;
 import com.google.android.gms.auth.api.signin.GoogleSignInClient;
 import com.google.android.gms.auth.api.signin.GoogleSignInOptions;
@@ -30,12 +36,17 @@ import com.google.firebase.auth.EmailAuthProvider;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.firestore.DocumentSnapshot;
+import com.google.firebase.firestore.FieldValue;
 import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.SetOptions;
 import com.google.firebase.firestore.WriteBatch;
 import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.StorageReference;
 
+import java.io.File;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 
@@ -45,6 +56,10 @@ public class ProfileFragment extends Fragment {
     private FirebaseAuth mAuth;
     private FirebaseFirestore mFirestore;
     private ActivityResultLauncher<String> pickImageLauncher;
+    private ActivityResultLauncher<Uri> takePictureLauncher;
+    private ActivityResultLauncher<String> requestCameraPermissionLauncher;
+    private Uri cameraImageUri;
+    private boolean hasProfilePhoto = false;
 
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
@@ -54,6 +69,27 @@ public class ProfileFragment extends Fragment {
                 uri -> {
                     if (uri != null) {
                         uploadProfileImage(uri);
+                    }
+                }
+        );
+
+        takePictureLauncher = registerForActivityResult(
+                new ActivityResultContracts.TakePicture(),
+                success -> {
+                    if (success != null && success && cameraImageUri != null) {
+                        uploadProfileImage(cameraImageUri);
+                    }
+                }
+        );
+
+        requestCameraPermissionLauncher = registerForActivityResult(
+                new ActivityResultContracts.RequestPermission(),
+                granted -> {
+                    if (granted != null && granted) {
+                        launchCamera();
+                    } else {
+                        BaseActivity activity = (BaseActivity) getActivity();
+                        if (activity != null) activity.showSnackbar("Camera permission denied", "ERROR");
                     }
                 }
         );
@@ -96,76 +132,7 @@ public class ProfileFragment extends Fragment {
         binding.switchBiometrics.setOnCheckedChangeListener((buttonView, isChecked) -> updateBiometricSetting(isChecked));
         binding.switchNotifications.setOnCheckedChangeListener((buttonView, isChecked) -> updateNotificationsSetting(isChecked));
 
-        binding.rowManageCategories.setOnClickListener(v -> {
-            Intent intent = new Intent(getContext(), CategoryManageActivity.class);
-            startActivity(intent);
-        });
-
-        binding.rowCustomerLedger.setOnClickListener(v -> {
-            androidx.navigation.Navigation.findNavController(v).navigate(R.id.navigation_customer_ledger);
-        });
-
-        binding.rowSubscriptions.setOnClickListener(v -> {
-            androidx.navigation.Navigation.findNavController(v).navigate(R.id.navigation_subscriptions);
-        });
-
-        binding.rowEmiTracker.setOnClickListener(v -> {
-            androidx.navigation.Navigation.findNavController(v).navigate(R.id.navigation_emi_tracker);
-        });
-
-        binding.rowBillCalendar.setOnClickListener(v -> {
-            Intent intent = new Intent(getContext(), BillCalendarActivity.class);
-            startActivity(intent);
-        });
-
-        binding.rowFamilyWallet.setOnClickListener(v -> {
-            androidx.navigation.Navigation.findNavController(v).navigate(R.id.navigation_family_wallet);
-        });
-
-        binding.rowAchievements.setOnClickListener(v -> {
-            androidx.navigation.Navigation.findNavController(v).navigate(R.id.navigation_achievements);
-        });
-
-        binding.rowHealthScore.setOnClickListener(v -> {
-            androidx.navigation.Navigation.findNavController(v).navigate(R.id.navigation_health_score);
-        });
-
-        binding.rowNetWorth.setOnClickListener(v -> {
-            Intent intent = new Intent(getContext(), NetWorthActivity.class);
-            startActivity(intent);
-        });
-
-        binding.rowRoundUpSettings.setOnClickListener(v -> {
-            androidx.navigation.Navigation.findNavController(v).navigate(R.id.navigation_roundup_settings);
-        });
-
-        binding.rowCreditSimulator.setOnClickListener(v -> {
-            Intent intent = new Intent(getContext(), CibilSimulatorActivity.class);
-            startActivity(intent);
-        });
-
-        binding.rowBillSplitter.setOnClickListener(v -> {
-            Intent intent = new Intent(getContext(), BillSplitterActivity.class);
-            startActivity(intent);
-        });
-
-        binding.rowMoodInsight.setOnClickListener(v -> {
-            Intent intent = new Intent(getContext(), MoodInsightActivity.class);
-            startActivity(intent);
-        });
-
-        binding.rowLiteracyLessons.setOnClickListener(v -> {
-            androidx.navigation.Navigation.findNavController(v).navigate(R.id.navigation_literacy_lessons);
-        });
-
-        binding.rowCarbonTracker.setOnClickListener(v -> {
-            androidx.navigation.Navigation.findNavController(v).navigate(R.id.navigation_carbon_tracker);
-        });
-
-        binding.rowExport.setOnClickListener(v -> {
-            Intent intent = new Intent(getContext(), ExportActivity.class);
-            startActivity(intent);
-        });
+        // Data & Tools have moved to the Home dashboard's "Data & Tools" page.
 
         binding.btnLogout.setOnClickListener(v -> logoutUser());
     }
@@ -199,6 +166,7 @@ public class ProfileFragment extends Fragment {
 
                     // Load Profile Photo using Glide if available
                     if (photoUrl != null && !photoUrl.trim().isEmpty()) {
+                        hasProfilePhoto = true;
                         binding.txtAvatarLetter.setVisibility(View.GONE);
                         binding.imgAvatar.setVisibility(View.VISIBLE);
                         Glide.with(this)
@@ -206,6 +174,7 @@ public class ProfileFragment extends Fragment {
                                 .placeholder(R.drawable.ic_placeholder)
                                 .into(binding.imgAvatar);
                     } else {
+                        hasProfilePhoto = false;
                         binding.txtAvatarLetter.setVisibility(View.VISIBLE);
                         binding.imgAvatar.setVisibility(View.GONE);
                     }
@@ -246,7 +215,93 @@ public class ProfileFragment extends Fragment {
     }
 
     private void selectProfilePhoto() {
-        pickImageLauncher.launch("image/*");
+        if (getContext() == null) return;
+
+        List<String> optionsList = new ArrayList<>();
+        optionsList.add("Take Photo");
+        optionsList.add("Choose from Gallery");
+        if (hasProfilePhoto) optionsList.add("Remove Photo");
+        String[] options = optionsList.toArray(new String[0]);
+
+        new AlertDialog.Builder(getContext())
+                .setTitle("Profile Photo")
+                .setItems(options, (dialog, which) -> {
+                    switch (options[which]) {
+                        case "Take Photo":
+                            checkCameraPermissionAndCapture();
+                            break;
+                        case "Choose from Gallery":
+                            pickImageLauncher.launch("image/*");
+                            break;
+                        case "Remove Photo":
+                            confirmRemovePhoto();
+                            break;
+                    }
+                })
+                .setNegativeButton("Cancel", null)
+                .show();
+    }
+
+    private void checkCameraPermissionAndCapture() {
+        if (getContext() == null) return;
+        if (ContextCompat.checkSelfPermission(getContext(), Manifest.permission.CAMERA)
+                == PackageManager.PERMISSION_GRANTED) {
+            launchCamera();
+        } else {
+            requestCameraPermissionLauncher.launch(Manifest.permission.CAMERA);
+        }
+    }
+
+    private void launchCamera() {
+        if (getContext() == null) return;
+        try {
+            File imageFile = new File(requireContext().getCacheDir(), "profile_capture.jpg");
+            cameraImageUri = FileProvider.getUriForFile(
+                    requireContext(),
+                    "com.example.bachatkhata.fileprovider",
+                    imageFile);
+            takePictureLauncher.launch(cameraImageUri);
+        } catch (Exception e) {
+            BaseActivity activity = (BaseActivity) getActivity();
+            if (activity != null) activity.showSnackbar("Unable to open camera: " + e.getMessage(), "ERROR");
+        }
+    }
+
+    private void confirmRemovePhoto() {
+        if (getContext() == null) return;
+        new AlertDialog.Builder(getContext())
+                .setTitle("Remove Photo")
+                .setMessage("Remove your profile photo? Your avatar will show your initial instead.")
+                .setPositiveButton("Remove", (dialog, which) -> removeProfileImage())
+                .setNegativeButton("Cancel", null)
+                .show();
+    }
+
+    private void removeProfileImage() {
+        if (mAuth.getCurrentUser() == null || getContext() == null) return;
+        BaseActivity activity = (BaseActivity) getActivity();
+        if (activity != null) activity.showLoadingDialog();
+
+        String uid = mAuth.getCurrentUser().getUid();
+
+        mFirestore.collection("users").document(uid)
+                .update("photoUrl", FieldValue.delete())
+                .addOnSuccessListener(aVoid -> {
+                    // Best-effort delete of the stored file; the snapshot listener
+                    // restores the letter avatar once photoUrl is gone.
+                    FirebaseStorage.getInstance().getReference()
+                            .child("users/" + uid + "/profile.jpg").delete();
+                    if (activity != null) {
+                        activity.hideLoadingDialog();
+                        activity.showSnackbar("Profile photo removed", "SUCCESS");
+                    }
+                })
+                .addOnFailureListener(e -> {
+                    if (activity != null) {
+                        activity.hideLoadingDialog();
+                        activity.showSnackbar("Failed to remove photo: " + e.getMessage(), "ERROR");
+                    }
+                });
     }
 
     private void uploadProfileImage(Uri uri) {
@@ -316,8 +371,11 @@ public class ProfileFragment extends Fragment {
         if (mAuth.getCurrentUser() == null || getContext() == null) return;
         BaseActivity activity = (BaseActivity) getActivity();
 
+        Map<String, Object> update = new HashMap<>();
+        update.put("name", newName);
+
         mFirestore.collection("users").document(mAuth.getCurrentUser().getUid())
-                .update("name", newName)
+                .set(update, SetOptions.merge())
                 .addOnSuccessListener(aVoid -> {
                     if (activity != null) activity.showSnackbar("Profile name updated!", "SUCCESS");
                 })
@@ -337,15 +395,27 @@ public class ProfileFragment extends Fragment {
         layout.setOrientation(LinearLayout.VERTICAL);
         layout.setPadding(48, 24, 48, 24);
 
-        EditText oldPasswordInput = new EditText(getContext());
-        oldPasswordInput.setHint("Current Password");
+        // Current password field with eye (show/hide) toggle
+        TextInputLayout oldPasswordLayout = new TextInputLayout(getContext());
+        oldPasswordLayout.setHint("Current Password");
+        oldPasswordLayout.setEndIconMode(TextInputLayout.END_ICON_PASSWORD_TOGGLE);
+        TextInputEditText oldPasswordInput = new TextInputEditText(oldPasswordLayout.getContext());
         oldPasswordInput.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_VARIATION_PASSWORD);
-        layout.addView(oldPasswordInput);
+        oldPasswordLayout.addView(oldPasswordInput);
+        layout.addView(oldPasswordLayout);
 
-        EditText newPasswordInput = new EditText(getContext());
-        newPasswordInput.setHint("New Password (min 6 chars)");
+        // New password field with eye (show/hide) toggle
+        TextInputLayout newPasswordLayout = new TextInputLayout(getContext());
+        newPasswordLayout.setHint("New Password (min 6 chars)");
+        newPasswordLayout.setEndIconMode(TextInputLayout.END_ICON_PASSWORD_TOGGLE);
+        LinearLayout.LayoutParams newPassParams = new LinearLayout.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+        newPassParams.topMargin = 24;
+        newPasswordLayout.setLayoutParams(newPassParams);
+        TextInputEditText newPasswordInput = new TextInputEditText(newPasswordLayout.getContext());
         newPasswordInput.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_VARIATION_PASSWORD);
-        layout.addView(newPasswordInput);
+        newPasswordLayout.addView(newPasswordInput);
+        layout.addView(newPasswordLayout);
 
         builder.setView(layout);
 

@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Raised "3D box": a soft grey base with the white face offset slightly up-and-left,
+     so a thin grey edge shows along the bottom AND right for a subtle raised-box look. -->
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <item>
+        <shape android:shape="rectangle">
+            <solid android:color="#C9C7D4" />
+            <corners android:radius="16dp" />
+        </shape>
+    </item>
+
+    <item
+        android:bottom="4dp"
+        android:right="4dp">
+        <shape android:shape="rectangle">
+            <solid android:color="@color/colorSurface" />
+            <corners android:radius="16dp" />
+        </shape>
+    </item>
+
+</layer-list>

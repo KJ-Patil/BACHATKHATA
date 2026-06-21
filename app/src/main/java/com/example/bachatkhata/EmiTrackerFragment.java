@@ -1,6 +1,6 @@
 package com.example.bachatkhata;
 
-import android.content.Intent;
+import android.app.AlertDialog;
 import android.content.res.ColorStateList;
 import android.graphics.Color;
 import android.os.Bundle;
@@ -8,6 +8,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -63,10 +64,8 @@ public class EmiTrackerFragment extends Fragment {
             observeEmis(mAuth.getCurrentUser().getUid());
         }
 
-        binding.fabAddEmi.setOnClickListener(v -> {
-            Intent intent = new Intent(getContext(), AddEmiActivity.class);
-            startActivity(intent);
-        });
+        binding.fabAddEmi.setOnClickListener(v ->
+                new AddLoanDialog().show(getChildFragmentManager(), "AddLoan"));
     }
 
     @Override
@@ -184,9 +183,14 @@ public class EmiTrackerFragment extends Fragment {
             holder.binding.txtInterestInfo.setText(String.format(Locale.US, "%.1f%% p.a.", r));
             holder.binding.txtEmiAmount.setText(CurrencyManager.getInstance().formatAmount(emi));
 
-            // Calculate months paid based on start date
+            // Use stored monthsPaid when available; fall back to date-based calculation
             int paidMonths = 0;
-            if (startDate != null) {
+            Long storedMonthsPaid = doc.getLong("monthsPaid");
+            if (storedMonthsPaid != null) {
+                paidMonths = storedMonthsPaid.intValue();
+                if (paidMonths < 0) paidMonths = 0;
+                if (paidMonths > tenure) paidMonths = tenure;
+            } else if (startDate != null) {
                 Calendar start = Calendar.getInstance();
                 start.setTime(startDate);
                 Calendar now = Calendar.getInstance();
@@ -233,6 +237,30 @@ public class EmiTrackerFragment extends Fragment {
                 holder.binding.txtEmiDaysBadge.setText("Active");
                 holder.binding.txtEmiDaysBadge.setBackgroundTintList(ColorStateList.valueOf(Color.parseColor("#5DCAA5")));
             }
+
+            holder.binding.btnDeleteEmi.setOnClickListener(v -> {
+                new AlertDialog.Builder(v.getContext())
+                        .setTitle("Delete EMI")
+                        .setMessage("Are you sure you want to delete this EMI?")
+                        .setPositiveButton("Delete", (dialog, which) -> {
+                            if (mAuth.getCurrentUser() != null) {
+                                String emiId = doc.getId();
+                                mFirestore.collection("users")
+                                        .document(mAuth.getCurrentUser().getUid())
+                                        .collection("emis")
+                                        .document(emiId)
+                                        .delete()
+                                        .addOnSuccessListener(aVoid -> {
+                                            androidx.work.WorkManager.getInstance(v.getContext())
+                                                    .cancelAllWorkByTag("emi_" + emiId);
+                                            Toast.makeText(v.getContext(), "EMI deleted", Toast.LENGTH_SHORT).show();
+                                        })
+                                        .addOnFailureListener(e -> Toast.makeText(v.getContext(), "Failed to delete: " + e.getMessage(), Toast.LENGTH_SHORT).show());
+                            }
+                        })
+                        .setNegativeButton("Cancel", null)
+                        .show();
+            });
         }
 
         @Override
