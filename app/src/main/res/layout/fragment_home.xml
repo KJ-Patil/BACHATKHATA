@@ -109,12 +109,18 @@
                         android:textColor="@color/colorTextPrimary" />
                 </com.google.android.material.textfield.TextInputLayout>
 
-                <!-- Quick Actions Row -->
+                <!-- Quick Actions Row + Today's Summary pill -->
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="20dp"
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal">
+
                 <LinearLayout
                     android:id="@+id/btnDataTools"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_marginBottom="20dp"
                     android:background="?attr/selectableItemBackground"
                     android:clickable="true"
                     android:focusable="true"
@@ -173,6 +179,42 @@
                         android:layout_marginStart="6dp"
                         android:src="@drawable/ic_chevron_right"
                         app:tint="@color/colorTextSecondary" />
+                </LinearLayout>
+
+                    <!-- Spacer pushes the pill to the end of the row -->
+                    <View
+                        android:layout_width="0dp"
+                        android:layout_height="1dp"
+                        android:layout_weight="1" />
+
+                    <!-- Today's summary pill (next to Data & Tools) -->
+                    <LinearLayout
+                        android:id="@+id/cardTodaySummaryPill"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal"
+                        android:background="@drawable/bg_card_3d_accent"
+                        android:paddingHorizontal="14dp"
+                        android:paddingVertical="8dp"
+                        android:gravity="center">
+
+                        <ImageView
+                            android:layout_width="16dp"
+                            android:layout_height="16dp"
+                            android:src="@drawable/ic_wallet"
+                            app:tint="@color/colorTextPrimary" />
+
+                        <TextView
+                            android:id="@+id/txtTodaySummaryText"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginStart="8dp"
+                            android:text="Spent ₹0.00 today"
+                            android:textColor="@color/colorTextPrimary"
+                            android:textSize="12sp"
+                            android:textStyle="bold" />
+                    </LinearLayout>
+
                 </LinearLayout>
 
                 <!-- Container for dashboard widgets to hide during search -->
@@ -287,6 +329,67 @@
                                     android:textStyle="bold" />
                             </LinearLayout>
                         </LinearLayout>
+                    </LinearLayout>
+                </com.google.android.material.card.MaterialCardView>
+
+                <!-- B2. Safe-to-Spend Card -->
+                <com.google.android.material.card.MaterialCardView
+                    android:id="@+id/cardSafeToSpend"
+                    style="@style/ClayCard"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="20dp"
+                    app:cardElevation="0dp"
+                    app:cardCornerRadius="0dp"
+                    app:cardBackgroundColor="@android:color/transparent"
+                    app:strokeWidth="0dp">
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal"
+                        android:gravity="center_vertical"
+                        android:background="@drawable/bg_card_3d_accent"
+                        android:padding="20dp">
+
+                        <LinearLayout
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:orientation="vertical">
+
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="Safe to spend today"
+                                android:textColor="@color/colorTextPrimary"
+                                android:textSize="13sp" />
+
+                            <TextView
+                                android:id="@+id/txtSafeToSpendAmount"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_marginTop="2dp"
+                                android:text="₹0.00"
+                                android:textColor="@color/colorTextPrimary"
+                                android:textSize="26sp"
+                                android:textStyle="bold" />
+
+                            <TextView
+                                android:id="@+id/txtSafeToSpendSubtitle"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_marginTop="2dp"
+                                android:text="₹0.00 left · 0 days"
+                                android:textColor="@color/colorTextSecondary"
+                                android:textSize="12sp" />
+                        </LinearLayout>
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="🛟"
+                            android:textSize="32sp" />
                     </LinearLayout>
                 </com.google.android.material.card.MaterialCardView>
 
@@ -501,7 +604,7 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:scrollbars="none"
-                    android:layout_marginBottom="20dp">
+                    android:layout_marginBottom="8dp">
                     <com.google.android.material.chip.ChipGroup
                         android:id="@+id/chipGroupPeriod"
                         android:layout_width="wrap_content"
@@ -539,6 +642,39 @@
                             android:text="Yearly" />
                     </com.google.android.material.chip.ChipGroup>
                 </HorizontalScrollView>
+
+                <!-- D2. Chart Filter Toggle (Income / Spent / Both) -->
+                <com.google.android.material.chip.ChipGroup
+                    android:id="@+id/chipGroupChartMode"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="16dp"
+                    app:singleLine="true"
+                    app:singleSelection="true"
+                    app:selectionRequired="true">
+
+                    <com.google.android.material.chip.Chip
+                        android:id="@+id/chipChartBoth"
+                        style="@style/ClayChip"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Both"
+                        android:checked="true" />
+
+                    <com.google.android.material.chip.Chip
+                        android:id="@+id/chipChartIncome"
+                        style="@style/ClayChip"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Income" />
+
+                    <com.google.android.material.chip.Chip
+                        android:id="@+id/chipChartSpent"
+                        style="@style/ClayChip"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Spent" />
+                </com.google.android.material.chip.ChipGroup>
 
                 <!-- E. Spending Trend Line Chart -->
                 <LinearLayout
@@ -713,46 +849,5 @@
             </LinearLayout>
         </androidx.core.widget.NestedScrollView>
     </androidx.swiperefreshlayout.widget.SwipeRefreshLayout>
-
-    <!-- Today's summary floating pill -->
-    <com.google.android.material.card.MaterialCardView
-        android:id="@+id/cardTodaySummaryPill"
-        style="@style/ClayCard"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_gravity="bottom|center_horizontal"
-        android:layout_marginBottom="78dp"
-        android:visibility="gone"
-        app:cardElevation="0dp"
-        app:cardCornerRadius="0dp"
-        app:cardBackgroundColor="@android:color/transparent"
-        app:strokeWidth="0dp">
-
-        <LinearLayout
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:orientation="horizontal"
-            android:background="@drawable/bg_card_3d_accent"
-            android:paddingHorizontal="16dp"
-            android:paddingVertical="10dp"
-            android:gravity="center">
-
-            <ImageView
-                android:layout_width="16dp"
-                android:layout_height="16dp"
-                android:src="@drawable/ic_wallet"
-                app:tint="@color/colorTextPrimary" />
-
-            <TextView
-                android:id="@+id/txtTodaySummaryText"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginStart="8dp"
-                android:text="Spent ₹0.00 today"
-                android:textColor="@color/colorTextPrimary"
-                android:textSize="12sp"
-                android:textStyle="bold" />
-        </LinearLayout>
-    </com.google.android.material.card.MaterialCardView>
 
 </androidx.coordinatorlayout.widget.CoordinatorLayout>

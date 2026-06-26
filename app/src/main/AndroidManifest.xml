@@ -148,6 +148,16 @@
             android:name=".CibilSimulatorActivity"
             android:exported="false" />
 
+        <!-- What-If Investment Simulator -->
+        <activity
+            android:name=".WhatIfSimulatorActivity"
+            android:exported="false" />
+
+        <!-- Month-vs-Month Comparison -->
+        <activity
+            android:name=".ComparisonActivity"
+            android:exported="false" />
+
         <!-- Learning Center -->
         <activity
             android:name=".LessonDetailActivity"

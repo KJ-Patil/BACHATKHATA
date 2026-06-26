@@ -8,10 +8,12 @@ import android.text.TextWatcher;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-import androidx.core.widget.NestedScrollView;
+import androidx.appcompat.app.AlertDialog;
+import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.navigation.Navigation;
@@ -57,8 +59,9 @@ public class HomeFragment extends Fragment {
         setupPeriodFilters();
         setupNavListeners();
         setupSwipeRefresh();
-        setupScrollListener();
         setupSearch();
+        setupKpiPopups();
+        setupChartToggle();
         observeViewModel();
 
         if (mAuth.getCurrentUser() != null) {
@@ -115,6 +118,20 @@ public class HomeFragment extends Fragment {
         });
     }
 
+    private void setupChartToggle() {
+        binding.chipGroupChartMode.setOnCheckedStateChangeListener((group, checkedIds) -> {
+            if (checkedIds.isEmpty()) return;
+            int id = checkedIds.get(0);
+            String mode = "Both";
+            if (id == R.id.chipChartIncome) {
+                mode = "Income";
+            } else if (id == R.id.chipChartSpent) {
+                mode = "Spent";
+            }
+            viewModel.changeChartMode(mode);
+        });
+    }
+
     private void setupNavListeners() {
         binding.btnSeeAll.setOnClickListener(v -> 
             Navigation.findNavController(v).navigate(R.id.navigation_transactions)
@@ -159,25 +176,6 @@ public class HomeFragment extends Fragment {
         });
     }
 
-    private void setupScrollListener() {
-        binding.nestedScrollView.setOnScrollChangeListener((NestedScrollView.OnScrollChangeListener) (v, scrollX, scrollY, oldScrollX, oldScrollY) -> {
-            float density = getResources().getDisplayMetrics().density;
-            float threshold = 200 * density; // 200dp threshold
-            if (scrollY > threshold) {
-                if (binding.cardTodaySummaryPill.getVisibility() != View.VISIBLE) {
-                    binding.cardTodaySummaryPill.setVisibility(View.VISIBLE);
-                    binding.cardTodaySummaryPill.setAlpha(0f);
-                    binding.cardTodaySummaryPill.animate().alpha(1f).setDuration(200).start();
-                }
-            } else {
-                if (binding.cardTodaySummaryPill.getVisibility() == View.VISIBLE) {
-                    binding.cardTodaySummaryPill.animate().alpha(0f).setDuration(200).withEndAction(() -> {
-                        binding.cardTodaySummaryPill.setVisibility(View.GONE);
-                    }).start();
-                }
-            }
-        });
-    }
 
     private void setupSearch() {
         binding.etSearchHome.addTextChangedListener(new TextWatcher() {
@@ -207,6 +205,57 @@ public class HomeFragment extends Fragment {
             @Override
             public void afterTextChanged(Editable s) {}
         });
+    }
+
+    private void setupKpiPopups() {
+        binding.cardKpiIncome.setOnClickListener(v -> showKpiPopup(
+                "Total Income",
+                CurrencyManager.getInstance().formatAmount(lastIncome),
+                R.color.colorSecondary));
+
+        binding.cardKpiSpent.setOnClickListener(v -> showKpiPopup(
+                "Total Spent",
+                CurrencyManager.getInstance().formatAmount(lastSpent),
+                R.color.colorDanger));
+
+        binding.cardKpiSaved.setOnClickListener(v -> showKpiPopup(
+                "Total Saved",
+                CurrencyManager.getInstance().formatAmount(lastSaved),
+                R.color.colorPrimary));
+
+        binding.cardKpiTxnCount.setOnClickListener(v -> showKpiPopup(
+                "Transactions",
+                String.valueOf(lastTxns),
+                R.color.colorAccent));
+    }
+
+    private void showKpiPopup(String label, String value, int accentColorRes) {
+        if (getContext() == null) return;
+
+        View content = LayoutInflater.from(getContext())
+                .inflate(R.layout.dialog_kpi_detail, null, false);
+
+        content.findViewById(R.id.kpiDetailDot)
+                .setBackgroundTintList(ContextCompat.getColorStateList(getContext(), accentColorRes));
+        ((TextView) content.findViewById(R.id.txtKpiDetailValue)).setText(value);
+        ((TextView) content.findViewById(R.id.txtKpiDetailLabel)).setText(label);
+
+        String period = viewModel.getSelectedPeriod().getValue();
+        TextView periodView = content.findViewById(R.id.txtKpiDetailPeriod);
+        if (period != null && !period.isEmpty()) {
+            periodView.setText(period);
+            periodView.setVisibility(View.VISIBLE);
+        } else {
+            periodView.setVisibility(View.GONE);
+        }
+
+        AlertDialog dialog = new AlertDialog.Builder(getContext())
+                .setView(content)
+                .create();
+        if (dialog.getWindow() != null) {
+            dialog.getWindow().setBackgroundDrawableResource(android.R.color.transparent);
+        }
+        dialog.show();
     }
 
     private void observeViewModel() {
@@ -246,18 +295,43 @@ public class HomeFragment extends Fragment {
             binding.txtTodaySummaryText.setText("Spent " + val + " today");
         });
 
-        viewModel.getLineChartData().observe(getViewLifecycleOwner(), entries -> {
-            if (getContext() != null) {
-                ChartStyler.applyLineChartStyle(getContext(), binding.lineChart, entries);
-            }
+        viewModel.getSafeToSpend().observe(getViewLifecycleOwner(), result -> {
+            if (result == null || binding == null) return;
+            CurrencyManager cm = CurrencyManager.getInstance();
+            binding.txtSafeToSpendAmount.setText(cm.formatAmount(result.safePerDay));
+            String dayLabel = result.daysLeft == 1 ? "day" : "days";
+            binding.txtSafeToSpendSubtitle.setText(
+                    cm.formatAmount(result.poolRemaining) + " left · " + result.daysLeft + " " + dayLabel);
         });
 
-        viewModel.getBarChartData().observe(getViewLifecycleOwner(), entries -> {
-            List<String> labels = viewModel.getBarChartLabels().getValue();
-            if (getContext() != null && labels != null) {
-                ChartStyler.applyBarChartStyle(getContext(), binding.barChart, entries, labels);
-            }
+        viewModel.getLineIncomeData().observe(getViewLifecycleOwner(), entries -> renderLineChart());
+        viewModel.getLineSpentData().observe(getViewLifecycleOwner(), entries -> renderLineChart());
+        viewModel.getBarIncomeData().observe(getViewLifecycleOwner(), entries -> renderBarChart());
+        viewModel.getBarSpentData().observe(getViewLifecycleOwner(), entries -> renderBarChart());
+        viewModel.getChartMode().observe(getViewLifecycleOwner(), mode -> {
+            renderLineChart();
+            renderBarChart();
         });
+    }
+
+    private void renderLineChart() {
+        if (getContext() == null || binding == null) return;
+        List<com.github.mikephil.charting.data.Entry> income = viewModel.getLineIncomeData().getValue();
+        List<com.github.mikephil.charting.data.Entry> spent = viewModel.getLineSpentData().getValue();
+        if (income == null || spent == null) return;
+        ChartStyler.applyLineChartStyle(getContext(), binding.lineChart, income, spent,
+                viewModel.getChartMode().getValue());
+    }
+
+    private void renderBarChart() {
+        if (getContext() == null || binding == null) return;
+        List<com.github.mikephil.charting.data.BarEntry> income = viewModel.getBarIncomeData().getValue();
+        List<String> incomeLabels = viewModel.getBarIncomeLabels().getValue();
+        List<com.github.mikephil.charting.data.BarEntry> spent = viewModel.getBarSpentData().getValue();
+        List<String> spentLabels = viewModel.getBarSpentLabels().getValue();
+        if (income == null || incomeLabels == null || spent == null || spentLabels == null) return;
+        ChartStyler.applyBarChartStyle(getContext(), binding.barChart, income, incomeLabels,
+                spent, spentLabels, viewModel.getChartMode().getValue());
     }
 
     private void setGreetingText(String uid) {

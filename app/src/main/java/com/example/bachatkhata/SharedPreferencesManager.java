@@ -3,6 +3,8 @@ package com.example.bachatkhata;
 import android.content.Context;
 import android.content.SharedPreferences;
 
+import androidx.appcompat.app.AppCompatDelegate;
+
 public class SharedPreferencesManager {
 
     private static final String PREF_NAME = "BachatKhata_Prefs";
@@ -22,6 +24,7 @@ public class SharedPreferencesManager {
     public static final String KEY_LOCK_TIMEOUT_SECONDS = "LOCK_TIMEOUT_SECONDS";
     public static final String KEY_ROUNDUP_ENABLED = "ROUNDUP_ENABLED";
     public static final String KEY_ROUNDUP_LIMIT = "ROUNDUP_LIMIT";
+    public static final String KEY_THEME_MODE = "THEME_MODE";
 
     private SharedPreferencesManager(Context context) {
         sharedPreferences = context.getApplicationContext().getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE);
@@ -142,6 +145,27 @@ public class SharedPreferencesManager {
 
     public int getLockTimeoutSeconds() {
         return sharedPreferences.getInt(KEY_LOCK_TIMEOUT_SECONDS, 60); // default 60s
+    }
+
+    // Theme Mode ("System" | "Light" | "Dark")
+    public void setThemeMode(String mode) {
+        editor.putString(KEY_THEME_MODE, mode);
+        editor.apply();
+    }
+
+    public String getThemeMode() {
+        return sharedPreferences.getString(KEY_THEME_MODE, "System"); // default follow system
+    }
+
+    // Map a theme mode string to AppCompatDelegate night mode and apply it
+    public static void applyThemeMode(String mode) {
+        if ("Dark".equalsIgnoreCase(mode)) {
+            AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_YES);
+        } else if ("Light".equalsIgnoreCase(mode)) {
+            AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO);
+        } else {
+            AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_FOLLOW_SYSTEM);
+        }
     }
 
     // Clear settings

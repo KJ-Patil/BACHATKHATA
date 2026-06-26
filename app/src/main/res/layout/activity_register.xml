@@ -144,6 +144,42 @@
                             android:textColor="@color/colorTextPrimary" />
                     </com.google.android.material.textfield.TextInputLayout>
 
+                    <!-- Phone Number Field (country dial code + number) -->
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="12dp"
+                        android:orientation="horizontal"
+                        android:gravity="center_vertical">
+
+                        <com.google.android.material.button.MaterialButton
+                            android:id="@+id/btnCountryCode"
+                            style="@style/Widget.Material3.Button.OutlinedButton"
+                            android:layout_width="wrap_content"
+                            android:layout_height="56dp"
+                            android:layout_marginEnd="8dp"
+                            android:paddingHorizontal="12dp"
+                            android:text="🇮🇳 +91"
+                            android:textColor="@color/colorTextPrimary"
+                            app:strokeColor="@color/colorCardBorder" />
+
+                        <com.google.android.material.textfield.TextInputLayout
+                            android:id="@+id/tilPhone"
+                            style="@style/ClayInput"
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:hint="Phone (optional)">
+
+                            <com.google.android.material.textfield.TextInputEditText
+                                android:id="@+id/etPhone"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:inputType="phone"
+                                android:textColor="@color/colorTextPrimary" />
+                        </com.google.android.material.textfield.TextInputLayout>
+                    </LinearLayout>
+
                     <!-- Password Field -->
                     <com.google.android.material.textfield.TextInputLayout
                         android:id="@+id/tilPassword"

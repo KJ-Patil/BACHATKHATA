@@ -19,7 +19,6 @@ import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-import androidx.appcompat.app.AppCompatDelegate;
 import androidx.core.content.ContextCompat;
 import androidx.core.content.FileProvider;
 import androidx.fragment.app.Fragment;
@@ -199,6 +198,14 @@ public class ProfileFragment extends Fragment {
 
                     if (themeMode != null) {
                         binding.txtSelectedTheme.setText(themeMode);
+                        // Keep local copy in sync (e.g. after login on a new device)
+                        if (getContext() != null) {
+                            SharedPreferencesManager prefs = SharedPreferencesManager.getInstance(getContext());
+                            if (!themeMode.equalsIgnoreCase(prefs.getThemeMode())) {
+                                prefs.setThemeMode(themeMode);
+                                SharedPreferencesManager.applyThemeMode(themeMode);
+                            }
+                        }
                     } else {
                         binding.txtSelectedTheme.setText("System");
                     }
@@ -497,18 +504,16 @@ public class ProfileFragment extends Fragment {
         BaseActivity activity = (BaseActivity) getActivity();
         String uid = mAuth.getCurrentUser().getUid();
 
+        // Persist locally first so the choice survives restarts and is readable
+        // synchronously at app startup (Firestore reads are async).
+        SharedPreferencesManager.getInstance(getContext()).setThemeMode(mode);
+        SharedPreferencesManager.applyThemeMode(mode);
+
         mFirestore.collection("users").document(uid)
                 .update("themeMode", mode)
                 .addOnSuccessListener(aVoid -> {
                     if (binding != null) {
                         binding.txtSelectedTheme.setText(mode);
-                    }
-                    if ("Dark".equalsIgnoreCase(mode)) {
-                        AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_YES);
-                    } else if ("Light".equalsIgnoreCase(mode)) {
-                        AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO);
-                    } else {
-                        AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_FOLLOW_SYSTEM);
                     }
                     if (activity != null) activity.showSnackbar("Theme settings updated!", "SUCCESS");
                 });

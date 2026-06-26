@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:gravity="center_horizontal"
+    android:background="@drawable/bg_card_3d"
+    android:padding="28dp">
+
+    <View
+        android:id="@+id/kpiDetailDot"
+        android:layout_width="48dp"
+        android:layout_height="48dp"
+        android:background="@drawable/bg_kpi_dot"
+        android:backgroundTint="@color/colorPrimary" />
+
+    <TextView
+        android:id="@+id/txtKpiDetailValue"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="18dp"
+        android:gravity="center"
+        android:text="₹0.0"
+        android:textColor="@color/colorTextPrimary"
+        android:textSize="32sp"
+        android:textStyle="bold" />
+
+    <TextView
+        android:id="@+id/txtKpiDetailLabel"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="6dp"
+        android:gravity="center"
+        android:letterSpacing="0.02"
+        android:text="Total Income"
+        android:textColor="@color/colorTextSecondary"
+        android:textSize="14sp" />
+
+    <TextView
+        android:id="@+id/txtKpiDetailPeriod"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="4dp"
+        android:gravity="center"
+        android:text=""
+        android:textColor="@color/colorTextSecondary"
+        android:textSize="12sp" />
+
+</LinearLayout>

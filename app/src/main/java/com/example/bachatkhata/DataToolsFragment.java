@@ -45,22 +45,24 @@ public class DataToolsFragment extends Fragment {
 
     private List<ToolsGridAdapter.ToolItem> buildTools() {
         return Arrays.asList(
-                ToolsGridAdapter.ToolItem.activity("📁", "Manage Categories", CategoryManageActivity.class),
                 ToolsGridAdapter.ToolItem.nav("📒", "Customer Ledger", R.id.navigation_customer_ledger),
+                ToolsGridAdapter.ToolItem.nav("👨‍👩‍👧", "Family Wallet", R.id.navigation_family_wallet),
                 ToolsGridAdapter.ToolItem.activity("📄", "Export Reports", ExportActivity.class),
                 ToolsGridAdapter.ToolItem.nav("🔁", "Subscriptions", R.id.navigation_subscriptions),
                 ToolsGridAdapter.ToolItem.nav("🏦", "EMI & Loans", R.id.navigation_emi_tracker),
                 ToolsGridAdapter.ToolItem.activity("📅", "Bill Calendar", BillCalendarActivity.class),
-                ToolsGridAdapter.ToolItem.nav("👨‍👩‍👧", "Family Wallet", R.id.navigation_family_wallet),
                 ToolsGridAdapter.ToolItem.nav("🏆", "Achievements", R.id.navigation_achievements),
                 ToolsGridAdapter.ToolItem.nav("❤️", "Health Score", R.id.navigation_health_score),
                 ToolsGridAdapter.ToolItem.activity("💰", "Net Worth", NetWorthActivity.class),
                 ToolsGridAdapter.ToolItem.nav("🪙", "Round-Up", R.id.navigation_roundup_settings),
                 ToolsGridAdapter.ToolItem.activity("📊", "Credit Simulator", CibilSimulatorActivity.class),
+                ToolsGridAdapter.ToolItem.activity("🔮", "What-If Simulator", WhatIfSimulatorActivity.class),
+                ToolsGridAdapter.ToolItem.activity("📈", "Month Comparison", ComparisonActivity.class),
                 ToolsGridAdapter.ToolItem.activity("🧾", "Bill Splitter", BillSplitterActivity.class),
                 ToolsGridAdapter.ToolItem.activity("😊", "Money & Mood", MoodInsightActivity.class),
                 ToolsGridAdapter.ToolItem.nav("🎓", "Financial School", R.id.navigation_literacy_lessons),
-                ToolsGridAdapter.ToolItem.nav("🌱", "Carbon Footprint", R.id.navigation_carbon_tracker)
+                ToolsGridAdapter.ToolItem.nav("🌱", "Carbon Footprint", R.id.navigation_carbon_tracker),
+                ToolsGridAdapter.ToolItem.activity("📁", "Manage Categories", CategoryManageActivity.class)
         );
     }
 

@@ -96,6 +96,30 @@ public class ExportActivity extends BaseActivity {
         });
 
         binding.btnExport.setOnClickListener(v -> performExport());
+
+        binding.chipGroupPresets.setOnCheckedStateChangeListener((group, checkedIds) -> {
+            if (checkedIds.isEmpty()) return;
+            applyPreset(checkedIds.get(0));
+        });
+    }
+
+    private void applyPreset(int chipId) {
+        Calendar cal = Calendar.getInstance();
+        endDate = cal.getTime(); // today
+
+        if (chipId == R.id.chipPresetToday) {
+            // start stays today
+        } else if (chipId == R.id.chipPresetWeek) {
+            cal.set(Calendar.DAY_OF_WEEK, cal.getFirstDayOfWeek());
+        } else if (chipId == R.id.chipPreset30Days) {
+            cal.add(Calendar.DAY_OF_YEAR, -29);
+        } else if (chipId == R.id.chipPresetYear) {
+            cal.set(Calendar.DAY_OF_YEAR, 1);
+        } else { // chipPresetMonth (default)
+            cal.set(Calendar.DAY_OF_MONTH, 1);
+        }
+        startDate = cal.getTime();
+        updateDateRangeLabel();
     }
 
     private void updateFormatUI() {
@@ -127,6 +151,7 @@ public class ExportActivity extends BaseActivity {
             if (selection.first != null && selection.second != null) {
                 startDate = new Date(selection.first);
                 endDate = new Date(selection.second);
+                binding.chipGroupPresets.clearCheck(); // custom range -> no preset highlighted
                 updateDateRangeLabel();
             }
         });

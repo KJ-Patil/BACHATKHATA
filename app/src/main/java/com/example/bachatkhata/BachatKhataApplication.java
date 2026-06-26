@@ -2,7 +2,6 @@ package com.example.bachatkhata;
 
 import android.app.Application;
 import com.google.firebase.FirebaseApp;
-import androidx.appcompat.app.AppCompatDelegate;
 
 public class BachatKhataApplication extends Application {
 
@@ -16,8 +15,9 @@ public class BachatKhataApplication extends Application {
         // Initialize Firebase
         FirebaseApp.initializeApp(this);
         
-        // Set Theme Mode to Follow System default
-        AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_FOLLOW_SYSTEM);
+        // Apply the user's saved theme mode (defaults to "System" if unset)
+        SharedPreferencesManager.applyThemeMode(
+                SharedPreferencesManager.getInstance(this).getThemeMode());
     }
 
     public static synchronized BachatKhataApplication getInstance() {

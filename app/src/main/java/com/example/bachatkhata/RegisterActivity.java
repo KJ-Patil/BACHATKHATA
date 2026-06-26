@@ -32,6 +32,9 @@ public class RegisterActivity extends AppCompatActivity {
     private Uri profileImageUri;
     private ActivityResultLauncher<String> getContentLauncher;
 
+    private java.util.List<Country> countries;
+    private Country selectedCountry;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -57,6 +60,30 @@ public class RegisterActivity extends AppCompatActivity {
         binding.btnChoosePhoto.setOnClickListener(v -> getContentLauncher.launch("image/*"));
         binding.btnRegister.setOnClickListener(v -> handleRegister());
         binding.btnGoToLogin.setOnClickListener(v -> finish());
+
+        // Country dial-code selector
+        countries = Country.all();
+        selectedCountry = countries.get(0); // India default
+        updateCountryButton();
+        binding.btnCountryCode.setOnClickListener(v -> showCountryPicker());
+    }
+
+    private void updateCountryButton() {
+        binding.btnCountryCode.setText(selectedCountry.flag() + " " + selectedCountry.dialCode);
+    }
+
+    private void showCountryPicker() {
+        String[] labels = new String[countries.size()];
+        for (int i = 0; i < countries.size(); i++) {
+            labels[i] = countries.get(i).displayLabel();
+        }
+        new androidx.appcompat.app.AlertDialog.Builder(this)
+                .setTitle("Select country")
+                .setItems(labels, (dialog, which) -> {
+                    selectedCountry = countries.get(which);
+                    updateCountryButton();
+                })
+                .show();
     }
 
     private void handleRegister() {
@@ -133,6 +160,14 @@ public class RegisterActivity extends AppCompatActivity {
         userData.put("name", name);
         userData.put("email", mAuth.getCurrentUser().getEmail());
         userData.put("photoUrl", photoUrl);
+
+        // Optional phone number with its country dial code.
+        String phoneNumber = binding.etPhone.getText().toString().trim();
+        if (!phoneNumber.isEmpty()) {
+            userData.put("phone", selectedCountry.dialCode + " " + phoneNumber);
+            userData.put("dialCode", selectedCountry.dialCode);
+            userData.put("countryCode", selectedCountry.isoCode);
+        }
         userData.put("currency", "INR");
         userData.put("currencySymbol", "₹");
         userData.put("pinHash", "");

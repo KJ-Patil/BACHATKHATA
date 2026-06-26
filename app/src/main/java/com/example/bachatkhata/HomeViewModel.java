@@ -12,7 +12,6 @@ import com.google.firebase.firestore.ListenerRegistration;
 
 import java.util.ArrayList;
 import java.util.Calendar;
-import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
@@ -28,10 +27,23 @@ public class HomeViewModel extends ViewModel {
     private final MutableLiveData<List<Transaction>> recentTransactions = new MutableLiveData<>(new ArrayList<>());
     
     private final MutableLiveData<Double> todaySpent = new MutableLiveData<>(0.0);
-    
-    private final MutableLiveData<List<Entry>> lineChartData = new MutableLiveData<>(new ArrayList<>());
-    private final MutableLiveData<List<BarEntry>> barChartData = new MutableLiveData<>(new ArrayList<>());
-    private final MutableLiveData<List<String>> barChartLabels = new MutableLiveData<>(new ArrayList<>());
+
+    // Safe-to-Spend: consumes transactions + budgets + goals at once.
+    private final MutableLiveData<SafeToSpendCalculator.Result> safeToSpend = new MutableLiveData<>();
+    private final List<Budget> budgetsList = new ArrayList<>();
+    private final List<SavingsGoal> goalsList = new ArrayList<>();
+    private ListenerRegistration budgetsListener;
+
+    // Line chart (Spending Trend) — cumulative series, aligned on a shared day axis
+    private final MutableLiveData<List<Entry>> lineIncomeData = new MutableLiveData<>(new ArrayList<>());
+    private final MutableLiveData<List<Entry>> lineSpentData = new MutableLiveData<>(new ArrayList<>());
+    // Bar chart (By Category) — separate income/expense category breakdowns
+    private final MutableLiveData<List<BarEntry>> barIncomeData = new MutableLiveData<>(new ArrayList<>());
+    private final MutableLiveData<List<String>> barIncomeLabels = new MutableLiveData<>(new ArrayList<>());
+    private final MutableLiveData<List<BarEntry>> barSpentData = new MutableLiveData<>(new ArrayList<>());
+    private final MutableLiveData<List<String>> barSpentLabels = new MutableLiveData<>(new ArrayList<>());
+    // Chart filter toggle: "Both" | "Income" | "Spent"
+    private final MutableLiveData<String> chartMode = new MutableLiveData<>("Both");
     private final MutableLiveData<String> selectedPeriod = new MutableLiveData<>("Monthly");
     private String currentSearchQuery = "";
 
@@ -45,10 +57,19 @@ public class HomeViewModel extends ViewModel {
     public LiveData<Double> getTotalSaved() { return totalSaved; }
     public LiveData<List<Transaction>> getRecentTransactions() { return recentTransactions; }
     public LiveData<Double> getTodaySpent() { return todaySpent; }
-    public LiveData<List<Entry>> getLineChartData() { return lineChartData; }
-    public LiveData<List<BarEntry>> getBarChartData() { return barChartData; }
-    public LiveData<List<String>> getBarChartLabels() { return barChartLabels; }
+    public LiveData<SafeToSpendCalculator.Result> getSafeToSpend() { return safeToSpend; }
+    public LiveData<List<Entry>> getLineIncomeData() { return lineIncomeData; }
+    public LiveData<List<Entry>> getLineSpentData() { return lineSpentData; }
+    public LiveData<List<BarEntry>> getBarIncomeData() { return barIncomeData; }
+    public LiveData<List<String>> getBarIncomeLabels() { return barIncomeLabels; }
+    public LiveData<List<BarEntry>> getBarSpentData() { return barSpentData; }
+    public LiveData<List<String>> getBarSpentLabels() { return barSpentLabels; }
+    public LiveData<String> getChartMode() { return chartMode; }
     public LiveData<String> getSelectedPeriod() { return selectedPeriod; }
+
+    public void changeChartMode(String mode) {
+        chartMode.setValue(mode);
+    }
 
     public void loadDashboardData(String uid, String period) {
         selectedPeriod.setValue(period);
@@ -58,6 +79,7 @@ public class HomeViewModel extends ViewModel {
             allTransactionsList.clear();
             allTransactionsList.addAll(list);
             processAndEmitData(period);
+            recomputeSafeToSpend();
         });
 
         // 2. Observe Savings Goals in real time
@@ -69,16 +91,42 @@ public class HomeViewModel extends ViewModel {
                 .collection("savings_goals")
                 .addSnapshotListener((value, error) -> {
                     double savedSum = 0;
+                    goalsList.clear();
                     if (value != null) {
                         for (DocumentSnapshot doc : value.getDocuments()) {
-                            Double amt = doc.getDouble("savedAmount");
-                            if (amt != null) {
-                                savedSum += amt;
-                            }
+                            SavingsGoal g = SavingsGoal.fromDocument(doc);
+                            goalsList.add(g);
+                            savedSum += g.getSavedAmount();
                         }
                     }
                     totalSaved.setValue(savedSum);
+                    recomputeSafeToSpend();
                 });
+
+        // 3. Observe this month's Budgets (for the Safe-to-Spend fallback ceiling)
+        if (budgetsListener != null) {
+            budgetsListener.remove();
+        }
+        Calendar bCal = Calendar.getInstance();
+        budgetsListener = mFirestore.collection("users")
+                .document(uid)
+                .collection("budgets")
+                .whereEqualTo("month", bCal.get(Calendar.MONTH))
+                .whereEqualTo("year", bCal.get(Calendar.YEAR))
+                .addSnapshotListener((value, error) -> {
+                    budgetsList.clear();
+                    if (value != null) {
+                        for (DocumentSnapshot doc : value.getDocuments()) {
+                            budgetsList.add(Budget.fromDocument(doc));
+                        }
+                    }
+                    recomputeSafeToSpend();
+                });
+    }
+
+    private void recomputeSafeToSpend() {
+        safeToSpend.setValue(
+                SafeToSpendCalculator.compute(allTransactionsList, budgetsList, goalsList));
     }
 
     public void changePeriod(String period) {
@@ -194,79 +242,94 @@ public class HomeViewModel extends ViewModel {
     }
 
     private void buildLineChartData(List<Transaction> filtered) {
-        // Build cumulative expense trend sorted by date ascending
-        List<Transaction> expenses = new ArrayList<>();
+        // Build cumulative income and expense trends over a shared, sorted day axis
+        // so both series line up on the same x indices.
+        TreeMap<Long, Double> incomeByDay = new TreeMap<>();
+        TreeMap<Long, Double> spentByDay = new TreeMap<>();
+        TreeMap<Long, Boolean> allDays = new TreeMap<>();
         for (Transaction t : filtered) {
-            if ("expense".equalsIgnoreCase(t.getType())) {
-                expenses.add(t);
-            }
-        }
-        
-        // Sort oldest to newest
-        Collections.sort(expenses, (o1, o2) -> {
-            if (o1.getDate() == null || o2.getDate() == null) return 0;
-            return o1.getDate().compareTo(o2.getDate());
-        });
-
-        // Group cumulative sums by day index
-        Map<Long, Double> daySumMap = new TreeMap<>();
-        double cumulative = 0;
-        for (Transaction t : expenses) {
-            if (t.getDate() != null) {
-                // Clear time to group by date
-                Calendar c = Calendar.getInstance();
-                c.setTime(t.getDate());
-                c.set(Calendar.HOUR_OF_DAY, 0);
-                c.set(Calendar.MINUTE, 0);
-                c.set(Calendar.SECOND, 0);
-                c.set(Calendar.MILLISECOND, 0);
-                long dateMs = c.getTimeInMillis();
-                
-                cumulative += t.getAmount();
-                daySumMap.put(dateMs, cumulative);
+            if (t.getDate() == null) continue;
+            long dateMs = startOfDay(t.getDate());
+            allDays.put(dateMs, true);
+            if ("income".equalsIgnoreCase(t.getType())) {
+                incomeByDay.put(dateMs, incomeByDay.getOrDefault(dateMs, 0.0) + t.getAmount());
+            } else if ("expense".equalsIgnoreCase(t.getType())) {
+                spentByDay.put(dateMs, spentByDay.getOrDefault(dateMs, 0.0) + t.getAmount());
             }
         }
 
-        List<Entry> entries = new ArrayList<>();
+        List<Entry> incomeEntries = new ArrayList<>();
+        List<Entry> spentEntries = new ArrayList<>();
         int index = 0;
-        for (Map.Entry<Long, Double> entry : daySumMap.entrySet()) {
-            entries.add(new Entry(index++, entry.getValue().floatValue()));
-        }
-        
-        // If empty, add a default point
-        if (entries.isEmpty()) {
-            entries.add(new Entry(0, 0f));
+        double incomeCumulative = 0;
+        double spentCumulative = 0;
+        for (Long day : allDays.keySet()) {
+            incomeCumulative += incomeByDay.getOrDefault(day, 0.0);
+            spentCumulative += spentByDay.getOrDefault(day, 0.0);
+            incomeEntries.add(new Entry(index, (float) incomeCumulative));
+            spentEntries.add(new Entry(index, (float) spentCumulative));
+            index++;
         }
 
-        lineChartData.setValue(entries);
+        // If empty, add a default point so the chart renders cleanly
+        if (incomeEntries.isEmpty()) incomeEntries.add(new Entry(0, 0f));
+        if (spentEntries.isEmpty()) spentEntries.add(new Entry(0, 0f));
+
+        lineIncomeData.setValue(incomeEntries);
+        lineSpentData.setValue(spentEntries);
+    }
+
+    private long startOfDay(Date date) {
+        Calendar c = Calendar.getInstance();
+        c.setTime(date);
+        c.set(Calendar.HOUR_OF_DAY, 0);
+        c.set(Calendar.MINUTE, 0);
+        c.set(Calendar.SECOND, 0);
+        c.set(Calendar.MILLISECOND, 0);
+        return c.getTimeInMillis();
     }
 
     private void buildBarChartData(List<Transaction> filtered) {
-        // Group by category, sum expenses
-        Map<String, Double> categoryMap = new HashMap<>();
+        // Group by category, summing income and expense separately
+        Map<String, Double> incomeCat = new HashMap<>();
+        Map<String, Double> spentCat = new HashMap<>();
         for (Transaction t : filtered) {
-            if ("expense".equalsIgnoreCase(t.getType())) {
-                Double current = categoryMap.getOrDefault(t.getCategory(), 0.0);
-                categoryMap.put(t.getCategory(), current + t.getAmount());
+            String category = t.getCategory() != null ? t.getCategory() : "Other";
+            if ("income".equalsIgnoreCase(t.getType())) {
+                incomeCat.put(category, incomeCat.getOrDefault(category, 0.0) + t.getAmount());
+            } else if ("expense".equalsIgnoreCase(t.getType())) {
+                spentCat.put(category, spentCat.getOrDefault(category, 0.0) + t.getAmount());
             }
         }
 
-        List<BarEntry> entries = new ArrayList<>();
-        List<String> labels = new ArrayList<>();
-        int index = 0;
-        for (Map.Entry<String, Double> entry : categoryMap.entrySet()) {
-            entries.add(new BarEntry(index++, entry.getValue().floatValue()));
-            labels.add(entry.getKey());
+        List<BarEntry> incomeEntries = new ArrayList<>();
+        List<String> incomeLabels = new ArrayList<>();
+        int incomeIndex = 0;
+        for (Map.Entry<String, Double> entry : incomeCat.entrySet()) {
+            incomeEntries.add(new BarEntry(incomeIndex++, entry.getValue().floatValue()));
+            incomeLabels.add(entry.getKey());
+        }
+        if (incomeEntries.isEmpty()) {
+            incomeEntries.add(new BarEntry(0, 0f));
+            incomeLabels.add("None");
         }
 
-        // Default layout configuration on empty
-        if (entries.isEmpty()) {
-            entries.add(new BarEntry(0, 0f));
-            labels.add("None");
+        List<BarEntry> spentEntries = new ArrayList<>();
+        List<String> spentLabels = new ArrayList<>();
+        int spentIndex = 0;
+        for (Map.Entry<String, Double> entry : spentCat.entrySet()) {
+            spentEntries.add(new BarEntry(spentIndex++, entry.getValue().floatValue()));
+            spentLabels.add(entry.getKey());
+        }
+        if (spentEntries.isEmpty()) {
+            spentEntries.add(new BarEntry(0, 0f));
+            spentLabels.add("None");
         }
 
-        barChartData.setValue(entries);
-        barChartLabels.setValue(labels);
+        barIncomeData.setValue(incomeEntries);
+        barIncomeLabels.setValue(incomeLabels);
+        barSpentData.setValue(spentEntries);
+        barSpentLabels.setValue(spentLabels);
     }
 
     @Override
@@ -275,6 +338,9 @@ public class HomeViewModel extends ViewModel {
         TransactionRepository.getInstance().removeListener();
         if (savingsListener != null) {
             savingsListener.remove();
+        }
+        if (budgetsListener != null) {
+            budgetsListener.remove();
         }
     }
 }

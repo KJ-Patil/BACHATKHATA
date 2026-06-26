@@ -25,11 +25,16 @@ import com.github.mikephil.charting.data.PieDataSet;
 import com.github.mikephil.charting.data.PieEntry;
 import com.github.mikephil.charting.formatter.IndexAxisValueFormatter;
 import com.github.mikephil.charting.formatter.ValueFormatter;
+import com.github.mikephil.charting.interfaces.datasets.ILineDataSet;
 
 import java.util.ArrayList;
 import java.util.List;
 
 public class ChartStyler {
+
+    // Toggle series colors (match the KPI dots: green income, purple spent)
+    private static final int INCOME_COLOR = Color.parseColor("#5DCAA5");
+    private static final int SPENT_COLOR = Color.parseColor("#7C6FE0");
 
     private static final int[] PALETTE = new int[]{
             Color.parseColor("#7C6FE0"),
@@ -133,7 +138,174 @@ public class ChartStyler {
         chart.invalidate();
     }
 
+    /**
+     * Multi-series line chart for the Home "Spending Trend" toggle.
+     * mode: "Income" -> income line only, "Spent" -> expense line only, "Both" -> both.
+     */
+    public static void applyLineChartStyle(Context context, LineChart chart,
+                                           List<Entry> incomeEntries, List<Entry> spentEntries,
+                                           String mode) {
+        chart.setLayerType(View.LAYER_TYPE_SOFTWARE, null);
+        chart.getDescription().setEnabled(false);
+        chart.setBackgroundColor(Color.TRANSPARENT);
+        chart.setTouchEnabled(true);
+        chart.setPinchZoom(false);
+        chart.setDoubleTapToZoomEnabled(false);
+        chart.setScaleEnabled(false);
+        chart.setDrawGridBackground(false);
+        chart.setDrawBorders(false);
+        chart.setExtraOffsets(8f, 16f, 16f, 8f);
+        chart.setMinOffset(0f);
+
+        boolean showIncome = !"Spent".equalsIgnoreCase(mode);
+        boolean showSpent = !"Income".equalsIgnoreCase(mode);
+
+        boolean singlePoint = (showSpent && spentEntries != null && spentEntries.size() == 1)
+                || (showIncome && incomeEntries != null && incomeEntries.size() == 1);
+
+        List<ILineDataSet> sets = new ArrayList<>();
+        if (showSpent) {
+            sets.add(buildLineDataSet(spentEntries, "Spent", SPENT_COLOR, singlePoint));
+        }
+        if (showIncome) {
+            sets.add(buildLineDataSet(incomeEntries, "Income", INCOME_COLOR, singlePoint));
+        }
+
+        chart.setData(new LineData(sets));
+
+        // Legend only helps when more than one line is shown.
+        boolean both = showIncome && showSpent;
+        chart.getLegend().setEnabled(both);
+        if (both) {
+            chart.getLegend().setTextColor(ContextCompat.getColor(context, R.color.colorTextSecondary));
+            chart.getLegend().setTextSize(11f);
+        }
+
+        XAxis xAxis = chart.getXAxis();
+        xAxis.setPosition(XAxis.XAxisPosition.BOTTOM);
+        xAxis.setDrawGridLines(false);
+        xAxis.setDrawAxisLine(false);
+        xAxis.setTextColor(ContextCompat.getColor(context, R.color.colorTextSecondary));
+        xAxis.setTextSize(11f);
+        xAxis.setGranularity(1f);
+        xAxis.setAvoidFirstLastClipping(true);
+        if (singlePoint) {
+            xAxis.setAxisMinimum(-0.5f);
+            xAxis.setAxisMaximum(0.5f);
+            xAxis.setLabelCount(1, true);
+        } else {
+            xAxis.resetAxisMinimum();
+            xAxis.resetAxisMaximum();
+        }
+
+        YAxis yAxisLeft = chart.getAxisLeft();
+        yAxisLeft.setDrawGridLines(false);
+        yAxisLeft.setDrawAxisLine(false);
+        yAxisLeft.setTextColor(ContextCompat.getColor(context, R.color.colorTextSecondary));
+        yAxisLeft.setTextSize(11f);
+        yAxisLeft.setLabelCount(4, false);
+        yAxisLeft.setSpaceTop(25f);
+        yAxisLeft.setAxisMinimum(0f);
+        yAxisLeft.setValueFormatter(new ValueFormatter() {
+            @Override
+            public String getFormattedValue(float value) {
+                return formatCompact(value);
+            }
+        });
+
+        chart.getAxisRight().setEnabled(false);
+
+        chart.animateX(900, Easing.EaseInOutCubic);
+        chart.invalidate();
+    }
+
+    private static LineDataSet buildLineDataSet(List<Entry> entries, String label,
+                                                int color, boolean singlePoint) {
+        LineDataSet dataSet = new LineDataSet(entries, label);
+        dataSet.setColor(color);
+        dataSet.setLineWidth(2.5f);
+        dataSet.setMode(LineDataSet.Mode.CUBIC_BEZIER);
+        dataSet.setDrawCircles(true);
+        dataSet.setCircleColor(Color.WHITE);
+        dataSet.setCircleHoleColor(color);
+        dataSet.setCircleRadius(singlePoint ? 7f : 5f);
+        dataSet.setCircleHoleRadius(singlePoint ? 4f : 2.5f);
+        dataSet.setDrawValues(false);
+
+        dataSet.setDrawFilled(true);
+        GradientDrawable gradient = new GradientDrawable(
+                GradientDrawable.Orientation.TOP_BOTTOM,
+                new int[]{withAlpha(color, 0x4D), withAlpha(color, 0x00)}
+        );
+        dataSet.setFillDrawable(gradient);
+
+        dataSet.setDrawHighlightIndicators(true);
+        dataSet.setHighLightColor(color);
+        dataSet.setDrawHorizontalHighlightIndicator(false);
+        dataSet.setDrawVerticalHighlightIndicator(true);
+        return dataSet;
+    }
+
+    private static int withAlpha(int color, int alpha) {
+        return Color.argb(alpha, Color.red(color), Color.green(color), Color.blue(color));
+    }
+
+    /**
+     * Multi-series bar chart for the Home "By Category" toggle.
+     * "Income"/"Spent" show that type's categories; "Both" concatenates them,
+     * coloring income bars green and expense bars purple.
+     */
+    public static void applyBarChartStyle(Context context, BarChart chart,
+                                          List<BarEntry> incomeEntries, List<String> incomeLabels,
+                                          List<BarEntry> spentEntries, List<String> spentLabels,
+                                          String mode) {
+        List<BarEntry> entries = new ArrayList<>();
+        List<String> labels = new ArrayList<>();
+        List<Integer> colors = new ArrayList<>();
+
+        boolean showIncome = !"Spent".equalsIgnoreCase(mode);
+        boolean showSpent = !"Income".equalsIgnoreCase(mode);
+
+        int index = 0;
+        if (showIncome && !isPlaceholder(incomeLabels)) {
+            for (int i = 0; i < incomeEntries.size(); i++) {
+                entries.add(new BarEntry(index++, incomeEntries.get(i).getY()));
+                labels.add(incomeLabels.get(i));
+                colors.add(INCOME_COLOR);
+            }
+        }
+        if (showSpent && !isPlaceholder(spentLabels)) {
+            for (int i = 0; i < spentEntries.size(); i++) {
+                entries.add(new BarEntry(index++, spentEntries.get(i).getY()));
+                labels.add(spentLabels.get(i));
+                // Spent-only keeps the multicolor palette; in "Both" use one purple
+                // so it reads clearly against the green income bars.
+                colors.add(showIncome ? SPENT_COLOR : PALETTE[i % PALETTE.length]);
+            }
+        }
+
+        if (entries.isEmpty()) {
+            entries.add(new BarEntry(0, 0f));
+            labels.add("None");
+            colors.add(PALETTE[0]);
+        }
+
+        applyBarChartStyleInternal(context, chart, entries, labels, colors);
+    }
+
+    private static boolean isPlaceholder(List<String> labels) {
+        return labels == null || labels.isEmpty()
+                || (labels.size() == 1 && "None".equals(labels.get(0)));
+    }
+
     public static void applyBarChartStyle(Context context, BarChart chart, List<BarEntry> entries, List<String> labels) {
+        List<Integer> colors = new ArrayList<>();
+        for (int c : PALETTE) colors.add(c);
+        applyBarChartStyleInternal(context, chart, entries, labels, colors);
+    }
+
+    private static void applyBarChartStyleInternal(Context context, BarChart chart, List<BarEntry> entries,
+                                                   List<String> labels, List<Integer> colors) {
         // Software layer so the chart respects the parent card's rounded corners.
         chart.setLayerType(View.LAYER_TYPE_SOFTWARE, null);
         chart.getDescription().setEnabled(false);
@@ -147,7 +319,7 @@ public class ChartStyler {
         chart.setMinOffset(0f);
 
         BarDataSet dataSet = new BarDataSet(entries, "Categories");
-        dataSet.setColors(PALETTE);
+        dataSet.setColors(colors);
         dataSet.setValueTextSize(11f);
         dataSet.setValueTypeface(Typeface.DEFAULT_BOLD);
         dataSet.setValueTextColor(ContextCompat.getColor(context, R.color.colorTextPrimary));
