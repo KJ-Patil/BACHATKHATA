@@ -68,20 +68,20 @@
 
     <style name="ShapeAppearanceOverlay.ClayFab" parent="">
         <item name="cornerFamily">rounded</item>
-        <item name="cornerSize">18dp</item>
+        <item name="cornerSize">19dp</item>
     </style>
 
     <!-- Bottom navigation active indicator (soft primary pill) -->
     <style name="ShapeAppearance.BottomNavIndicator" parent="">
         <item name="cornerFamily">rounded</item>
-        <item name="cornerSize">16dp</item>
+        <item name="cornerSize">18dp</item>
     </style>
 
     <style name="BottomNavActiveIndicator" parent="Widget.Material3.BottomNavigationView.ActiveIndicator">
         <item name="android:color">#1F7C6FE0</item>
-        <item name="android:width">52dp</item>
+        <item name="android:width">56dp</item>
         <item name="android:height">36dp</item>
         <item name="shapeAppearance">@style/ShapeAppearance.BottomNavIndicator</item>
-        <item name="marginHorizontal">6dp</item>
+        <item name="marginHorizontal">4dp</item>
     </style>
 </resources>

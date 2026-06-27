@@ -6,6 +6,8 @@ import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.net.Uri;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Looper;
 import android.text.InputType;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -30,6 +32,8 @@ import com.google.android.material.textfield.TextInputLayout;
 import com.google.android.gms.auth.api.signin.GoogleSignIn;
 import com.google.android.gms.auth.api.signin.GoogleSignInClient;
 import com.google.android.gms.auth.api.signin.GoogleSignInOptions;
+import com.google.android.gms.tasks.Task;
+import com.google.android.gms.tasks.Tasks;
 import com.google.firebase.auth.AuthCredential;
 import com.google.firebase.auth.EmailAuthProvider;
 import com.google.firebase.auth.FirebaseAuth;
@@ -605,12 +609,28 @@ public class ProfileFragment extends Fragment {
     }
 
     private void confirmClearDataDoubleCheck() {
-        new AlertDialog.Builder(getContext())
+        if (getContext() == null) return;
+
+        // Confirmation checkbox: the delete action stays disabled until it is ticked.
+        int padding = (int) (20 * getResources().getDisplayMetrics().density);
+        android.widget.CheckBox confirmCheck = new android.widget.CheckBox(getContext());
+        confirmCheck.setText("I understand this will permanently delete all my data and cannot be undone.");
+        confirmCheck.setPadding(padding, padding / 2, padding, 0);
+
+        AlertDialog dialog = new AlertDialog.Builder(getContext())
                 .setTitle("Are you absolutely sure?")
                 .setMessage("This will completely wipe out your account history and start fresh. Proceed?")
-                .setPositiveButton("Yes, Clear Everything", (dialog, which) -> clearAllUserData())
+                .setView(confirmCheck)
+                .setPositiveButton("Yes, Clear Everything", (d, which) -> clearAllUserData())
                 .setNegativeButton("Cancel", null)
-                .show();
+                .create();
+
+        dialog.setOnShowListener(d -> {
+            android.widget.Button deleteButton = dialog.getButton(AlertDialog.BUTTON_POSITIVE);
+            deleteButton.setEnabled(false); // must tick the checkbox first
+            confirmCheck.setOnCheckedChangeListener((buttonView, isChecked) -> deleteButton.setEnabled(isChecked));
+        });
+        dialog.show();
     }
 
     private void clearAllUserData() {
@@ -621,29 +641,54 @@ public class ProfileFragment extends Fragment {
         String uid = mAuth.getCurrentUser().getUid();
         String[] subcollections = {"transactions", "budgets", "savings_goals", "categories", "notifications", "customers", "customer_txns"};
 
-        // Perform batch deletes for each subcollection
+        // Collect every delete operation so we can wait for all of them to finish.
+        List<Task<?>> deleteTasks = new ArrayList<>();
+
+        // Batch-delete each subcollection (chained off its fetch so the commit is awaited).
         for (String coll : subcollections) {
-            mFirestore.collection("users").document(uid).collection(coll).get()
-                    .addOnSuccessListener(queryDocumentSnapshots -> {
-                        if (queryDocumentSnapshots.isEmpty()) return;
+            Task<Void> collTask = mFirestore.collection("users").document(uid).collection(coll).get()
+                    .continueWithTask(task -> {
+                        if (!task.isSuccessful() || task.getResult() == null || task.getResult().isEmpty()) {
+                            return Tasks.forResult(null);
+                        }
                         WriteBatch batch = mFirestore.batch();
-                        for (DocumentSnapshot doc : queryDocumentSnapshots.getDocuments()) {
+                        for (DocumentSnapshot doc : task.getResult().getDocuments()) {
                             batch.delete(doc.getReference());
                         }
-                        batch.commit();
+                        return batch.commit();
                     });
+            deleteTasks.add(collTask);
         }
 
-        // Delete profile photo in storage if it exists
-        FirebaseStorage.getInstance().getReference().child("users/" + uid + "/profile.jpg").delete()
-                .addOnCompleteListener(task -> {
-                    // Sign out and redirect
-                    SharedPreferencesManager.getInstance(getContext()).clearAll();
-                    mFirestore.collection("users").document(uid).delete().addOnCompleteListener(deleteTask -> {
-                        if (activity != null) activity.hideLoadingDialog();
-                        logoutUser();
-                    });
-                });
+        // Delete the profile photo, tolerating the common case where it doesn't exist.
+        Task<Void> storageTask = FirebaseStorage.getInstance().getReference()
+                .child("users/" + uid + "/profile.jpg").delete()
+                .continueWith(task -> null); // swallow "object not found" / errors so it never blocks
+        deleteTasks.add(storageTask);
+
+        // Delete the root user document.
+        deleteTasks.add(mFirestore.collection("users").document(uid).delete());
+
+        // Finalize exactly once: clear local data and sign out.
+        // NOTE: Firestore write Tasks only complete once the server ACKs them, so when the
+        // device is offline they never finish. We therefore proceed on whichever comes first:
+        // all deletes completing, OR a short timeout. The deletes are persisted locally by
+        // Firestore and will sync automatically once connectivity returns.
+        final boolean[] finished = {false};
+        Runnable finalize = () -> {
+            if (finished[0]) return;
+            finished[0] = true;
+            if (!isAdded()) return;
+            if (getContext() != null) {
+                SharedPreferencesManager.getInstance(getContext()).clearAll();
+            }
+            if (activity != null) activity.hideLoadingDialog();
+            logoutUser();
+        };
+
+        Tasks.whenAllComplete(deleteTasks).addOnCompleteListener(task -> finalize.run());
+        // Safety timeout so the (non-cancelable) dialog can never hang, e.g. when offline.
+        new Handler(Looper.getMainLooper()).postDelayed(finalize, 4000);
     }
 
     private void logoutUser() {

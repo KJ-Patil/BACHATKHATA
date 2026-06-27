@@ -115,7 +115,7 @@
             android:layout_height="6dp"
             android:progress="45"
             app:trackCornerRadius="3dp"
-            app:indicatorColor="@color/colorSecondary"
+            app:indicatorColor="#FFC107"
             app:trackColor="@color/colorCardBorder" />
 
     </LinearLayout>

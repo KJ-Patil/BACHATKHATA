@@ -40,6 +40,7 @@
     <string name="confirm_password_hint">Confirm password</string>
     <string name="full_name_hint">Full name</string>
     <string name="forgot_password">Forgot password?</string>
+    <string name="remember_me">Remember me</string>
     <string name="sign_in">Sign in</string>
     <string name="sign_up">Sign up</string>
     <string name="register_tagline">Create your BachatKhata account</string>

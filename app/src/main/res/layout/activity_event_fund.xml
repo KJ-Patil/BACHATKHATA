@@ -162,7 +162,7 @@
                         android:layout_marginBottom="16dp"
                         app:trackCornerRadius="3dp"
                         app:trackColor="#E8E8EC"
-                        app:indicatorColor="@color/colorSecondary" />
+                        app:indicatorColor="#FFC107" />
 
                     <!-- Add Contribution box -->
                     <LinearLayout

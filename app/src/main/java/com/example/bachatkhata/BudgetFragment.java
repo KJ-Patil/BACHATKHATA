@@ -268,7 +268,7 @@ public class BudgetFragment extends Fragment {
                 }
 
                 itemBinding.txtBudgetPercentage.setBackgroundTintList(ColorStateList.valueOf(badgeColor));
-                itemBinding.progressBudgetCategory.setIndicatorColor(badgeColor);
+                itemBinding.progressBudgetCategory.setIndicatorColor(Color.parseColor("#FFC107")); // yellow
                 itemBinding.layoutIconFrame.setBackgroundTintList(ColorStateList.valueOf(Color.parseColor("#1A7C6FE0")));
             }
 

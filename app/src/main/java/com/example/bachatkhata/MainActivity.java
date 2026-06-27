@@ -3,9 +3,11 @@ package com.example.bachatkhata;
 import android.Manifest;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.graphics.Outline;
 import android.os.Build;
 import android.os.Bundle;
 import android.view.View;
+import android.view.ViewOutlineProvider;
 import android.view.animation.OvershootInterpolator;
 
 import androidx.annotation.NonNull;
@@ -57,6 +59,7 @@ public class MainActivity extends BaseActivity {
             startActivity(new Intent(MainActivity.this, AddTransactionActivity.class));
         });
         animateFABEntry();
+        applyRoundedTopBar();
 
         // 3. Request Notifications Permission (Android 13+)
         requestNotificationPermission();
@@ -230,6 +233,20 @@ public class MainActivity extends BaseActivity {
         if (isBiometricEnabled && !isBiometricPromptShown) {
             promptBiometrics();
         }
+    }
+
+    /** Rounds the top-left and top-right corners of the bottom bar for a soft, floating look. */
+    private void applyRoundedTopBar() {
+        final float radius = getResources().getDisplayMetrics().density * 22f;
+        binding.bottomAppBar.setOutlineProvider(new ViewOutlineProvider() {
+            @Override
+            public void getOutline(View view, Outline outline) {
+                // Extend the rect below the view so only the top corners are rounded.
+                outline.setRoundRect(0, 0, view.getWidth(),
+                        view.getHeight() + (int) radius, radius);
+            }
+        });
+        binding.bottomAppBar.setClipToOutline(true);
     }
 
     private void animateFABEntry() {

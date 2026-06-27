@@ -155,17 +155,18 @@ public class SetBudgetBottomSheet extends BottomSheetDialogFragment {
         data.put("month", targetMonth);
         data.put("year", targetYear);
 
+        // Fire the write; Firestore persists it locally and syncs when online.
         mFirestore.collection("users").document(uid).collection("budgets").document(budgetId)
                 .set(data)
-                .addOnSuccessListener(aVoid -> {
-                    if (listener != null) {
-                        listener.onBudgetSaved();
-                    }
-                    dismiss();
-                })
-                .addOnFailureListener(e -> {
-                    Snackbar.make(binding.getRoot(), "Failed to save: " + e.getMessage(), Snackbar.LENGTH_LONG).show();
-                });
+                .addOnFailureListener(e ->
+                        android.util.Log.e("SetBudget", "Budget sync failed", e));
+
+        // Close and refresh right away — don't wait for the server ack, which never
+        // arrives while offline/on a slow connection (would leave the popup stuck open).
+        if (listener != null) {
+            listener.onBudgetSaved();
+        }
+        dismiss();
     }
 
     private class CategoryChipAdapter extends RecyclerView.Adapter<CategoryChipAdapter.ViewHolder> {

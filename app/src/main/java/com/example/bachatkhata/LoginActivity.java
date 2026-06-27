@@ -65,6 +65,13 @@ public class LoginActivity extends AppCompatActivity {
                 }
         );
 
+        // Restore "Remember me" email if previously saved
+        SharedPreferencesManager prefs = SharedPreferencesManager.getInstance(this);
+        if (prefs.isRememberMe()) {
+            binding.cbRememberMe.setChecked(true);
+            binding.etEmail.setText(prefs.getRememberedEmail());
+        }
+
         // 3. Set Up Button Click Listeners
         binding.btnSignIn.setOnClickListener(v -> handleEmailSignIn());
         binding.btnGoogleSignIn.setOnClickListener(v -> launchGoogleSignIn());
@@ -99,6 +106,10 @@ public class LoginActivity extends AppCompatActivity {
         } else {
             binding.tilPassword.setError(null);
         }
+
+        // Persist "Remember me" choice (saves email for next time, or clears it).
+        SharedPreferencesManager.getInstance(this)
+                .setRememberMe(binding.cbRememberMe.isChecked(), email);
 
         showLoading(true);
 

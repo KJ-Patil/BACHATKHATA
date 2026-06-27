@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Subtle primary-tinted ripple for bottom nav items. -->
+<selector xmlns:android="http://schemas.android.com/apk/res/android">
+    <item android:color="@color/colorPrimary" android:alpha="0.12" android:state_pressed="true" />
+    <item android:color="@color/colorPrimary" android:alpha="0.08" android:state_focused="true" />
+    <item android:color="@color/colorPrimary" android:alpha="0.08" android:state_hovered="true" />
+    <item android:color="@android:color/transparent" />
+</selector>

@@ -25,6 +25,8 @@ public class SharedPreferencesManager {
     public static final String KEY_ROUNDUP_ENABLED = "ROUNDUP_ENABLED";
     public static final String KEY_ROUNDUP_LIMIT = "ROUNDUP_LIMIT";
     public static final String KEY_THEME_MODE = "THEME_MODE";
+    public static final String KEY_REMEMBER_ME = "REMEMBER_ME";
+    public static final String KEY_REMEMBERED_EMAIL = "REMEMBERED_EMAIL";
 
     private SharedPreferencesManager(Context context) {
         sharedPreferences = context.getApplicationContext().getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE);
@@ -36,6 +38,21 @@ public class SharedPreferencesManager {
             instance = new SharedPreferencesManager(context);
         }
         return instance;
+    }
+
+    // Remember Me (login email pre-fill)
+    public void setRememberMe(boolean remember, String email) {
+        editor.putBoolean(KEY_REMEMBER_ME, remember);
+        editor.putString(KEY_REMEMBERED_EMAIL, remember ? email : "");
+        editor.apply();
+    }
+
+    public boolean isRememberMe() {
+        return sharedPreferences.getBoolean(KEY_REMEMBER_ME, false);
+    }
+
+    public String getRememberedEmail() {
+        return sharedPreferences.getString(KEY_REMEMBERED_EMAIL, "");
     }
 
     // Round-up Settings

@@ -27,7 +27,7 @@
         android:name="androidx.navigation.fragment.NavHostFragment"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:layout_marginBottom="70dp"
+        android:layout_marginBottom="64dp"
         app:defaultNavHost="true"
         app:navGraph="@navigation/nav_graph" />
 
@@ -35,28 +35,28 @@
     <com.google.android.material.bottomappbar.BottomAppBar
         android:id="@+id/bottomAppBar"
         android:layout_width="match_parent"
-        android:layout_height="68dp"
+        android:layout_height="64dp"
         android:layout_gravity="bottom"
         app:fabAlignmentMode="center"
-        app:fabCradleMargin="10dp"
-        app:fabCradleRoundedCornerRadius="20dp"
-        app:fabCradleVerticalOffset="6dp"
+        app:fabCradleMargin="8dp"
+        app:fabCradleRoundedCornerRadius="16dp"
+        app:fabCradleVerticalOffset="10dp"
         android:backgroundTint="@color/colorSurface"
-        app:elevation="16dp"
+        app:elevation="18dp"
         tools:ignore="BottomAppBar">
 
         <com.google.android.material.bottomnavigation.BottomNavigationView
             android:id="@+id/bottomNavigationView"
             android:layout_width="match_parent"
-            android:layout_height="68dp"
+            android:layout_height="64dp"
             android:layout_marginEnd="16dp"
             android:background="@android:color/transparent"
             app:labelVisibilityMode="unlabeled"
-            app:itemIconSize="26dp"
+            app:itemIconSize="24dp"
             app:menu="@menu/bottom_nav_menu"
             app:itemIconTint="@color/bottom_nav_icon_color"
             app:itemActiveIndicatorStyle="@style/BottomNavActiveIndicator"
-            app:itemRippleColor="@null"
+            app:itemRippleColor="@color/bottom_nav_ripple_color"
             app:elevation="0dp" />
 
     </com.google.android.material.bottomappbar.BottomAppBar>
@@ -64,15 +64,16 @@
     <!-- Floating Action Button (FAB) -->
     <com.google.android.material.floatingactionbutton.FloatingActionButton
         android:id="@+id/fabAdd"
-        android:layout_width="54dp"
-        android:layout_height="54dp"
+        android:layout_width="58dp"
+        android:layout_height="58dp"
         app:layout_anchor="@id/bottomAppBar"
         android:src="@drawable/ic_add"
         app:tint="@color/colorSurface"
         android:backgroundTint="@color/colorPrimary"
-        app:elevation="8dp"
-        app:fabCustomSize="54dp"
+        app:elevation="10dp"
+        app:fabCustomSize="58dp"
         app:maxImageSize="26dp"
+        app:borderWidth="0dp"
         app:shapeAppearanceOverlay="@style/ShapeAppearanceOverlay.ClayFab"
         android:contentDescription="@string/add_transaction" />
 
