@@ -1,0 +1,41 @@
+<!-- res/drawable/card_dark_shadow_background.xml -->
+<!-- This creates a manually-drawn, darker shadow behind the card -->
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <!-- Shadow layer (furthest back, largest offset, darkest/most opaque) -->
+    <item
+        android:left="0dp"
+        android:top="6dp"
+        android:right="0dp"
+        android:bottom="-6dp">
+        <shape android:shape="rectangle">
+            <solid android:color="#33000000" />
+            <corners android:radius="16dp" />
+        </shape>
+    </item>
+
+    <!-- Mid shadow layer (softer spread) -->
+    <item
+        android:left="0dp"
+        android:top="3dp"
+        android:right="0dp"
+        android:bottom="-3dp">
+        <shape android:shape="rectangle">
+            <solid android:color="#26000000" />
+            <corners android:radius="16dp" />
+        </shape>
+    </item>
+
+    <!-- Actual card surface (on top, no offset) -->
+    <item
+        android:left="0dp"
+        android:top="0dp"
+        android:right="0dp"
+        android:bottom="0dp">
+        <shape android:shape="rectangle">
+            <solid android:color="#FBFAFE" />
+            <corners android:radius="16dp" />
+        </shape>
+    </item>
+
+</layer-list>

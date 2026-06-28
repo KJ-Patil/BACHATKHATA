@@ -14,6 +14,23 @@ import java.util.Locale;
 
 public class AnimationHelper {
 
+    /** Pop-out entrance: scales up from small to full with an overshoot bounce + fade. */
+    public static void popOutAnimation(View view, int duration, int delay) {
+        view.setAlpha(0f);
+        view.setScaleX(0.7f);
+        view.setScaleY(0.7f);
+        view.setVisibility(View.VISIBLE);
+
+        view.animate()
+                .alpha(1f)
+                .scaleX(1f)
+                .scaleY(1f)
+                .setDuration(duration)
+                .setStartDelay(delay)
+                .setInterpolator(new OvershootInterpolator(2.5f))
+                .start();
+    }
+
     public static void animateSlideUpIn(View view, int duration, int delay) {
         view.setAlpha(0f);
         view.setTranslationY(100f);

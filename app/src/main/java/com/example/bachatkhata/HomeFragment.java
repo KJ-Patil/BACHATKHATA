@@ -78,7 +78,7 @@ public class HomeFragment extends Fragment {
         }
 
         // Apply smooth entrance animations
-        AnimationHelper.animateSlideUpIn(binding.cardBalanceHero, 500, 0);
+        AnimationHelper.popOutAnimation(binding.cardBalanceHero, 450, 100);
         AnimationHelper.animateSlideUpIn(binding.chipGroupPeriod, 550, 100);
         if (binding.lineChart != null) AnimationHelper.animateSlideUpIn(binding.lineChart, 600, 200);
         if (binding.barChart != null) AnimationHelper.animateSlideUpIn(binding.barChart, 600, 300);
