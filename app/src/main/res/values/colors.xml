@@ -10,4 +10,8 @@
     <color name="colorTextSecondary">#6B6B8A</color>
     <color name="colorCardBorder">#E0DEFF</color>
     <color name="colorShadow">#C4BDFF</color>
+
+    <!-- Soft card treatment (portable slate look) -->
+    <color name="softCardBorder">#E5E7EB</color>
+    <color name="softCardText">#64748B</color>
 </resources>

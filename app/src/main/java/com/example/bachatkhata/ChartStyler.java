@@ -32,9 +32,9 @@ import java.util.List;
 
 public class ChartStyler {
 
-    // Toggle series colors (match the KPI dots: green income, purple spent)
+    // Toggle series colors (green income, red spent)
     private static final int INCOME_COLOR = Color.parseColor("#5DCAA5");
-    private static final int SPENT_COLOR = Color.parseColor("#7C6FE0");
+    private static final int SPENT_COLOR = Color.parseColor("#E24B4A");
 
     private static final int[] PALETTE = new int[]{
             Color.parseColor("#7C6FE0"),
@@ -70,12 +70,12 @@ public class ChartStyler {
         boolean singlePoint = entries != null && entries.size() == 1;
 
         LineDataSet dataSet = new LineDataSet(entries, "Expense Trend");
-        dataSet.setColor(Color.parseColor("#7C6FE0"));
+        dataSet.setColor(SPENT_COLOR);
         dataSet.setLineWidth(2.5f);
         dataSet.setMode(LineDataSet.Mode.CUBIC_BEZIER);
         dataSet.setDrawCircles(true);
         dataSet.setCircleColor(Color.WHITE);
-        dataSet.setCircleHoleColor(Color.parseColor("#7C6FE0"));
+        dataSet.setCircleHoleColor(SPENT_COLOR);
         dataSet.setCircleRadius(singlePoint ? 7f : 5f);
         dataSet.setCircleHoleRadius(singlePoint ? 4f : 2.5f);
         dataSet.setDrawValues(false);
@@ -84,13 +84,13 @@ public class ChartStyler {
         dataSet.setDrawFilled(true);
         GradientDrawable gradient = new GradientDrawable(
                 GradientDrawable.Orientation.TOP_BOTTOM,
-                new int[]{Color.parseColor("#4D7C6FE0"), Color.parseColor("#007C6FE0")}
+                new int[]{withAlpha(SPENT_COLOR, 0x4D), withAlpha(SPENT_COLOR, 0x00)}
         );
         dataSet.setFillDrawable(gradient);
 
         // Highlight line
         dataSet.setDrawHighlightIndicators(true);
-        dataSet.setHighLightColor(Color.parseColor("#7C6FE0"));
+        dataSet.setHighLightColor(SPENT_COLOR);
         dataSet.setDrawHorizontalHighlightIndicator(false);
         dataSet.setDrawVerticalHighlightIndicator(true);
 

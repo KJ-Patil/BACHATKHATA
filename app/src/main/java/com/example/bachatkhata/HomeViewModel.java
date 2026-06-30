@@ -260,7 +260,12 @@ public class HomeViewModel extends ViewModel {
 
         List<Entry> incomeEntries = new ArrayList<>();
         List<Entry> spentEntries = new ArrayList<>();
-        int index = 0;
+        // Seed a zero origin so a single day of activity still renders as a rising
+        // line (0 -> value) instead of a lone, unconnected dot. A line needs >= 2
+        // points, and a cumulative trend genuinely starts at zero.
+        incomeEntries.add(new Entry(0, 0f));
+        spentEntries.add(new Entry(0, 0f));
+        int index = 1;
         double incomeCumulative = 0;
         double spentCumulative = 0;
         for (Long day : allDays.keySet()) {
@@ -270,10 +275,6 @@ public class HomeViewModel extends ViewModel {
             spentEntries.add(new Entry(index, (float) spentCumulative));
             index++;
         }
-
-        // If empty, add a default point so the chart renders cleanly
-        if (incomeEntries.isEmpty()) incomeEntries.add(new Entry(0, 0f));
-        if (spentEntries.isEmpty()) spentEntries.add(new Entry(0, 0f));
 
         lineIncomeData.setValue(incomeEntries);
         lineSpentData.setValue(spentEntries);
