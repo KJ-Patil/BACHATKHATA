@@ -37,10 +37,16 @@ public class LoginActivity extends AppCompatActivity {
     private ActivityResultLauncher<Intent> googleSignInLauncher;
 
     @Override
+    protected void attachBaseContext(android.content.Context newBase) {
+        super.attachBaseContext(LocaleHelper.wrap(newBase));
+    }
+
+    @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         binding = ActivityLoginBinding.inflate(getLayoutInflater());
         setContentView(binding.getRoot());
+        BaseActivity.applyEdgeToEdgeInsets(findViewById(android.R.id.content));
 
         mAuth = FirebaseAuth.getInstance();
         mFirestore = FirebaseFirestore.getInstance();
@@ -75,6 +81,7 @@ public class LoginActivity extends AppCompatActivity {
         // 3. Set Up Button Click Listeners
         binding.btnSignIn.setOnClickListener(v -> handleEmailSignIn());
         binding.btnGoogleSignIn.setOnClickListener(v -> launchGoogleSignIn());
+        binding.btnPhoneSignIn.setOnClickListener(v -> startActivity(new Intent(LoginActivity.this, PhoneLoginActivity.class)));
         binding.btnForgotPassword.setOnClickListener(v -> startActivity(new Intent(LoginActivity.this, ForgotPasswordActivity.class)));
         binding.btnGoToRegister.setOnClickListener(v -> startActivity(new Intent(LoginActivity.this, RegisterActivity.class)));
     }

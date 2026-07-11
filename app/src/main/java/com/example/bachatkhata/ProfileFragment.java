@@ -123,6 +123,9 @@ public class ProfileFragment extends Fragment {
         binding.rowChangePassword.setOnClickListener(v -> showChangePasswordDialog());
         binding.rowCurrency.setOnClickListener(v -> selectBaseCurrency());
         binding.rowTheme.setOnClickListener(v -> showThemeSelectionDialog());
+        binding.rowLanguage.setOnClickListener(v -> showLanguageSelectionDialog());
+        binding.txtSelectedLanguage.setText(
+                LocaleHelper.displayNameFor(LocaleHelper.getLanguage(requireContext())));
         binding.rowLockTimeout.setOnClickListener(v -> showLockTimeoutDialog());
         binding.rowClearData.setOnClickListener(v -> confirmClearData());
 
@@ -479,6 +482,36 @@ public class ProfileFragment extends Fragment {
                 }
             });
         }).show(getParentFragmentManager(), "CURRENCY_PICKER");
+    }
+
+    private void showLanguageSelectionDialog() {
+        if (getContext() == null) return;
+        String current = LocaleHelper.getLanguage(requireContext());
+        int checkedItem = 0;
+        for (int i = 0; i < LocaleHelper.SUPPORTED_CODES.length; i++) {
+            if (LocaleHelper.SUPPORTED_CODES[i].equals(current)) {
+                checkedItem = i;
+                break;
+            }
+        }
+
+        new AlertDialog.Builder(getContext())
+                .setTitle("Select Language")
+                .setSingleChoiceItems(LocaleHelper.SUPPORTED_NAMES, checkedItem, (dialog, which) -> {
+                    String code = LocaleHelper.SUPPORTED_CODES[which];
+                    dialog.dismiss();
+                    if (!code.equals(LocaleHelper.getLanguage(requireContext()))) {
+                        LocaleHelper.setLanguage(requireContext(), code);
+                        // Recreate the whole task so every screen picks up the new locale.
+                        if (getActivity() != null) {
+                            startActivity(new Intent(getActivity(), MainActivity.class)
+                                    .setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK));
+                            getActivity().finish();
+                        }
+                    }
+                })
+                .setNegativeButton("Cancel", null)
+                .show();
     }
 
     private void showThemeSelectionDialog() {

@@ -15,6 +15,9 @@ import com.google.android.material.snackbar.Snackbar;
 import com.google.android.material.tabs.TabLayoutMediator;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.SetOptions;
+
+import java.util.Collections;
 
 public class OnboardingActivity extends AppCompatActivity {
 
@@ -23,10 +26,16 @@ public class OnboardingActivity extends AppCompatActivity {
     private FirebaseFirestore mFirestore;
 
     @Override
+    protected void attachBaseContext(android.content.Context newBase) {
+        super.attachBaseContext(LocaleHelper.wrap(newBase));
+    }
+
+    @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         binding = ActivityOnboardingBinding.inflate(getLayoutInflater());
         setContentView(binding.getRoot());
+        BaseActivity.applyEdgeToEdgeInsets(findViewById(android.R.id.content));
 
         mAuth = FirebaseAuth.getInstance();
         mFirestore = FirebaseFirestore.getInstance();
@@ -78,7 +87,7 @@ public class OnboardingActivity extends AppCompatActivity {
         String uid = mAuth.getCurrentUser().getUid();
 
         mFirestore.collection("users").document(uid)
-                .update("onboardingComplete", true)
+                .set(Collections.singletonMap("onboardingComplete", true), SetOptions.merge())
                 .addOnSuccessListener(aVoid -> {
                     showLoading(false);
                     Intent intent = new Intent(OnboardingActivity.this, PinSetupActivity.class);

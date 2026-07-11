@@ -106,6 +106,12 @@
         <activity
             android:name=".ExportActivity"
             android:exported="false" />
+        <activity
+            android:name=".CloudBackupActivity"
+            android:exported="false" />
+        <activity
+            android:name=".PhoneLoginActivity"
+            android:exported="false" />
 
         <!-- Customer Ledger -->
         <activity

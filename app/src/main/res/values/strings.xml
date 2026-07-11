@@ -2,6 +2,14 @@
     <!-- App Name -->
     <string name="app_name">BachatKhata</string>
 
+    <!-- Login brand panel / field labels -->
+    <string name="brand_kicker">PERSONAL FINANCE MANAGER</string>
+    <string name="brand_headline">Save with confidence.\nGrow with ease.</string>
+    <string name="brand_subline">The all-in-one personal finance workspace for BachatKhata.</string>
+    <string name="login_welcome_subtitle">Sign in to your account to continue.</string>
+    <string name="login_email_label">Email</string>
+    <string name="login_password_label">Password</string>
+
     <!-- General / Navigation -->
     <string name="title_home">Home</string>
     <string name="title_transactions">Transactions</string>
@@ -94,7 +102,7 @@
 
     <!-- Firebase / Client ID -->
     <!-- Replace with actual client ID from Google console if available, using standard default name expected by standard auth tools -->
-    <string name="default_web_client_id">538622153215-t3g8s0lq663u5fghm7l88l9efbe9e26a.apps.googleusercontent.com</string>
+    <string name="default_web_client_id" translatable="false">538622153215-t3g8s0lq663u5fghm7l88l9efbe9e26a.apps.googleusercontent.com</string>
 
     <!-- v2.0 FEATURES STRINGS -->
 
@@ -188,4 +196,89 @@
     <string name="title_ngo_tracker">NGO tracker</string>
     <string name="ngo_projects">Active projects</string>
     <string name="ngo_donations">Donations received</string>
+
+
+    <!-- Phone OTP Login -->
+    <string name="phone_sign_in">Sign in with Phone</string>
+    <string name="phone_login_title">Phone Sign-In</string>
+    <string name="phone_number_hint">Phone number</string>
+    <string name="phone_send_otp">Send OTP</string>
+    <string name="phone_otp_hint">6-digit code</string>
+    <string name="phone_verify_otp">Verify &amp; Continue</string>
+    <string name="phone_otp_sent">Verification code sent</string>
+    <string name="phone_enter_valid">Enter a valid phone number with country code</string>
+    <string name="phone_enter_code">Enter the 6-digit code</string>
+
+    <!-- Home dashboard -->
+    <string name="home_data_tools">Data &amp; Tools</string>
+    <string name="home_data_tools_sub">Ledger, EMI, Export &amp; more</string>
+    <string name="home_available_balance">Available Balance</string>
+    <string name="home_spent">Spent</string>
+    <string name="home_safe_to_spend">Safe to spend today</string>
+    <string name="home_total_income">Total Income</string>
+    <string name="home_total_spent">Total Spent</string>
+    <string name="home_total_saved">Total Saved</string>
+    <string name="home_spending_trend">Spending Trend</string>
+    <string name="home_by_category">By Category</string>
+    <string name="home_weekly_insight">Weekly Insight</string>
+    <string name="home_recent">Recent</string>
+    <string name="home_see_all">See all</string>
+    <string name="period_daily">Daily</string>
+    <string name="period_monthly">Monthly</string>
+    <string name="period_quarterly">Quarterly</string>
+    <string name="period_yearly">Yearly</string>
+    <string name="period_both">Both</string>
+
+    <!-- Transactions tabs -->
+    <string name="tab_all">All</string>
+
+    <!-- Analytics -->
+    <string name="analytics_title">Financial Analytics</string>
+    <string name="period_this_month">This Month</string>
+    <string name="period_last_month">Last Month</string>
+    <string name="period_last_3_months">Last 3 Months</string>
+    <string name="period_this_year">This Year</string>
+    <string name="analytics_total_expense">Total Expense</string>
+    <string name="analytics_category_distribution">Category Distribution</string>
+    <string name="analytics_no_data">No transaction data available for selected period.</string>
+    <string name="analytics_monthly_comparison">Monthly Comparison (Current vs Previous)</string>
+    <string name="analytics_cash_flow">Cash Flow Trend Over Time</string>
+    <string name="analytics_top5">Top 5 Spending Categories</string>
+
+    <!-- Budget -->
+    <string name="budget_no_budgets">No budgets set</string>
+    <string name="budget_no_budgets_desc">Set monthly spending limits for categories to stay on track.</string>
+    <string name="budget_set">Set Budget</string>
+
+    <!-- Savings -->
+    <string name="savings_total_saved">Total saved</string>
+    <string name="savings_no_goals">No savings goals yet</string>
+    <string name="savings_no_goals_desc">Set target milestones like buying a car, phone, or home.</string>
+    <string name="savings_set_goal">Set Savings Goal</string>
+
+    <!-- Profile & Settings screen -->
+    <string name="profile_title">Profile &amp; Settings</string>
+    <string name="profile_section_account">Account &amp; Preferences</string>
+    <string name="profile_change_name">Change Name</string>
+    <string name="profile_change_password">Change Password</string>
+    <string name="profile_base_currency">Base Currency</string>
+    <string name="profile_app_theme">App Theme</string>
+    <string name="profile_language">Language</string>
+    <string name="profile_enable_notifications">Enable Notifications</string>
+    <string name="profile_section_security">Security Settings</string>
+    <string name="profile_change_pin">Change PIN Lock</string>
+    <string name="profile_biometric">Biometric Authentication</string>
+    <string name="profile_auto_lock">Auto Lock Timeout</string>
+    <string name="profile_clear_data">Clear All Account Data</string>
+    <string name="profile_logout">Logout</string>
+
+    <!-- Cloud Backup -->
+    <string name="backup_title">Cloud Backups</string>
+    <string name="backup_create">Create Backup</string>
+    <string name="backup_restore">Restore</string>
+    <string name="backup_delete">Delete</string>
+    <string name="backup_empty">No backups yet. Create one to snapshot your data.</string>
+    <string name="backup_label_hint">Backup name (e.g. Before cleanup)</string>
+    <string name="backup_restore_confirm">Restore this backup? Your current transactions will be replaced.</string>
+    <string name="backup_delete_confirm">Delete this backup permanently?</string>
 </resources>

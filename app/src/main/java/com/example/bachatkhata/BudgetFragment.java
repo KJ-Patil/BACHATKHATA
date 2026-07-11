@@ -95,8 +95,7 @@ public class BudgetFragment extends Fragment {
                     this::loadData
             ).show(getChildFragmentManager(), "SET_BUDGET");
         };
-        binding.fabAddBudget.setOnClickListener(addListener);
-        binding.btnEmptyAddBudget.setOnClickListener(addListener);
+        binding.btnAddBudget.setOnClickListener(addListener);
     }
 
     private void loadData() {

@@ -73,6 +73,9 @@ dependencies {
     // Biometric
     implementation 'androidx.biometric:biometric:1.2.0-alpha05'
 
+    // Encryption at rest for local preferences
+    implementation 'androidx.security:security-crypto:1.1.0-alpha06'
+
     // ML Kit OCR (Unbundled for 16KB page size compatibility)
     implementation 'com.google.android.gms:play-services-mlkit-text-recognition:19.0.1'
 

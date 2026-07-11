@@ -4,10 +4,16 @@ import android.content.Context;
 import android.content.SharedPreferences;
 
 import androidx.appcompat.app.AppCompatDelegate;
+import androidx.security.crypto.EncryptedSharedPreferences;
+import androidx.security.crypto.MasterKey;
+
+import java.util.Map;
 
 public class SharedPreferencesManager {
 
-    private static final String PREF_NAME = "BachatKhata_Prefs";
+    private static final String PREF_NAME = "BachatKhata_Prefs";        // legacy plaintext store
+    private static final String ENC_PREF_NAME = "BachatKhata_Prefs_Enc"; // AES-encrypted store
+    private static final String KEY_MIGRATED_TO_ENC = "MIGRATED_TO_ENC";
     private static SharedPreferencesManager instance;
     private final SharedPreferences sharedPreferences;
     private final SharedPreferences.Editor editor;
@@ -29,8 +35,64 @@ public class SharedPreferencesManager {
     public static final String KEY_REMEMBERED_EMAIL = "REMEMBERED_EMAIL";
 
     private SharedPreferencesManager(Context context) {
-        sharedPreferences = context.getApplicationContext().getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE);
+        Context appContext = context.getApplicationContext();
+        sharedPreferences = buildPreferences(appContext);
         editor = sharedPreferences.edit();
+    }
+
+    /**
+     * Build an AES-GCM encrypted preference store, migrating any pre-existing plaintext
+     * preferences into it once. Falls back to the plaintext store if the device cannot
+     * provide encryption (keeps the app usable rather than crashing).
+     */
+    private SharedPreferences buildPreferences(Context appContext) {
+        try {
+            MasterKey masterKey = new MasterKey.Builder(appContext)
+                    .setKeyScheme(MasterKey.KeyScheme.AES256_GCM)
+                    .build();
+
+            SharedPreferences encrypted = EncryptedSharedPreferences.create(
+                    appContext,
+                    ENC_PREF_NAME,
+                    masterKey,
+                    EncryptedSharedPreferences.PrefKeyEncryptionScheme.AES256_SIV,
+                    EncryptedSharedPreferences.PrefValueEncryptionScheme.AES256_GCM);
+
+            migrateLegacyPlaintext(appContext, encrypted);
+            return encrypted;
+        } catch (Exception e) {
+            // Encryption unavailable — degrade gracefully to the legacy plaintext store.
+            return appContext.getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE);
+        }
+    }
+
+    @SuppressWarnings("unchecked")
+    private void migrateLegacyPlaintext(Context appContext, SharedPreferences encrypted) {
+        if (encrypted.getBoolean(KEY_MIGRATED_TO_ENC, false)) return;
+
+        SharedPreferences legacy = appContext.getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE);
+        Map<String, ?> all = legacy.getAll();
+        SharedPreferences.Editor encEditor = encrypted.edit();
+        for (Map.Entry<String, ?> entry : all.entrySet()) {
+            String key = entry.getKey();
+            Object value = entry.getValue();
+            if (value instanceof String) {
+                encEditor.putString(key, (String) value);
+            } else if (value instanceof Boolean) {
+                encEditor.putBoolean(key, (Boolean) value);
+            } else if (value instanceof Integer) {
+                encEditor.putInt(key, (Integer) value);
+            } else if (value instanceof Long) {
+                encEditor.putLong(key, (Long) value);
+            } else if (value instanceof Float) {
+                encEditor.putFloat(key, (Float) value);
+            }
+        }
+        encEditor.putBoolean(KEY_MIGRATED_TO_ENC, true);
+        encEditor.apply();
+
+        // Wipe the now-redundant plaintext copy.
+        legacy.edit().clear().apply();
     }
 
     public static synchronized SharedPreferencesManager getInstance(Context context) {

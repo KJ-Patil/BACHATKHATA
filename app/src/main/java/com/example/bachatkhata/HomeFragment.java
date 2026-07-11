@@ -141,6 +141,10 @@ public class HomeFragment extends Fragment {
             Navigation.findNavController(v).navigate(R.id.navigation_notifications)
         );
 
+        binding.btnTopMenu.setOnClickListener(v ->
+            Navigation.findNavController(v).navigate(R.id.navigation_profile)
+        );
+
         binding.btnDataTools.setOnClickListener(v ->
             Navigation.findNavController(v).navigate(R.id.action_home_to_data_tools)
         );

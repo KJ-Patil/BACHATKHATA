@@ -23,7 +23,7 @@
         android:id="@+id/txtPinTitle"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginTop="80dp"
+        android:layout_marginTop="40dp"
         android:text="@string/pin_enter_title"
         android:textColor="@color/colorTextPrimary"
         android:textSize="24sp"

@@ -11,7 +11,7 @@
         android:id="@+id/layoutMonthSwitcher"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginTop="60dp"
+        android:layout_marginTop="12dp"
         android:gravity="center"
         android:orientation="horizontal"
         android:paddingHorizontal="16dp"
@@ -82,7 +82,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_alignParentEnd="true"
-                    android:background="@drawable/bg_clay_button"
+                    android:background="@drawable/bg_pill"
                     android:backgroundTint="@color/colorSecondary"
                     android:paddingHorizontal="10dp"
                     android:paddingVertical="4dp"
@@ -120,23 +120,23 @@
         android:layout_width="match_parent"
         android:layout_height="0dp"
         android:layout_marginTop="16dp"
-        android:paddingBottom="80dp"
+        android:paddingBottom="16dp"
         android:clipToPadding="false"
-        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintBottom_toTopOf="@+id/btnAddBudget"
         app:layout_constraintTop_toBottomOf="@+id/cardBudgetSummary" />
 
-    <!-- Add FAB (Small) -->
-    <com.google.android.material.floatingactionbutton.FloatingActionButton
-        android:id="@+id/fabAddBudget"
-        android:layout_width="wrap_content"
+    <!-- Persistent Add Budget button -->
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/btnAddBudget"
+        style="@style/ClayButton"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:layout_marginStart="20dp"
         android:layout_marginEnd="20dp"
-        android:layout_marginBottom="100dp"
-        android:src="@drawable/ic_add"
-        app:tint="@color/colorSurface"
-        android:backgroundTint="@color/colorPrimary"
-        app:fabSize="mini"
+        android:layout_marginBottom="16dp"
+        android:text="Add Budget"
         app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent" />
 
     <!-- Empty State -->
@@ -148,7 +148,7 @@
         android:orientation="vertical"
         android:padding="32dp"
         android:visibility="gone"
-        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintBottom_toTopOf="@+id/btnAddBudget"
         app:layout_constraintTop_toBottomOf="@+id/cardBudgetSummary">
 
         <ImageView
@@ -161,7 +161,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginTop="16dp"
-            android:text="No budgets set"
+            android:text="@string/budget_no_budgets"
             android:textColor="@color/colorTextPrimary"
             android:textSize="18sp"
             android:textStyle="bold" />
@@ -171,17 +171,9 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="8dp"
             android:gravity="center"
-            android:text="Set monthly spending limits for categories to stay on track."
+            android:text="@string/budget_no_budgets_desc"
             android:textColor="@color/colorTextSecondary"
             android:textSize="14sp" />
-
-        <com.google.android.material.button.MaterialButton
-            android:id="@+id/btnEmptyAddBudget"
-            style="@style/ClayButton"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="24dp"
-            android:text="Set Budget" />
     </LinearLayout>
 
 </androidx.constraintlayout.widget.ConstraintLayout>

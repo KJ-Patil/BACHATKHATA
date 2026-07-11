@@ -97,7 +97,7 @@
                     android:id="@+id/txtBudgetPercentage"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:background="@drawable/bg_clay_button"
+                    android:background="@drawable/bg_pill"
                     android:backgroundTint="@color/colorSecondary"
                     android:paddingHorizontal="8dp"
                     android:paddingVertical="4dp"

@@ -19,7 +19,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_centerInParent="true"
-            android:text="Financial Analytics"
+            android:text="@string/analytics_title"
             android:textColor="@color/colorTextPrimary"
             android:textSize="18sp"
             android:textStyle="bold" />
@@ -41,22 +41,22 @@
         <com.google.android.material.tabs.TabItem
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="This Month" />
+            android:text="@string/period_this_month" />
 
         <com.google.android.material.tabs.TabItem
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Last Month" />
+            android:text="@string/period_last_month" />
 
         <com.google.android.material.tabs.TabItem
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Last 3 Months" />
+            android:text="@string/period_last_3_months" />
 
         <com.google.android.material.tabs.TabItem
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="This Year" />
+            android:text="@string/period_this_year" />
     </com.google.android.material.tabs.TabLayout>
 
     <!-- Scrollable content -->
@@ -99,7 +99,7 @@
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="Total Income"
+                            android:text="@string/home_total_income"
                             android:textColor="@color/colorTextSecondary"
                             android:textSize="12sp" />
 
@@ -134,7 +134,7 @@
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="Total Expense"
+                            android:text="@string/analytics_total_expense"
                             android:textColor="@color/colorTextSecondary"
                             android:textSize="12sp" />
 
@@ -166,7 +166,7 @@
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
-                    android:text="Expense"
+                    android:text="@string/expense"
                     android:textColor="@color/colorPrimary"
                     app:strokeColor="@color/colorCardBorder" />
 
@@ -176,7 +176,7 @@
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
-                    android:text="Income"
+                    android:text="@string/income"
                     android:textColor="@color/colorPrimary"
                     app:strokeColor="@color/colorCardBorder" />
             </com.google.android.material.button.MaterialButtonToggleGroup>
@@ -199,7 +199,7 @@
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="Category Distribution"
+                        android:text="@string/analytics_category_distribution"
                         android:textColor="@color/colorTextPrimary"
                         android:textSize="15sp"
                         android:textStyle="bold"
@@ -215,7 +215,7 @@
                         android:layout_width="match_parent"
                         android:layout_height="260dp"
                         android:gravity="center"
-                        android:text="No transaction data available for selected period."
+                        android:text="@string/analytics_no_data"
                         android:textColor="@color/colorTextSecondary"
                         android:textSize="13sp"
                         android:visibility="gone" />
@@ -253,7 +253,7 @@
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="Monthly Comparison (Current vs Previous)"
+                        android:text="@string/analytics_monthly_comparison"
                         android:textColor="@color/colorTextPrimary"
                         android:textSize="15sp"
                         android:textStyle="bold"
@@ -284,7 +284,7 @@
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="Cash Flow Trend Over Time"
+                        android:text="@string/analytics_cash_flow"
                         android:textColor="@color/colorTextPrimary"
                         android:textSize="15sp"
                         android:textStyle="bold"
@@ -315,7 +315,7 @@
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="Top 5 Spending Categories"
+                        android:text="@string/analytics_top5"
                         android:textColor="@color/colorTextPrimary"
                         android:textSize="15sp"
                         android:textStyle="bold"

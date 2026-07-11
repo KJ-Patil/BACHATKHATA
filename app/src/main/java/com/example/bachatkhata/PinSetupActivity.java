@@ -18,9 +18,11 @@ import com.google.android.material.snackbar.Snackbar;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.SetOptions;
 
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
+import java.util.Collections;
 import java.util.concurrent.Executor;
 
 public class PinSetupActivity extends AppCompatActivity {
@@ -37,10 +39,16 @@ public class PinSetupActivity extends AppCompatActivity {
     private boolean isBiometricEnabled = false;
 
     @Override
+    protected void attachBaseContext(android.content.Context newBase) {
+        super.attachBaseContext(LocaleHelper.wrap(newBase));
+    }
+
+    @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         binding = ActivityPinSetupBinding.inflate(getLayoutInflater());
         setContentView(binding.getRoot());
+        BaseActivity.applyEdgeToEdgeInsets(findViewById(android.R.id.content));
 
         mAuth = FirebaseAuth.getInstance();
         mFirestore = FirebaseFirestore.getInstance();
@@ -165,7 +173,7 @@ public class PinSetupActivity extends AppCompatActivity {
             } else {
                 // Confirmation step of PIN setup
                 if (enteredPin.equals(tempPin)) {
-                    String hashed = sha256(enteredPin);
+                    String hashed = hashPinV2(enteredPin);
                     savePinToFirestore(hashed);
                 } else {
                     shakeDots();
@@ -180,8 +188,11 @@ public class PinSetupActivity extends AppCompatActivity {
             }
         } else {
             // VERIFY Mode
-            String hashed = sha256(enteredPin);
-            if (hashed.equals(correctPinHash)) {
+            if (verifyPin(enteredPin, correctPinHash)) {
+                // Transparently upgrade legacy unsalted hashes to the salted v2$ format.
+                if (!correctPinHash.startsWith("v2$")) {
+                    savePinHashSilently(hashPinV2(enteredPin));
+                }
                 BaseActivity.setAppUnlocked();
                 startActivity(new Intent(PinSetupActivity.this, MainActivity.class));
                 finish();
@@ -200,7 +211,7 @@ public class PinSetupActivity extends AppCompatActivity {
 
         showLoading(true);
         mFirestore.collection("users").document(uid)
-                .update("pinHash", hash)
+                .set(Collections.singletonMap("pinHash", hash), SetOptions.merge())
                 .addOnSuccessListener(aVoid -> {
                     showLoading(false);
                     // Successfully saved, go to BiometricSetupActivity
@@ -258,6 +269,46 @@ public class PinSetupActivity extends AppCompatActivity {
         shake.setRepeatMode(Animation.REVERSE);
         shake.setRepeatCount(5);
         binding.layoutDots.startAnimation(shake);
+    }
+
+    /** Produce a salted PIN hash in the {@code v2$<saltHex>$<hashHex>} format. */
+    private String hashPinV2(String pin) {
+        byte[] salt = new byte[16];
+        new java.security.SecureRandom().nextBytes(salt);
+        String saltHex = toHex(salt);
+        return "v2$" + saltHex + "$" + sha256(saltHex + pin);
+    }
+
+    /** Verify a PIN against a stored hash, supporting both salted v2$ and legacy unsalted hashes. */
+    private boolean verifyPin(String pin, String storedHash) {
+        if (storedHash == null || storedHash.isEmpty()) return false;
+        if (storedHash.startsWith("v2$")) {
+            String[] parts = storedHash.split("\\$");
+            if (parts.length != 3) return false;
+            String saltHex = parts[1];
+            String expected = parts[2];
+            return sha256(saltHex + pin).equals(expected);
+        }
+        // Legacy: unsalted SHA-256 of the raw PIN.
+        return sha256(pin).equals(storedHash);
+    }
+
+    /** Persist an upgraded PIN hash without navigating away (used for silent legacy upgrades). */
+    private void savePinHashSilently(String hash) {
+        if (mAuth.getCurrentUser() == null) return;
+        String uid = mAuth.getCurrentUser().getUid();
+        mFirestore.collection("users").document(uid)
+                .set(Collections.singletonMap("pinHash", hash), SetOptions.merge());
+    }
+
+    private String toHex(byte[] bytes) {
+        StringBuilder sb = new StringBuilder();
+        for (byte b : bytes) {
+            String hex = Integer.toHexString(0xff & b);
+            if (hex.length() == 1) sb.append('0');
+            sb.append(hex);
+        }
+        return sb.toString();
     }
 
     private String sha256(String input) {

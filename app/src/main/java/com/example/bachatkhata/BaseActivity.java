@@ -5,11 +5,15 @@ import android.content.Intent;
 import android.graphics.Color;
 import android.os.Bundle;
 import android.view.View;
+import android.view.ViewGroup;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.ProgressBar;
 
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.graphics.Insets;
+import androidx.core.view.ViewCompat;
+import androidx.core.view.WindowInsetsCompat;
 
 import com.google.android.material.snackbar.Snackbar;
 import com.google.firebase.auth.FirebaseAuth;
@@ -23,8 +27,62 @@ public class BaseActivity extends AppCompatActivity {
     private AlertDialog loadingDialog;
 
     @Override
+    protected void attachBaseContext(Context newBase) {
+        super.attachBaseContext(LocaleHelper.wrap(newBase));
+    }
+
+    @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+    }
+
+    // --- Edge-to-edge inset handling -------------------------------------
+    // Android 15 (targetSdk 35) draws content behind the status/navigation
+    // bars by default. Instead of guessing the bar height with hardcoded
+    // margins, we pad the content root by the REAL system-bar insets so the
+    // UI looks correct on every device (Samsung punch-holes, gesture nav,
+    // notches, tablets, landscape). Every BaseActivity subclass gets this
+    // automatically via the setContentView overrides below.
+
+    @Override
+    public void setContentView(int layoutResID) {
+        super.setContentView(layoutResID);
+        applyEdgeToEdgeInsets(findViewById(android.R.id.content));
+    }
+
+    @Override
+    public void setContentView(View view) {
+        super.setContentView(view);
+        applyEdgeToEdgeInsets(findViewById(android.R.id.content));
+    }
+
+    @Override
+    public void setContentView(View view, ViewGroup.LayoutParams params) {
+        super.setContentView(view, params);
+        applyEdgeToEdgeInsets(findViewById(android.R.id.content));
+    }
+
+    /**
+     * Pads {@code root} by the current system-bar insets (added on top of any
+     * padding the view already has). Safe to call from any Activity — used by
+     * the standalone AppCompatActivity screens that don't extend BaseActivity.
+     */
+    public static void applyEdgeToEdgeInsets(final View root) {
+        if (root == null) return;
+        final int basePaddingLeft = root.getPaddingLeft();
+        final int basePaddingTop = root.getPaddingTop();
+        final int basePaddingRight = root.getPaddingRight();
+        final int basePaddingBottom = root.getPaddingBottom();
+        ViewCompat.setOnApplyWindowInsetsListener(root, (v, insets) -> {
+            Insets bars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
+            v.setPadding(
+                    basePaddingLeft + bars.left,
+                    basePaddingTop + bars.top,
+                    basePaddingRight + bars.right,
+                    basePaddingBottom + bars.bottom);
+            return insets;
+        });
+        ViewCompat.requestApplyInsets(root);
     }
 
     @Override

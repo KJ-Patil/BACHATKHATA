@@ -27,7 +27,7 @@
                 <RelativeLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="20dp"
+                    android:layout_marginTop="4dp"
                     android:layout_marginBottom="16dp">
 
                     <LinearLayout
@@ -54,12 +54,33 @@
                             android:textSize="13sp" />
                     </LinearLayout>
 
+                    <!-- Top Menu (settings) grid icon -->
+                    <FrameLayout
+                        android:id="@+id/btnTopMenu"
+                        android:layout_width="44dp"
+                        android:layout_height="44dp"
+                        android:layout_alignParentEnd="true"
+                        android:layout_centerVertical="true"
+                        android:clickable="true"
+                        android:focusable="true"
+                        android:background="?attr/selectableItemBackgroundBorderless">
+
+                        <ImageView
+                            android:layout_width="26dp"
+                            android:layout_height="26dp"
+                            android:layout_gravity="center"
+                            android:src="@drawable/ic_more"
+                            android:contentDescription="@string/action_settings"
+                            app:tint="@color/colorTextPrimary" />
+                    </FrameLayout>
+
                     <!-- Notification Bell Container -->
                     <FrameLayout
                         android:id="@+id/btnNotificationBell"
                         android:layout_width="44dp"
                         android:layout_height="44dp"
-                        android:layout_alignParentEnd="true"
+                        android:layout_toStartOf="@+id/btnTopMenu"
+                        android:layout_marginEnd="4dp"
                         android:layout_centerVertical="true"
                         android:clickable="true"
                         android:focusable="true"
@@ -106,6 +127,9 @@
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:inputType="text"
+                        android:paddingTop="10dp"
+                        android:paddingBottom="10dp"
+                        android:textSize="14sp"
                         android:textColor="@color/colorTextPrimary" />
                 </com.google.android.material.textfield.TextInputLayout>
 
@@ -119,8 +143,9 @@
 
                 <LinearLayout
                     android:id="@+id/btnDataTools"
-                    android:layout_width="wrap_content"
+                    android:layout_width="0dp"
                     android:layout_height="wrap_content"
+                    android:layout_weight="1"
                     android:background="@drawable/bg_today_pill"
                     android:foreground="?attr/selectableItemBackground"
                     android:clickable="true"
@@ -152,23 +177,28 @@
                     </com.google.android.material.card.MaterialCardView>
 
                     <LinearLayout
-                        android:layout_width="wrap_content"
+                        android:layout_width="0dp"
                         android:layout_height="wrap_content"
+                        android:layout_weight="1"
                         android:layout_marginStart="10dp"
                         android:orientation="vertical">
 
                         <TextView
-                            android:layout_width="wrap_content"
+                            android:layout_width="match_parent"
                             android:layout_height="wrap_content"
-                            android:text="Data &amp; Tools"
+                            android:ellipsize="end"
+                            android:maxLines="1"
+                            android:text="@string/home_data_tools"
                             android:textColor="@color/colorTextPrimary"
                             android:textSize="14sp"
                             android:textStyle="bold" />
 
                         <TextView
-                            android:layout_width="wrap_content"
+                            android:layout_width="match_parent"
                             android:layout_height="wrap_content"
-                            android:text="Ledger, EMI, Export &amp; more"
+                            android:ellipsize="end"
+                            android:maxLines="1"
+                            android:text="@string/home_data_tools_sub"
                             android:textColor="@color/colorTextSecondary"
                             android:textSize="11sp" />
                     </LinearLayout>
@@ -181,17 +211,12 @@
                         app:tint="@color/colorTextSecondary" />
                 </LinearLayout>
 
-                    <!-- Spacer pushes the pill to the end of the row -->
-                    <View
-                        android:layout_width="0dp"
-                        android:layout_height="1dp"
-                        android:layout_weight="1" />
-
                     <!-- Today's summary pill (next to Data & Tools) -->
                     <LinearLayout
                         android:id="@+id/cardTodaySummaryPill"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
+                        android:layout_marginStart="10dp"
                         android:orientation="horizontal"
                         android:background="@drawable/bg_today_pill"
                         android:paddingHorizontal="14dp"
@@ -209,6 +234,8 @@
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:layout_marginStart="6dp"
+                            android:ellipsize="end"
+                            android:maxLines="1"
                             android:text="Spent ₹0.00 today"
                             android:textColor="@color/colorTextPrimary"
                             android:textSize="13sp"
@@ -245,7 +272,7 @@
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="Available Balance"
+                            android:text="@string/home_available_balance"
                             android:textColor="#B3FFFFFF"
                             android:textSize="13sp" />
 
@@ -282,7 +309,7 @@
                                 <TextView
                                     android:layout_width="wrap_content"
                                     android:layout_height="wrap_content"
-                                    android:text="Income"
+                                    android:text="@string/income"
                                     android:textColor="#B3FFFFFF"
                                     android:textSize="12sp" />
 
@@ -313,7 +340,7 @@
                                 <TextView
                                     android:layout_width="wrap_content"
                                     android:layout_height="wrap_content"
-                                    android:text="Spent"
+                                    android:text="@string/home_spent"
                                     android:textColor="#B3FFFFFF"
                                     android:textSize="12sp" />
 
@@ -360,7 +387,7 @@
                             <TextView
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
-                                android:text="Safe to spend today"
+                                android:text="@string/home_safe_to_spend"
                                 android:textColor="@color/colorTextPrimary"
                                 android:textSize="13sp" />
 
@@ -420,17 +447,12 @@
                             android:orientation="vertical"
                             android:gravity="center_vertical"
                             android:background="@drawable/bg_card_3d"
+                            android:backgroundTint="@color/colorSecondary"
                             android:padding="16dp">
-                            <View
-                                android:layout_width="32dp"
-                                android:layout_height="32dp"
-                                android:background="@drawable/bg_kpi_dot"
-                                android:backgroundTint="@color/colorSecondary"/>
                             <TextView
                                 android:id="@+id/txtKpiIncome"
                                 android:layout_width="match_parent"
                                 android:layout_height="wrap_content"
-                                android:layout_marginTop="10dp"
                                 android:ellipsize="end"
                                 android:maxLines="1"
                                 android:text="₹0.0"
@@ -444,8 +466,8 @@
                                 android:ellipsize="end"
                                 android:maxLines="1"
                                 android:letterSpacing="0.02"
-                                android:text="Total Income"
-                                android:textColor="@color/colorTextSecondary"
+                                android:text="@string/home_total_income"
+                                android:textColor="#CC000000"
                                 android:textSize="11sp"/>
                         </LinearLayout>
                     </com.google.android.material.card.MaterialCardView>
@@ -469,17 +491,12 @@
                             android:orientation="vertical"
                             android:gravity="center_vertical"
                             android:background="@drawable/bg_card_3d"
+                            android:backgroundTint="@color/colorDanger"
                             android:padding="16dp">
-                            <View
-                                android:layout_width="32dp"
-                                android:layout_height="32dp"
-                                android:background="@drawable/bg_kpi_dot"
-                                android:backgroundTint="@color/colorDanger"/>
                             <TextView
                                 android:id="@+id/txtKpiSpent"
                                 android:layout_width="match_parent"
                                 android:layout_height="wrap_content"
-                                android:layout_marginTop="10dp"
                                 android:ellipsize="end"
                                 android:maxLines="1"
                                 android:text="₹0.0"
@@ -493,8 +510,8 @@
                                 android:ellipsize="end"
                                 android:maxLines="1"
                                 android:letterSpacing="0.02"
-                                android:text="Total Spent"
-                                android:textColor="@color/colorTextSecondary"
+                                android:text="@string/home_total_spent"
+                                android:textColor="#CC000000"
                                 android:textSize="11sp"/>
                         </LinearLayout>
                     </com.google.android.material.card.MaterialCardView>
@@ -518,17 +535,12 @@
                             android:orientation="vertical"
                             android:gravity="center_vertical"
                             android:background="@drawable/bg_card_3d"
+                            android:backgroundTint="@color/colorPrimary"
                             android:padding="16dp">
-                            <View
-                                android:layout_width="32dp"
-                                android:layout_height="32dp"
-                                android:background="@drawable/bg_kpi_dot"
-                                android:backgroundTint="@color/colorPrimary"/>
                             <TextView
                                 android:id="@+id/txtKpiSaved"
                                 android:layout_width="match_parent"
                                 android:layout_height="wrap_content"
-                                android:layout_marginTop="10dp"
                                 android:ellipsize="end"
                                 android:maxLines="1"
                                 android:text="₹0.0"
@@ -542,8 +554,8 @@
                                 android:ellipsize="end"
                                 android:maxLines="1"
                                 android:letterSpacing="0.02"
-                                android:text="Total Saved"
-                                android:textColor="@color/colorTextSecondary"
+                                android:text="@string/home_total_saved"
+                                android:textColor="#CC000000"
                                 android:textSize="11sp"/>
                         </LinearLayout>
                     </com.google.android.material.card.MaterialCardView>
@@ -567,17 +579,12 @@
                             android:orientation="vertical"
                             android:gravity="center_vertical"
                             android:background="@drawable/bg_card_3d"
+                            android:backgroundTint="@color/colorAccent"
                             android:padding="16dp">
-                            <View
-                                android:layout_width="32dp"
-                                android:layout_height="32dp"
-                                android:background="@drawable/bg_kpi_dot"
-                                android:backgroundTint="@color/colorAccent"/>
                             <TextView
                                 android:id="@+id/txtKpiTxnCount"
                                 android:layout_width="match_parent"
                                 android:layout_height="wrap_content"
-                                android:layout_marginTop="10dp"
                                 android:ellipsize="end"
                                 android:maxLines="1"
                                 android:text="0"
@@ -591,8 +598,8 @@
                                 android:ellipsize="end"
                                 android:maxLines="1"
                                 android:letterSpacing="0.02"
-                                android:text="Transactions"
-                                android:textColor="@color/colorTextSecondary"
+                                android:text="@string/title_transactions"
+                                android:textColor="#CC000000"
                                 android:textSize="11sp"/>
                         </LinearLayout>
                     </com.google.android.material.card.MaterialCardView>
@@ -616,14 +623,14 @@
                             style="@style/ClayChip"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="Daily" />
+                            android:text="@string/period_daily" />
 
                         <com.google.android.material.chip.Chip
                             android:id="@+id/chipMonthly"
                             style="@style/ClayChip"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="Monthly"
+                            android:text="@string/period_monthly"
                             android:checked="true" />
 
                         <com.google.android.material.chip.Chip
@@ -631,14 +638,14 @@
                             style="@style/ClayChip"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="Quarterly" />
+                            android:text="@string/period_quarterly" />
 
                         <com.google.android.material.chip.Chip
                             android:id="@+id/chipYearly"
                             style="@style/ClayChip"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="Yearly" />
+                            android:text="@string/period_yearly" />
                     </com.google.android.material.chip.ChipGroup>
                 </HorizontalScrollView>
 
@@ -657,7 +664,7 @@
                         style="@style/ClayChip"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="Both"
+                        android:text="@string/period_both"
                         android:checked="true" />
 
                     <com.google.android.material.chip.Chip
@@ -665,14 +672,14 @@
                         style="@style/ClayChip"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="Income" />
+                        android:text="@string/income" />
 
                     <com.google.android.material.chip.Chip
                         android:id="@+id/chipChartSpent"
                         style="@style/ClayChip"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="Spent" />
+                        android:text="@string/home_spent" />
                 </com.google.android.material.chip.ChipGroup>
 
                 <!-- E. Spending Trend Line Chart -->
@@ -688,7 +695,7 @@
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="Spending Trend"
+                            android:text="@string/home_spending_trend"
                             android:textColor="@color/colorTextPrimary"
                             android:textSize="16sp"
                             android:textStyle="bold"/>
@@ -724,7 +731,7 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_marginBottom="8dp"
-                        android:text="By Category"
+                        android:text="@string/home_by_category"
                         android:textColor="@color/colorTextPrimary"
                         android:textSize="16sp"
                         android:textStyle="bold"/>
@@ -777,7 +784,7 @@
                             <TextView
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
-                                android:text="Weekly Insight"
+                                android:text="@string/home_weekly_insight"
                                 android:textColor="@color/colorTextPrimary"
                                 android:textSize="14sp"
                                 android:textStyle="bold" />
@@ -822,7 +829,7 @@
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:layout_centerVertical="true"
-                            android:text="Recent"
+                            android:text="@string/home_recent"
                             android:textColor="@color/colorTextPrimary"
                             android:textSize="16sp"
                             android:textStyle="bold"/>
@@ -832,7 +839,7 @@
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:layout_alignParentEnd="true"
-                            android:text="See all"
+                            android:text="@string/home_see_all"
                             android:textColor="@color/colorPrimary"/>
                     </RelativeLayout>
 

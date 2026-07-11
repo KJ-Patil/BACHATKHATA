@@ -19,7 +19,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_centerInParent="true"
-            android:text="Profile &amp; Settings"
+            android:text="@string/profile_title"
             android:textColor="@color/colorTextPrimary"
             android:textSize="18sp"
             android:textStyle="bold" />
@@ -125,7 +125,7 @@
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Account &amp; Preferences"
+                android:text="@string/profile_section_account"
                 android:textColor="@color/colorTextPrimary"
                 android:textSize="14sp"
                 android:textStyle="bold"
@@ -160,7 +160,7 @@
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:layout_centerVertical="true"
-                            android:text="Change Name"
+                            android:text="@string/profile_change_name"
                             android:textColor="@color/colorTextPrimary"
                             android:textSize="14sp" />
                         <ImageView
@@ -188,7 +188,7 @@
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:layout_centerVertical="true"
-                            android:text="Change Password"
+                            android:text="@string/profile_change_password"
                             android:textColor="@color/colorTextPrimary"
                             android:textSize="14sp" />
                         <ImageView
@@ -216,7 +216,7 @@
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:layout_centerVertical="true"
-                            android:text="Base Currency"
+                            android:text="@string/profile_base_currency"
                             android:textColor="@color/colorTextPrimary"
                             android:textSize="14sp" />
                         <TextView
@@ -256,7 +256,7 @@
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:layout_centerVertical="true"
-                            android:text="App Theme"
+                            android:text="@string/profile_app_theme"
                             android:textColor="@color/colorTextPrimary"
                             android:textSize="14sp" />
                         <TextView
@@ -284,6 +284,46 @@
                         android:layout_height="1dp"
                         android:background="@color/colorCardBorder"/>
 
+                    <!-- Language Selection Row -->
+                    <RelativeLayout
+                        android:id="@+id/rowLanguage"
+                        android:layout_width="match_parent"
+                        android:layout_height="48dp"
+                        android:clickable="true"
+                        android:focusable="true"
+                        android:background="?attr/selectableItemBackground">
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_centerVertical="true"
+                            android:text="@string/profile_language"
+                            android:textColor="@color/colorTextPrimary"
+                            android:textSize="14sp" />
+                        <TextView
+                            android:id="@+id/txtSelectedLanguage"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_centerVertical="true"
+                            android:layout_toStartOf="@+id/imgChevronLanguage"
+                            android:layout_marginEnd="8dp"
+                            android:text="English"
+                            android:textColor="@color/colorPrimary"
+                            android:textSize="13sp"
+                            android:textStyle="bold" />
+                        <ImageView
+                            android:id="@+id/imgChevronLanguage"
+                            android:layout_width="24dp"
+                            android:layout_height="24dp"
+                            android:layout_alignParentEnd="true"
+                            android:layout_centerVertical="true"
+                            android:src="@drawable/ic_chevron_right" />
+                    </RelativeLayout>
+
+                    <View
+                        android:layout_width="match_parent"
+                        android:layout_height="1dp"
+                        android:background="@color/colorCardBorder"/>
+
                     <!-- Notifications Switch Row -->
                     <RelativeLayout
                         android:layout_width="match_parent"
@@ -292,7 +332,7 @@
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:layout_centerVertical="true"
-                            android:text="Enable Notifications"
+                            android:text="@string/profile_enable_notifications"
                             android:textColor="@color/colorTextPrimary"
                             android:textSize="14sp" />
                         <com.google.android.material.switchmaterial.SwitchMaterial
@@ -310,7 +350,7 @@
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Security Settings"
+                android:text="@string/profile_section_security"
                 android:textColor="@color/colorTextPrimary"
                 android:textSize="14sp"
                 android:textStyle="bold"
@@ -345,7 +385,7 @@
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:layout_centerVertical="true"
-                            android:text="Change PIN Lock"
+                            android:text="@string/profile_change_pin"
                             android:textColor="@color/colorTextPrimary"
                             android:textSize="14sp" />
                         <ImageView
@@ -369,7 +409,7 @@
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:layout_centerVertical="true"
-                            android:text="Biometric Authentication"
+                            android:text="@string/profile_biometric"
                             android:textColor="@color/colorTextPrimary"
                             android:textSize="14sp" />
                         <com.google.android.material.switchmaterial.SwitchMaterial
@@ -397,7 +437,7 @@
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:layout_centerVertical="true"
-                            android:text="Auto Lock Timeout"
+                            android:text="@string/profile_auto_lock"
                             android:textColor="@color/colorTextPrimary"
                             android:textSize="14sp" />
                         <TextView
@@ -453,7 +493,7 @@
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:layout_centerVertical="true"
-                            android:text="Clear All Account Data"
+                            android:text="@string/profile_clear_data"
                             android:textColor="@color/colorDanger"
                             android:textSize="14sp" />
                         <ImageView
@@ -475,7 +515,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="24dp"
-                android:text="Logout"
+                android:text="@string/profile_logout"
                 android:textColor="@color/colorDanger"
                 app:strokeColor="@color/colorDanger" />
 

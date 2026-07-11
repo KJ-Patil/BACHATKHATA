@@ -13,7 +13,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginStart="20dp"
-        android:layout_marginTop="60dp"
+        android:layout_marginTop="12dp"
         android:layout_marginEnd="20dp"
         app:cardBackgroundColor="@color/colorSecondary"
         app:strokeColor="@color/colorSecondary"
@@ -28,7 +28,7 @@
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Total saved"
+                android:text="@string/savings_total_saved"
                 android:textColor="#B3FFFFFF"
                 android:textSize="13sp" />
 
@@ -99,7 +99,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginTop="16dp"
-            android:text="No savings goals yet"
+            android:text="@string/savings_no_goals"
             android:textColor="@color/colorTextPrimary"
             android:textSize="18sp"
             android:textStyle="bold" />
@@ -109,7 +109,7 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="8dp"
             android:gravity="center"
-            android:text="Set target milestones like buying a car, phone, or home."
+            android:text="@string/savings_no_goals_desc"
             android:textColor="@color/colorTextSecondary"
             android:textSize="14sp" />
 
@@ -119,7 +119,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginTop="24dp"
-            android:text="Set Savings Goal" />
+            android:text="@string/savings_set_goal" />
     </LinearLayout>
 
 </androidx.constraintlayout.widget.ConstraintLayout>

@@ -15,6 +15,9 @@ import com.example.bachatkhata.databinding.ActivityBiometricSetupBinding;
 import com.google.android.material.snackbar.Snackbar;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.SetOptions;
+
+import java.util.Collections;
 
 import java.util.concurrent.Executor;
 
@@ -25,10 +28,16 @@ public class BiometricSetupActivity extends AppCompatActivity {
     private FirebaseFirestore mFirestore;
 
     @Override
+    protected void attachBaseContext(android.content.Context newBase) {
+        super.attachBaseContext(LocaleHelper.wrap(newBase));
+    }
+
+    @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         binding = ActivityBiometricSetupBinding.inflate(getLayoutInflater());
         setContentView(binding.getRoot());
+        BaseActivity.applyEdgeToEdgeInsets(findViewById(android.R.id.content));
 
         mAuth = FirebaseAuth.getInstance();
         mFirestore = FirebaseFirestore.getInstance();
@@ -91,7 +100,7 @@ public class BiometricSetupActivity extends AppCompatActivity {
         String uid = mAuth.getCurrentUser().getUid();
 
         mFirestore.collection("users").document(uid)
-                .update("biometricEnabled", enabled)
+                .set(Collections.singletonMap("biometricEnabled", enabled), SetOptions.merge())
                 .addOnSuccessListener(aVoid -> {
                     showLoading(false);
                     navigateToMain();

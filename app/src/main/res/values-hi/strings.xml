@@ -1,0 +1,278 @@
+<resources>
+    <!-- App Name -->
+    <string name="app_name">BachatKhata</string>
+
+    <!-- Login brand panel / field labels -->
+    <string name="brand_kicker">व्यक्तिगत वित्त प्रबंधक</string>
+    <string name="brand_headline">आत्मविश्वास से बचाएँ।\nआसानी से बढ़ें।</string>
+    <string name="brand_subline">BachatKhata के लिए ऑल-इन-वन व्यक्तिगत वित्त वर्कस्पेस।</string>
+    <string name="login_welcome_subtitle">जारी रखने के लिए अपने खाते में साइन इन करें।</string>
+    <string name="login_email_label">ईमेल</string>
+    <string name="login_password_label">पासवर्ड</string>
+
+    <!-- General / Navigation -->
+    <string name="title_home">होम</string>
+    <string name="title_transactions">लेन-देन</string>
+    <string name="title_budget">बजट</string>
+    <string name="title_savings">बचत</string>
+    <string name="title_analytics">विश्लेषण</string>
+    <string name="title_profile">प्रोफ़ाइल</string>
+    <string name="title_notifications">सूचनाएँ</string>
+    <string name="action_settings">सेटिंग्स</string>
+    <string name="next">आगे</string>
+    <string name="previous">पिछला</string>
+    <string name="skip">छोड़ें</string>
+    <string name="done">पूर्ण</string>
+    <string name="save">सहेजें</string>
+    <string name="cancel">रद्द करें</string>
+    <string name="delete">हटाएँ</string>
+    <string name="edit">संपादित करें</string>
+    <string name="exit">बाहर निकलें</string>
+    <string name="yes">हाँ</string>
+    <string name="no">नहीं</string>
+
+    <!-- Onboarding -->
+    <string name="onboarding_title_1">हर रुपये को ट्रैक करें</string>
+    <string name="onboarding_subtitle_1">विस्तृत लॉगिंग और स्मार्ट वर्गीकरण के साथ जानें कि आपका पैसा कहाँ जाता है।</string>
+    <string name="onboarding_title_2">बजट और लक्ष्य निर्धारित करें</string>
+    <string name="onboarding_subtitle_2">प्रत्येक श्रेणी के लिए मासिक सीमाएँ तय करें और अपने बचत लक्ष्यों की प्रगति वास्तविक समय में देखें।</string>
+    <string name="onboarding_title_3">अपने पैसे को बढ़ते देखें</string>
+    <string name="onboarding_subtitle_3">वित्तीय रूप से स्वस्थ रहने के लिए स्पष्ट रिपोर्ट, खर्च के रुझान और समय पर अलर्ट प्राप्त करें।</string>
+    <string name="get_started">शुरू करें</string>
+
+    <!-- Auth / Login / Register -->
+    <string name="welcome_back">वापसी पर स्वागत है</string>
+    <string name="sign_in_tagline">BachatKhata में जारी रखने के लिए साइन इन करें</string>
+    <string name="email_hint">ईमेल पता</string>
+    <string name="password_hint">पासवर्ड</string>
+    <string name="confirm_password_hint">पासवर्ड की पुष्टि करें</string>
+    <string name="full_name_hint">पूरा नाम</string>
+    <string name="forgot_password">पासवर्ड भूल गए?</string>
+    <string name="remember_me">मुझे याद रखें</string>
+    <string name="sign_in">साइन इन करें</string>
+    <string name="sign_up">साइन अप करें</string>
+    <string name="register_tagline">अपना BachatKhata खाता बनाएँ</string>
+    <string name="register_btn">खाता बनाएँ</string>
+    <string name="no_account_prompt">BachatKhata में नए हैं? खाता बनाएँ</string>
+    <string name="have_account_prompt">पहले से खाता है? साइन इन करें</string>
+    <string name="google_sign_in">Google से साइन इन करें</string>
+    <string name="reset_password_title">पासवर्ड रीसेट करें</string>
+    <string name="reset_password_tagline">अपना ईमेल दर्ज करें और हम आपको रीसेट लिंक भेजेंगे।</string>
+    <string name="send_reset_link">रीसेट लिंक भेजें</string>
+    <string name="choose_photo">फ़ोटो चुनें</string>
+    <string name="or_divider">या</string>
+
+    <!-- PIN & Biometric Security -->
+    <string name="pin_create_title">अपना पिन बनाएँ</string>
+    <string name="pin_confirm_title">अपने पिन की पुष्टि करें</string>
+    <string name="pin_enter_title">अनलॉक करने के लिए पिन दर्ज करें</string>
+    <string name="pin_setup_mismatch">पिन मेल नहीं खाते। कृपया पुनः प्रयास करें।</string>
+    <string name="pin_correct">पिन सत्यापित।</string>
+    <string name="pin_incorrect">गलत पिन। कृपया पुनः प्रयास करें।</string>
+    <string name="biometric_setup_title">फ़िंगरप्रिंट अनलॉक सक्षम करें?</string>
+    <string name="biometric_setup_desc">अपने वित्त को सुरक्षित रखें और अपने फ़िंगरप्रिंट से तुरंत अनलॉक करें — कोई पिन आवश्यक नहीं।</string>
+    <string name="enable">सक्षम करें</string>
+    <string name="biometric_auth_title">BachatKhata अनलॉक करें</string>
+    <string name="biometric_auth_subtitle">BachatKhata अनलॉक करने के लिए अपने फ़िंगरप्रिंट या चेहरे का उपयोग करें।</string>
+
+    <!-- Transactions -->
+    <string name="add_transaction">लेन-देन जोड़ें</string>
+    <string name="edit_transaction">लेन-देन संपादित करें</string>
+    <string name="transaction_details">लेन-देन विवरण</string>
+    <string name="income">आय</string>
+    <string name="expense">व्यय</string>
+    <string name="amount_hint">0.00</string>
+    <string name="select_category">श्रेणी चुनें</string>
+    <string name="add_note">एक नोट जोड़ें</string>
+    <string name="date_picker">दिनांक चुनें</string>
+    <string name="account_picker">खाता चुनें</string>
+    <string name="save_transaction">लेन-देन सहेजें</string>
+    <string name="no_transactions">अभी तक कोई लेन-देन नहीं</string>
+    <string name="no_transactions_desc">अपना डैशबोर्ड जीवंत बनाने के लिए अपनी पहली आय या व्यय जोड़ें।</string>
+
+    <!-- Validation Errors -->
+    <string name="err_empty_email">कृपया अपना ईमेल पता दर्ज करें</string>
+    <string name="err_invalid_email">कृपया एक मान्य ईमेल पता दर्ज करें</string>
+    <string name="err_empty_password">कृपया अपना पासवर्ड दर्ज करें</string>
+    <string name="err_short_password">आपका पासवर्ड कम से कम 6 अक्षरों का होना चाहिए</string>
+    <string name="err_empty_name">कृपया अपना नाम दर्ज करें</string>
+    <string name="err_password_mismatch">ये पासवर्ड मेल नहीं खाते</string>
+    <string name="err_invalid_amount">कृपया शून्य से अधिक राशि दर्ज करें</string>
+    <string name="err_select_category">कृपया एक श्रेणी चुनें</string>
+
+    <!-- SMS Auto-Import -->
+    <string name="sms_import_title">लेन-देन ऑटो-इम्पोर्ट करें</string>
+    <string name="sms_import_confirm">आयात की पुष्टि करें</string>
+    <string name="sms_import_desc">हमें आपके संदेशों में एक लेन-देन मिला। इसे अपने रिकॉर्ड में जोड़ें?</string>
+    <string name="sms_import_success">लेन-देन सफलतापूर्वक जोड़ा गया।</string>
+    <string name="sms_import_fail">हम इस संदेश को पढ़ नहीं सके। कृपया लेन-देन मैन्युअल रूप से जोड़ें।</string>
+
+    <!-- Subscriptions -->
+    <string name="title_subscriptions">सदस्यताएँ</string>
+    <string name="sub_merchant">व्यापारी का नाम</string>
+    <string name="sub_frequency">नवीनीकरण आवृत्ति</string>
+    <string name="sub_next_renewal">अगला नवीनीकरण</string>
+    <string name="sub_active">सक्रिय</string>
+    <string name="sub_inactive">निष्क्रिय</string>
+    <string name="sub_add">सदस्यता जोड़ें</string>
+
+    <!-- EMI Tracker -->
+    <string name="title_emi">EMI ट्रैकर</string>
+    <string name="emi_loan_name">ऋण या सुविधा का नाम</string>
+    <string name="emi_principal">मूल राशि</string>
+    <string name="emi_interest">ब्याज दर (%)</string>
+    <string name="emi_tenure">अवधि (महीने)</string>
+    <string name="emi_amount">मासिक EMI</string>
+    <string name="emi_due_date">अगली देय तिथि</string>
+    <string name="emi_paid_months">भुगतान किए गए महीने</string>
+    <string name="emi_add">EMI जोड़ें</string>
+
+    <!-- Family / Group Wallet -->
+    <string name="title_family_wallet">परिवार वॉलेट</string>
+    <string name="group_name">समूह का नाम</string>
+    <string name="group_type">समूह प्रकार</string>
+    <string name="group_invite_code">आमंत्रण कोड</string>
+    <string name="group_create">समूह बनाएँ</string>
+    <string name="group_join">समूह में शामिल हों</string>
+    <string name="group_limit">सदस्य खर्च सीमा</string>
+
+    <!-- Bill Calendar -->
+    <string name="title_bill_calendar">बिल कैलेंडर</string>
+    <string name="bill_name">बिल का नाम</string>
+    <string name="bill_amount">देय राशि</string>
+    <string name="bill_due_day">महीने का देय दिन</string>
+    <string name="bill_is_recurring">आवर्ती बिल</string>
+
+    <!-- Gamification & Achievements -->
+    <string name="title_achievements">उपलब्धियाँ</string>
+    <string name="ach_badges">अर्जित बैज</string>
+    <string name="ach_streaks">सक्रिय स्ट्रीक</string>
+    <string name="ach_challenges">सक्रिय चुनौतियाँ</string>
+    <string name="streak_days">%d-दिन की स्ट्रीक</string>
+
+    <!-- Financial Health Score & Net Worth -->
+    <string name="title_health_score">वित्तीय स्वास्थ्य स्कोर</string>
+    <string name="title_net_worth">नेट वर्थ ट्रैकर</string>
+    <string name="net_worth_assets">कुल संपत्ति</string>
+    <string name="net_worth_liabilities">कुल देनदारियाँ</string>
+    <string name="net_worth_total">कुल नेट वर्थ</string>
+
+    <!-- Financial Literacy Lessons -->
+    <string name="title_literacy">वित्तीय साक्षरता केंद्र</string>
+    <string name="lit_lessons">पाठ</string>
+    <string name="lit_quiz">क्विज़ लें</string>
+
+    <!-- Organization Expense Claims -->
+    <string name="title_org_claims">व्यय दावे</string>
+    <string name="claim_status">दावा स्थिति</string>
+    <string name="claim_submit">दावा प्रस्तुत करें</string>
+    <string name="claim_approve">स्वीकृत करें</string>
+    <string name="claim_reject">अस्वीकृत करें</string>
+
+    <!-- Split Bills -->
+    <string name="title_split_bills">बिल स्प्लिटर</string>
+    <string name="split_total">कुल राशि</string>
+    <string name="split_participants">प्रतिभागी</string>
+    <string name="split_calculate">विभाजन की गणना करें</string>
+
+    <!-- Mood Check-In -->
+    <string name="title_mood_checkin">मूड चेक-इन</string>
+    <string name="mood_prompt">आज आप अपने वित्त के बारे में कैसा महसूस कर रहे हैं?</string>
+    <string name="mood_good">अच्छा</string>
+    <string name="mood_okay">ठीक-ठाक</string>
+    <string name="mood_stressed">तनावग्रस्त</string>
+
+    <!-- Carbon Tracker -->
+    <string name="title_carbon_tracker">कार्बन फुटप्रिंट ट्रैकर</string>
+    <string name="carbon_score">ईको स्कोर</string>
+
+    <!-- NGO Tracker -->
+    <string name="title_ngo_tracker">NGO ट्रैकर</string>
+    <string name="ngo_projects">सक्रिय परियोजनाएँ</string>
+    <string name="ngo_donations">प्राप्त दान</string>
+
+
+    <!-- Phone OTP Login -->
+    <string name="phone_sign_in">फ़ोन से साइन इन करें</string>
+    <string name="phone_login_title">फ़ोन साइन-इन</string>
+    <string name="phone_number_hint">फ़ोन नंबर</string>
+    <string name="phone_send_otp">OTP भेजें</string>
+    <string name="phone_otp_hint">6-अंकों का कोड</string>
+    <string name="phone_verify_otp">सत्यापित करें और जारी रखें</string>
+    <string name="phone_otp_sent">सत्यापन कोड भेजा गया</string>
+    <string name="phone_enter_valid">देश कोड के साथ एक मान्य फ़ोन नंबर दर्ज करें</string>
+    <string name="phone_enter_code">6-अंकों का कोड दर्ज करें</string>
+
+    <!-- Home dashboard -->
+    <string name="home_data_tools">डेटा और टूल</string>
+    <string name="home_data_tools_sub">खाता-बही, EMI, निर्यात और अधिक</string>
+    <string name="home_available_balance">उपलब्ध शेष</string>
+    <string name="home_spent">खर्च</string>
+    <string name="home_safe_to_spend">आज खर्च करने योग्य</string>
+    <string name="home_total_income">कुल आय</string>
+    <string name="home_total_spent">कुल खर्च</string>
+    <string name="home_total_saved">कुल बचत</string>
+    <string name="home_spending_trend">खर्च का रुझान</string>
+    <string name="home_by_category">श्रेणी के अनुसार</string>
+    <string name="home_weekly_insight">साप्ताहिक अंतर्दृष्टि</string>
+    <string name="home_recent">हाल के</string>
+    <string name="home_see_all">सभी देखें</string>
+    <string name="period_daily">दैनिक</string>
+    <string name="period_monthly">मासिक</string>
+    <string name="period_quarterly">त्रैमासिक</string>
+    <string name="period_yearly">वार्षिक</string>
+    <string name="period_both">दोनों</string>
+
+    <!-- Transactions tabs -->
+    <string name="tab_all">सभी</string>
+
+    <!-- Analytics -->
+    <string name="analytics_title">वित्तीय विश्लेषण</string>
+    <string name="period_this_month">इस महीने</string>
+    <string name="period_last_month">पिछले महीने</string>
+    <string name="period_last_3_months">पिछले 3 महीने</string>
+    <string name="period_this_year">इस साल</string>
+    <string name="analytics_total_expense">कुल खर्च</string>
+    <string name="analytics_category_distribution">श्रेणी वितरण</string>
+    <string name="analytics_no_data">चयनित अवधि के लिए कोई लेन-देन डेटा उपलब्ध नहीं है।</string>
+    <string name="analytics_monthly_comparison">मासिक तुलना (वर्तमान बनाम पिछला)</string>
+    <string name="analytics_cash_flow">समय के साथ नकदी प्रवाह का रुझान</string>
+    <string name="analytics_top5">शीर्ष 5 खर्च श्रेणियाँ</string>
+
+    <!-- Budget -->
+    <string name="budget_no_budgets">कोई बजट सेट नहीं</string>
+    <string name="budget_no_budgets_desc">ट्रैक पर बने रहने के लिए श्रेणियों के लिए मासिक खर्च सीमाएँ निर्धारित करें।</string>
+    <string name="budget_set">बजट सेट करें</string>
+
+    <!-- Savings -->
+    <string name="savings_total_saved">कुल बचत</string>
+    <string name="savings_no_goals">अभी तक कोई बचत लक्ष्य नहीं</string>
+    <string name="savings_no_goals_desc">कार, फ़ोन या घर खरीदने जैसे लक्ष्य मील के पत्थर निर्धारित करें।</string>
+    <string name="savings_set_goal">बचत लक्ष्य निर्धारित करें</string>
+
+    <!-- Profile & Settings screen -->
+    <string name="profile_title">प्रोफ़ाइल और सेटिंग्स</string>
+    <string name="profile_section_account">खाता और प्राथमिकताएँ</string>
+    <string name="profile_change_name">नाम बदलें</string>
+    <string name="profile_change_password">पासवर्ड बदलें</string>
+    <string name="profile_base_currency">आधार मुद्रा</string>
+    <string name="profile_app_theme">ऐप थीम</string>
+    <string name="profile_language">भाषा</string>
+    <string name="profile_enable_notifications">सूचनाएँ सक्षम करें</string>
+    <string name="profile_section_security">सुरक्षा सेटिंग्स</string>
+    <string name="profile_change_pin">पिन लॉक बदलें</string>
+    <string name="profile_biometric">बायोमेट्रिक प्रमाणीकरण</string>
+    <string name="profile_auto_lock">ऑटो लॉक टाइमआउट</string>
+    <string name="profile_clear_data">सभी खाता डेटा साफ़ करें</string>
+    <string name="profile_logout">लॉग आउट</string>
+
+    <!-- Cloud Backup -->
+    <string name="backup_title">क्लाउड बैकअप</string>
+    <string name="backup_create">बैकअप बनाएँ</string>
+    <string name="backup_restore">पुनर्स्थापित करें</string>
+    <string name="backup_delete">हटाएँ</string>
+    <string name="backup_empty">अभी तक कोई बैकअप नहीं। अपने डेटा का स्नैपशॉट लेने के लिए एक बनाएँ।</string>
+    <string name="backup_label_hint">बैकअप नाम (जैसे सफ़ाई से पहले)</string>
+    <string name="backup_restore_confirm">इस बैकअप को पुनर्स्थापित करें? आपके वर्तमान लेन-देन बदल दिए जाएँगे।</string>
+    <string name="backup_delete_confirm">इस बैकअप को स्थायी रूप से हटाएँ?</string>
+</resources>

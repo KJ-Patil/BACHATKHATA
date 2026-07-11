@@ -48,6 +48,7 @@ public class DataToolsFragment extends Fragment {
                 ToolsGridAdapter.ToolItem.nav("📒", "Customer Ledger", R.id.navigation_customer_ledger),
                 ToolsGridAdapter.ToolItem.nav("👨‍👩‍👧", "Family Wallet", R.id.navigation_family_wallet),
                 ToolsGridAdapter.ToolItem.activity("📄", "Export Reports", ExportActivity.class),
+                ToolsGridAdapter.ToolItem.activity("☁️", "Cloud Backup", CloudBackupActivity.class),
                 ToolsGridAdapter.ToolItem.nav("🔁", "Subscriptions", R.id.navigation_subscriptions),
                 ToolsGridAdapter.ToolItem.nav("🏦", "EMI & Loans", R.id.navigation_emi_tracker),
                 ToolsGridAdapter.ToolItem.activity("📅", "Bill Calendar", BillCalendarActivity.class),

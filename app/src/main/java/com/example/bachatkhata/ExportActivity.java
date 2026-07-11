@@ -46,7 +46,9 @@ public class ExportActivity extends BaseActivity {
 
     private Date startDate;
     private Date endDate;
-    private boolean isPdfSelected = true;
+
+    private enum Format { PDF, CSV, EXCEL }
+    private Format selectedFormat = Format.PDF;
 
     private final SimpleDateFormat displayDateFormat = new SimpleDateFormat("dd MMM yyyy", Locale.US);
 
@@ -86,12 +88,17 @@ public class ExportActivity extends BaseActivity {
         binding.cardDateRange.setOnClickListener(v -> showDateRangePicker());
 
         binding.cardFormatPdf.setOnClickListener(v -> {
-            isPdfSelected = true;
+            selectedFormat = Format.PDF;
             updateFormatUI();
         });
 
         binding.cardFormatCsv.setOnClickListener(v -> {
-            isPdfSelected = false;
+            selectedFormat = Format.CSV;
+            updateFormatUI();
+        });
+
+        binding.cardFormatExcel.setOnClickListener(v -> {
+            selectedFormat = Format.EXCEL;
             updateFormatUI();
         });
 
@@ -126,19 +133,17 @@ public class ExportActivity extends BaseActivity {
         int activeBorder = ContextCompat.getColor(this, R.color.colorPrimary);
         int inactiveBorder = ContextCompat.getColor(this, R.color.colorCardBorder);
 
-        if (isPdfSelected) {
-            binding.cardFormatPdf.setStrokeColor(activeBorder);
-            binding.cardFormatPdf.setStrokeWidth(4);
-            binding.cardFormatCsv.setStrokeColor(inactiveBorder);
-            binding.cardFormatCsv.setStrokeWidth(2);
-            binding.cardPdfOptions.setVisibility(View.VISIBLE);
-        } else {
-            binding.cardFormatCsv.setStrokeColor(activeBorder);
-            binding.cardFormatCsv.setStrokeWidth(4);
-            binding.cardFormatPdf.setStrokeColor(inactiveBorder);
-            binding.cardFormatPdf.setStrokeWidth(2);
-            binding.cardPdfOptions.setVisibility(View.GONE);
-        }
+        binding.cardFormatPdf.setStrokeColor(selectedFormat == Format.PDF ? activeBorder : inactiveBorder);
+        binding.cardFormatPdf.setStrokeWidth(selectedFormat == Format.PDF ? 4 : 2);
+
+        binding.cardFormatCsv.setStrokeColor(selectedFormat == Format.CSV ? activeBorder : inactiveBorder);
+        binding.cardFormatCsv.setStrokeWidth(selectedFormat == Format.CSV ? 4 : 2);
+
+        binding.cardFormatExcel.setStrokeColor(selectedFormat == Format.EXCEL ? activeBorder : inactiveBorder);
+        binding.cardFormatExcel.setStrokeWidth(selectedFormat == Format.EXCEL ? 4 : 2);
+
+        // "Include charts" only applies to the PDF report
+        binding.cardPdfOptions.setVisibility(selectedFormat == Format.PDF ? View.VISIBLE : View.GONE);
     }
 
     private void showDateRangePicker() {
@@ -200,35 +205,36 @@ public class ExportActivity extends BaseActivity {
 
                     try {
                         String timeStamp = new SimpleDateFormat("yyyyMMdd_HHmmss", Locale.US).format(new Date());
-                        File tempFile;
+                        String fileName;
                         String mimeType;
+                        byte[] bytes;
 
-                        if (isPdfSelected) {
-                            String fileName = "BachatKhata_" + timeStamp + ".pdf";
-                            tempFile = new File(getCacheDir(), fileName);
-                            boolean includeCharts = binding.switchIncludeCharts.isChecked();
-                            byte[] pdfBytes = generatePdf(list, includeCharts);
-                            
-                            // Save to temp file
-                            FileOutputStream fos = new FileOutputStream(tempFile);
-                            fos.write(pdfBytes);
-                            fos.close();
-
-                            // Also write copy directly to system Downloads for convenience
-                            saveFileToDownloads(fileName, "application/pdf", pdfBytes);
-                            mimeType = "application/pdf";
-                        } else {
-                            String fileName = "BachatKhata_" + timeStamp + ".csv";
-                            tempFile = new File(getCacheDir(), fileName);
-                            byte[] csvBytes = generateCsv(list);
-
-                            FileOutputStream fos = new FileOutputStream(tempFile);
-                            fos.write(csvBytes);
-                            fos.close();
-
-                            saveFileToDownloads(fileName, "text/csv", csvBytes);
-                            mimeType = "text/csv";
+                        switch (selectedFormat) {
+                            case CSV:
+                                fileName = "BachatKhata_" + timeStamp + ".csv";
+                                mimeType = "text/csv";
+                                bytes = generateCsv(list);
+                                break;
+                            case EXCEL:
+                                fileName = "BachatKhata_" + timeStamp + ".xlsx";
+                                mimeType = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet";
+                                bytes = generateXlsx(list);
+                                break;
+                            case PDF:
+                            default:
+                                fileName = "BachatKhata_" + timeStamp + ".pdf";
+                                mimeType = "application/pdf";
+                                bytes = generatePdf(list, binding.switchIncludeCharts.isChecked());
+                                break;
                         }
+
+                        File tempFile = new File(getCacheDir(), fileName);
+                        FileOutputStream fos = new FileOutputStream(tempFile);
+                        fos.write(bytes);
+                        fos.close();
+
+                        // Also drop a copy straight into the system Downloads folder
+                        saveFileToDownloads(fileName, mimeType, bytes);
 
                         hideLoadingDialog();
                         shareFile(tempFile, mimeType);
@@ -262,6 +268,26 @@ public class ExportActivity extends BaseActivity {
             ));
         }
         return csv.toString().getBytes();
+    }
+
+    private byte[] generateXlsx(List<Transaction> transactions) throws Exception {
+        String[] headers = {"Date", "Type", "Category", "Amount", "Currency", "Note", "Account"};
+        SimpleDateFormat xlsxDateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.US);
+
+        List<Object[]> rows = new ArrayList<>();
+        for (Transaction t : transactions) {
+            String dateStr = t.getDate() != null ? xlsxDateFormat.format(t.getDate()) : "";
+            rows.add(new Object[]{
+                    dateStr,
+                    t.getType(),
+                    t.getCategory(),
+                    t.getAmount(),      // numeric cell
+                    t.getCurrency(),
+                    t.getNote() != null ? t.getNote() : "",
+                    t.getAccount()
+            });
+        }
+        return XlsxExporter.build("Transactions", headers, rows);
     }
 
     private byte[] generatePdf(List<Transaction> transactions, boolean includeCharts) throws Exception {
