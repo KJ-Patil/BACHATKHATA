@@ -23,7 +23,7 @@
         android:title="@string/title_budget" />
 
     <item
-        android:id="@+id/navigation_profile"
-        android:icon="@drawable/ic_account_circle"
-        android:title="@string/title_profile" />
+        android:id="@+id/navigation_customer_ledger"
+        android:icon="@drawable/ic_ledger"
+        android:title="@string/title_customer_ledger" />
 </menu>

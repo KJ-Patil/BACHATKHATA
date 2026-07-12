@@ -4,6 +4,7 @@ import android.content.Context;
 import android.content.SharedPreferences;
 
 import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.SetOptions;
 
 import org.json.JSONObject;
 
@@ -225,8 +226,10 @@ public class CurrencyManager {
         updates.put("currency", code);
         updates.put("currencySymbol", symbol);
 
+        // set(..., merge) creates the user doc if it doesn't exist yet, unlike
+        // update() which fails with NOT_FOUND and would silently revert the change.
         FirebaseFirestore.getInstance().collection("users").document(uid)
-                .update(updates)
+                .set(updates, SetOptions.merge())
                 .addOnSuccessListener(aVoid -> {
                     if (onSaved != null) onSaved.run();
                 })

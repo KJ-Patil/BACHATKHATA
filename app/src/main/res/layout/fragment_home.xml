@@ -54,24 +54,37 @@
                             android:textSize="13sp" />
                     </LinearLayout>
 
-                    <!-- Top Menu (settings) grid icon -->
+                    <!-- Top-right user avatar (opens Profile & Settings) -->
                     <FrameLayout
                         android:id="@+id/btnTopMenu"
-                        android:layout_width="44dp"
-                        android:layout_height="44dp"
+                        android:layout_width="40dp"
+                        android:layout_height="40dp"
                         android:layout_alignParentEnd="true"
                         android:layout_centerVertical="true"
                         android:clickable="true"
                         android:focusable="true"
-                        android:background="?attr/selectableItemBackgroundBorderless">
+                        android:contentDescription="@string/action_settings"
+                        android:foreground="?attr/selectableItemBackgroundBorderless">
 
+                        <!-- Initials fallback (shown when no photo) -->
+                        <TextView
+                            android:id="@+id/txtTopAvatarLetter"
+                            android:layout_width="match_parent"
+                            android:layout_height="match_parent"
+                            android:background="@drawable/bg_avatar_circle"
+                            android:gravity="center"
+                            android:text="U"
+                            android:textColor="@android:color/white"
+                            android:textSize="16sp"
+                            android:textStyle="bold" />
+
+                        <!-- User photo overlay (circle-cropped by Glide) -->
                         <ImageView
-                            android:layout_width="26dp"
-                            android:layout_height="26dp"
-                            android:layout_gravity="center"
-                            android:src="@drawable/ic_more"
-                            android:contentDescription="@string/action_settings"
-                            app:tint="@color/colorTextPrimary" />
+                            android:id="@+id/imgTopAvatar"
+                            android:layout_width="match_parent"
+                            android:layout_height="match_parent"
+                            android:scaleType="centerCrop"
+                            android:visibility="gone" />
                     </FrameLayout>
 
                     <!-- Notification Bell Container -->

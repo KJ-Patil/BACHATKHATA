@@ -19,6 +19,7 @@ import androidx.lifecycle.ViewModelProvider;
 import androidx.navigation.Navigation;
 import androidx.recyclerview.widget.LinearLayoutManager;
 
+import com.bumptech.glide.Glide;
 import com.example.bachatkhata.databinding.FragmentHomeBinding;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.FirebaseFirestore;
@@ -360,6 +361,25 @@ public class HomeFragment extends Fragment {
                             binding.txtGreeting.setText(String.format("%s, %s", finalGreeting, name));
                         } else {
                             binding.txtGreeting.setText(String.format("%s, User", finalGreeting));
+                        }
+
+                        // Top-right avatar (Google-account style): initials fallback + photo overlay
+                        String letter = (name != null && !name.trim().isEmpty())
+                                ? name.trim().substring(0, 1).toUpperCase(Locale.US) : "U";
+                        binding.txtTopAvatarLetter.setText(letter);
+
+                        String photoUrl = documentSnapshot.getString("photoUrl");
+                        if ((photoUrl == null || photoUrl.trim().isEmpty())
+                                && mAuth.getCurrentUser() != null
+                                && mAuth.getCurrentUser().getPhotoUrl() != null) {
+                            // Fall back to the Google sign-in photo, if any.
+                            photoUrl = mAuth.getCurrentUser().getPhotoUrl().toString();
+                        }
+                        if (photoUrl != null && !photoUrl.trim().isEmpty()) {
+                            binding.imgTopAvatar.setVisibility(View.VISIBLE);
+                            Glide.with(this).load(photoUrl).circleCrop().into(binding.imgTopAvatar);
+                        } else {
+                            binding.imgTopAvatar.setVisibility(View.GONE);
                         }
 
                         // Load and display Weekly Insight

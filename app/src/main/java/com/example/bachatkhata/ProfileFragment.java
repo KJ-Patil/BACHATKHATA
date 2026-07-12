@@ -48,6 +48,7 @@ import com.google.firebase.storage.StorageReference;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
@@ -118,6 +119,8 @@ public class ProfileFragment extends Fragment {
     }
 
     private void setupListeners() {
+        binding.btnBackProfile.setOnClickListener(v ->
+                requireActivity().getOnBackPressedDispatcher().onBackPressed());
         binding.rowEditProfile.setOnClickListener(v -> showEditNameDialog());
         binding.cardProfileImage.setOnClickListener(v -> selectProfilePhoto());
         binding.rowChangePassword.setOnClickListener(v -> showChangePasswordDialog());
@@ -127,6 +130,8 @@ public class ProfileFragment extends Fragment {
         binding.txtSelectedLanguage.setText(
                 LocaleHelper.displayNameFor(LocaleHelper.getLanguage(requireContext())));
         binding.rowLockTimeout.setOnClickListener(v -> showLockTimeoutDialog());
+        binding.rowCloudBackup.setOnClickListener(v ->
+                startActivity(new Intent(getContext(), CloudBackupActivity.class)));
         binding.rowClearData.setOnClickListener(v -> confirmClearData());
 
         binding.rowSetupPin.setOnClickListener(v -> {
@@ -299,7 +304,7 @@ public class ProfileFragment extends Fragment {
         String uid = mAuth.getCurrentUser().getUid();
 
         mFirestore.collection("users").document(uid)
-                .update("photoUrl", FieldValue.delete())
+                .set(Collections.singletonMap("photoUrl", FieldValue.delete()), SetOptions.merge())
                 .addOnSuccessListener(aVoid -> {
                     // Best-effort delete of the stored file; the snapshot listener
                     // restores the letter avatar once photoUrl is gone.
@@ -330,7 +335,7 @@ public class ProfileFragment extends Fragment {
                 .addOnSuccessListener(taskSnapshot -> ref.getDownloadUrl().addOnSuccessListener(downloadUri -> {
                     String downloadUrl = downloadUri.toString();
                     mFirestore.collection("users").document(uid)
-                            .update("photoUrl", downloadUrl)
+                            .set(Collections.singletonMap("photoUrl", downloadUrl), SetOptions.merge())
                             .addOnSuccessListener(aVoid -> {
                                 if (activity != null) {
                                     activity.hideLoadingDialog();
@@ -547,7 +552,7 @@ public class ProfileFragment extends Fragment {
         SharedPreferencesManager.applyThemeMode(mode);
 
         mFirestore.collection("users").document(uid)
-                .update("themeMode", mode)
+                .set(Collections.singletonMap("themeMode", mode), SetOptions.merge())
                 .addOnSuccessListener(aVoid -> {
                     if (binding != null) {
                         binding.txtSelectedTheme.setText(mode);
@@ -587,7 +592,7 @@ public class ProfileFragment extends Fragment {
         String uid = mAuth.getCurrentUser().getUid();
 
         mFirestore.collection("users").document(uid)
-                .update("biometricEnabled", enabled)
+                .set(Collections.singletonMap("biometricEnabled", enabled), SetOptions.merge())
                 .addOnSuccessListener(aVoid -> {
                     SharedPreferencesManager.getInstance(getContext()).setBiometricEnabled(enabled);
                     if (activity != null) {
@@ -613,7 +618,7 @@ public class ProfileFragment extends Fragment {
         String uid = mAuth.getCurrentUser().getUid();
 
         mFirestore.collection("users").document(uid)
-                .update("notificationsEnabled", enabled)
+                .set(Collections.singletonMap("notificationsEnabled", enabled), SetOptions.merge())
                 .addOnSuccessListener(aVoid -> {
                     if (activity != null) {
                         String msg = enabled ? "Budget notification alerts enabled" : "Budget notification alerts disabled";

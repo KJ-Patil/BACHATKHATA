@@ -4,10 +4,8 @@ import android.Manifest;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.Outline;
-import android.graphics.drawable.Drawable;
 import android.os.Build;
 import android.os.Bundle;
-import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewOutlineProvider;
 import android.view.animation.OvershootInterpolator;
@@ -22,9 +20,6 @@ import androidx.navigation.NavController;
 import androidx.navigation.fragment.NavHostFragment;
 import androidx.navigation.ui.NavigationUI;
 
-import com.bumptech.glide.Glide;
-import com.bumptech.glide.request.target.CustomTarget;
-import com.bumptech.glide.request.transition.Transition;
 import com.example.bachatkhata.databinding.ActivityMainBinding;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.FirebaseFirestore;
@@ -291,46 +286,6 @@ public class MainActivity extends BaseActivity {
                                 promptBiometrics();
                             }
                         }
-                        loadProfileAvatar(documentSnapshot.getString("photoUrl"));
-                    }
-                });
-    }
-
-    /**
-     * Loads the user's profile photo into the bottom-nav profile item as a circular icon.
-     * Falls back to the default avatar (ic_account_circle) when no photo is set.
-     */
-    private void loadProfileAvatar(String photoUrl) {
-        MenuItem profileItem = binding.bottomNavigationView.getMenu().findItem(R.id.navigation_profile);
-        if (profileItem == null) return;
-
-        if (photoUrl == null || photoUrl.trim().isEmpty()) {
-            // Default avatar: keep the normal per-state tint (grey/purple) for a
-            // look consistent with the other nav icons.
-            binding.bottomNavigationView.setItemIconTintList(
-                    ContextCompat.getColorStateList(this, R.color.bottom_nav_icon_color));
-            profileItem.setIcon(R.drawable.ic_account_circle);
-            return;
-        }
-
-        int sizePx = Math.round(getResources().getDisplayMetrics().density * 26f);
-        Glide.with(this)
-                .asDrawable()
-                .load(photoUrl)
-                .circleCrop()
-                .into(new CustomTarget<Drawable>(sizePx, sizePx) {
-                    @Override
-                    public void onResourceReady(@NonNull Drawable resource,
-                                                @Nullable Transition<? super Drawable> transition) {
-                        // Disable tint so the photo shows in full color; the selected
-                        // item is still indicated by the active pill background.
-                        binding.bottomNavigationView.setItemIconTintList(null);
-                        profileItem.setIcon(resource);
-                    }
-
-                    @Override
-                    public void onLoadCleared(@Nullable Drawable placeholder) {
-                        profileItem.setIcon(R.drawable.ic_account_circle);
                     }
                 });
     }
