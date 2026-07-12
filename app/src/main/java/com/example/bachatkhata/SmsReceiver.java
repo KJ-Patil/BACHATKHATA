@@ -67,6 +67,11 @@ public class SmsReceiver extends BroadcastReceiver {
     }
 
     private void triggerNotification(Context context, SmsParser.ParsedTransaction txn) {
+        // Respect the "Enable Notifications" master switch.
+        if (!NotificationSettings.isEnabled(context)) {
+            return;
+        }
+
         NotificationManager notificationManager = (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
         String channelId = "sms_import_alerts";
         String channelName = "SMS Auto-Import Alerts";

@@ -40,6 +40,11 @@ public class BillReminderWorker extends Worker {
 
         String uid = auth.getCurrentUser().getUid();
 
+        // Respect the "Enable Notifications" master switch.
+        if (!NotificationSettings.isEnabled(getApplicationContext())) {
+            return Result.success();
+        }
+
         try {
             Calendar today = Calendar.getInstance();
             int currentDay = today.get(Calendar.DAY_OF_MONTH);

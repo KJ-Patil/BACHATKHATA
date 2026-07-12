@@ -238,12 +238,14 @@ public class HealthScoreWorker extends Worker {
             // Sync with Firestore
             Tasks.await(mFirestore.collection("users").document(uid).update("healthScore", score));
 
-            // Trigger weekly report notification
-            triggerNotification(
-                    "Weekly Financial Health Update",
-                    "Your weekly health report is ready! Current Score: " + score + "/100.",
-                    uid
-            );
+            // Trigger weekly report notification (respect the "Enable Notifications" master switch).
+            if (NotificationSettings.isEnabled(getApplicationContext())) {
+                triggerNotification(
+                        "Weekly Financial Health Update",
+                        "Your weekly health report is ready! Current Score: " + score + "/100.",
+                        uid
+                );
+            }
 
             return Result.success();
 

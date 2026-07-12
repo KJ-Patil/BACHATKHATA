@@ -20,6 +20,7 @@
     <color name="colorSuccess">#16A34A</color>        <!-- green-600 (income / positive) -->
     <color name="colorDanger">#DC2626</color>         <!-- red-600 (expense / negative) -->
     <color name="colorWarning">#F59E0B</color>        <!-- amber-500 -->
+    <color name="colorGold">#F4B400</color>          <!-- golden accent (notification bell) -->
 
     <!-- Surfaces & background (neutral slate) -->
     <color name="colorBackground">#F1F5F9</color>     <!-- slate-100 -->

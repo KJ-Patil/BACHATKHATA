@@ -55,6 +55,10 @@ public class MainActivity extends BaseActivity {
             NavigationUI.setupWithNavController(binding.bottomNavigationView, navController);
         }
 
+        // Disable the uniform icon tint so each menu icon shows its own colors
+        // (e.g. the red ledger/book icon and the state-colored home/list/budget icons).
+        binding.bottomNavigationView.setItemIconTintList(null);
+
         // 2. Setup FAB Click and Entry Animation
         binding.fabAdd.setOnClickListener(v -> {
             startActivity(new Intent(MainActivity.this, AddTransactionActivity.class));

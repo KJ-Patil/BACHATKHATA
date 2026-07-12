@@ -80,6 +80,11 @@ public class AnomalyDetector {
     }
 
     private void triggerAnomalyAlert(Context context, String uid, Transaction txn, double average) {
+        // Respect the "Enable Notifications" master switch.
+        if (!NotificationSettings.isEnabled(context)) {
+            return;
+        }
+
         String title = "Unusual Spend Alert";
         String message = String.format("You spent %s%s on %s, which is 2.5x higher than your usual 30-day average of %s%.2f.",
                 txn.getCurrencySymbol(), (int)txn.getAmount(), txn.getCategory(), txn.getCurrencySymbol(), average);

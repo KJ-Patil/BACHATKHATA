@@ -40,6 +40,11 @@ public class MoodCheckInWorker extends Worker {
                     mFirestore.collection("users").document(uid).get()
             );
 
+            // Respect the "Enable Notifications" master switch.
+            if (!NotificationSettings.isEnabled(getApplicationContext())) {
+                return Result.success();
+            }
+
             if (userDoc.exists()) {
                 Boolean moodEnabled = userDoc.getBoolean("moodEnabled");
                 if (moodEnabled != null && !moodEnabled) {

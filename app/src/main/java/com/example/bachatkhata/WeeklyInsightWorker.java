@@ -164,8 +164,10 @@ public class WeeklyInsightWorker extends Worker {
             userUpdates.put("weeklyInsightTime", Timestamp.now());
             Tasks.await(mFirestore.collection("users").document(uid).update(userUpdates));
 
-            // Trigger notification
-            triggerLocalNotification(title, message, uid);
+            // Trigger notification (respect the "Enable Notifications" master switch).
+            if (NotificationSettings.isEnabled(getApplicationContext())) {
+                triggerLocalNotification(title, message, uid);
+            }
             return Result.success();
 
         } catch (Exception e) {

@@ -103,8 +103,8 @@
                             android:layout_width="28dp"
                             android:layout_height="28dp"
                             android:layout_gravity="center"
-                            android:src="@drawable/ic_email"
-                            app:tint="@color/colorTextPrimary" />
+                            android:src="@drawable/ic_bell"
+                            app:tint="@color/colorGold" />
 
                         <TextView
                             android:id="@+id/txtNotificationBadge"

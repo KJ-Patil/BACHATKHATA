@@ -41,6 +41,11 @@ public class BudgetAlertWorker extends Worker {
 
         String uid = auth.getCurrentUser().getUid();
 
+        // Respect the "Enable Notifications" master switch.
+        if (!NotificationSettings.isEnabled(getApplicationContext())) {
+            return Result.success();
+        }
+
         try {
             Calendar cal = Calendar.getInstance();
             int month = cal.get(Calendar.MONTH);

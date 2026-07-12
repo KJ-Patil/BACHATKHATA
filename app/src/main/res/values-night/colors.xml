@@ -20,6 +20,7 @@
     <color name="colorSuccess">#4ADE80</color>
     <color name="colorDanger">#F87171</color>
     <color name="colorWarning">#FBBF24</color>
+    <color name="colorGold">#FFC533</color>          <!-- golden accent (notification bell) -->
 
     <!-- Surfaces & background -->
     <color name="colorBackground">#0B1220</color>     <!-- near-black slate -->

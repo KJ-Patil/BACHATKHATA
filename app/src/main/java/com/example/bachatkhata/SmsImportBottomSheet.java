@@ -333,6 +333,10 @@ public class SmsImportBottomSheet extends BottomSheetDialogFragment {
 
     private void sendLocalNotification(String title, String message) {
         if (getContext() == null) return;
+        // Respect the "Enable Notifications" master switch.
+        if (!NotificationSettings.isEnabled(getContext())) {
+            return;
+        }
         NotificationManager notificationManager = (NotificationManager) getContext().getSystemService(Context.NOTIFICATION_SERVICE);
         String channelId = "budget_alerts";
 

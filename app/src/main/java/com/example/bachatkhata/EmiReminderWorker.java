@@ -20,6 +20,11 @@ public class EmiReminderWorker extends Worker {
     @NonNull
     @Override
     public Result doWork() {
+        // Respect the "Enable Notifications" master switch.
+        if (!NotificationSettings.isEnabled(getApplicationContext())) {
+            return Result.success();
+        }
+
         String loanName = getInputData().getString("loanName");
         double emiAmount = getInputData().getDouble("emiAmount", 0.0);
 

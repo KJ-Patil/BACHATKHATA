@@ -200,6 +200,8 @@ public class ProfileFragment extends Fragment {
                         binding.switchNotifications.setOnCheckedChangeListener(null);
                         binding.switchNotifications.setChecked(notifEnabled);
                         binding.switchNotifications.setOnCheckedChangeListener((buttonView, isChecked) -> updateNotificationsSetting(isChecked));
+                        // Mirror the master switch locally so background workers/receivers see it.
+                        NotificationSettings.setEnabled(getContext(), notifEnabled);
                     }
 
                     if (currencyCode != null && currencySymbol != null) {
@@ -617,15 +619,21 @@ public class ProfileFragment extends Fragment {
         BaseActivity activity = (BaseActivity) getActivity();
         String uid = mAuth.getCurrentUser().getUid();
 
+        // Mirror locally first so the change takes effect immediately, even before the
+        // Firestore write completes.
+        NotificationSettings.setEnabled(getContext(), enabled);
+
         mFirestore.collection("users").document(uid)
                 .set(Collections.singletonMap("notificationsEnabled", enabled), SetOptions.merge())
                 .addOnSuccessListener(aVoid -> {
                     if (activity != null) {
-                        String msg = enabled ? "Budget notification alerts enabled" : "Budget notification alerts disabled";
+                        String msg = enabled ? "Notifications enabled" : "Notifications disabled";
                         activity.showSnackbar(msg, "SUCCESS");
                     }
                 })
                 .addOnFailureListener(e -> {
+                    // Revert the local mirror since the change did not persist.
+                    NotificationSettings.setEnabled(getContext(), !enabled);
                     if (binding != null) {
                         binding.switchNotifications.setOnCheckedChangeListener(null);
                         binding.switchNotifications.setChecked(!enabled);

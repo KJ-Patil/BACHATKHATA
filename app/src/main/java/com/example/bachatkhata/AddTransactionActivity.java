@@ -553,6 +553,11 @@ public class AddTransactionActivity extends BaseActivity {
     }
 
     private void sendLocalNotification(String title, String message) {
+        // Respect the "Enable Notifications" master switch.
+        if (!NotificationSettings.isEnabled(this)) {
+            return;
+        }
+
         NotificationManager notificationManager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
         String channelId = "BudgetAlerts";
 

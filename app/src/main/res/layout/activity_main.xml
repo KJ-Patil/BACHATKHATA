@@ -54,7 +54,7 @@
             app:labelVisibilityMode="unlabeled"
             app:itemIconSize="24dp"
             app:menu="@menu/bottom_nav_menu"
-            app:itemIconTint="@color/bottom_nav_icon_color"
+            app:itemIconTint="@null"
             app:itemActiveIndicatorStyle="@style/BottomNavActiveIndicator"
             app:itemRippleColor="@color/bottom_nav_ripple_color"
             app:elevation="0dp" />
