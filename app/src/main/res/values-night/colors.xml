@@ -1,13 +1,55 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <color name="colorPrimary">#9D93F5</color>
-    <color name="colorSecondary">#3DAF85</color>
-    <color name="colorAccent">#4FC3F7</color>
-    <color name="colorDanger">#FF6B6B</color>
-    <color name="colorBackground">#12101E</color>
-    <color name="colorSurface">#1E1B30</color>
-    <color name="colorTextPrimary">#F0EEFF</color>
-    <color name="colorTextSecondary">#9A96B8</color>
-    <color name="colorCardBorder">#35315A</color>
-    <color name="colorShadow">#0A0818</color>
+    <!-- ============================================================
+         Dark theme — Indigo + Neutral. Same token names as the light
+         palette so references flip automatically in dark mode.
+         Surfaces are lifted above the background so raised cards pop.
+         ============================================================ -->
+
+    <!-- Brand -->
+    <color name="colorPrimary">#818CF8</color>        <!-- indigo-400 (pops on dark) -->
+    <color name="colorPrimaryDark">#6366F1</color>    <!-- indigo-500 -->
+    <color name="colorPrimaryLight">#1E1B4B</color>   <!-- indigo-950 tint -->
+    <color name="colorOnPrimary">#0B1220</color>
+
+    <!-- Accents -->
+    <color name="colorSecondary">#2DD4BF</color>      <!-- teal-400 -->
+    <color name="colorAccent">#60A5FA</color>         <!-- blue-400 -->
+
+    <!-- Status -->
+    <color name="colorSuccess">#4ADE80</color>
+    <color name="colorDanger">#F87171</color>
+    <color name="colorWarning">#FBBF24</color>
+
+    <!-- Surfaces & background -->
+    <color name="colorBackground">#0B1220</color>     <!-- near-black slate -->
+    <color name="colorSurface">#1A2333</color>        <!-- lifted card surface -->
+    <color name="colorSurfaceElevated">#232E42</color>
+    <color name="colorSurfaceVariant">#131C2B</color>
+
+    <!-- Text -->
+    <color name="colorTextPrimary">#F1F5F9</color>
+    <color name="colorTextSecondary">#94A3B8</color>
+    <color name="colorTextTertiary">#64748B</color>
+
+    <!-- Lines & shadows -->
+    <color name="colorCardBorder">#2A3648</color>
+    <color name="colorDivider">#2A3648</color>
+    <color name="colorShadow">#66000000</color>
+    <color name="colorShadowStrong">#99000000</color>
+    <color name="colorPrimaryShadow">#312A7A</color>
+
+    <!-- Subtle tinted fills — slightly stronger alpha so they read on dark surfaces.
+         (onColorText/onColorMuted/onColorDivider/colorScrim inherit from values/, since
+         they sit on saturated fills and stay light in both themes.) -->
+    <color name="colorPrimaryTint">#29818CF8</color>
+    <color name="colorSecondaryTint">#292DD4BF</color>
+    <color name="colorAccentTint">#2960A5FA</color>
+    <color name="colorSuccessTint">#294ADE80</color>
+    <color name="colorDangerTint">#29F87171</color>
+    <color name="colorWarningTint">#29FBBF24</color>
+
+    <!-- Soft card treatment (kept for back-compat) -->
+    <color name="softCardBorder">#2A3648</color>
+    <color name="softCardText">#94A3B8</color>
 </resources>

@@ -17,7 +17,7 @@
             android:layout_height="4dp"
             android:layout_gravity="center_horizontal"
             android:layout_marginBottom="16dp"
-            android:background="#CCCCCC" />
+            android:background="@color/colorDivider" />
 
         <TextView
             android:layout_width="wrap_content"
@@ -43,7 +43,7 @@
             android:layout_width="match_parent"
             android:layout_height="50dp"
             android:layout_marginBottom="14dp"
-            app:cardBackgroundColor="#F8F7FF">
+            app:cardBackgroundColor="@color/colorSurfaceVariant">
 
             <Spinner
                 android:id="@+id/spinnerLiabilityType"
@@ -115,8 +115,8 @@
             android:layout_width="match_parent"
             android:layout_height="54dp"
             android:text="Save Liability"
-            app:backgroundTint="#E24B4A"
-            android:textColor="#FFFFFF" />
+            app:backgroundTint="@color/colorDanger"
+            android:textColor="@android:color/white" />
 
     </LinearLayout>
 </androidx.core.widget.NestedScrollView>

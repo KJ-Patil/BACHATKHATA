@@ -49,7 +49,7 @@
                     android:paddingHorizontal="6dp"
                     android:paddingVertical="2dp"
                     android:background="@drawable/bg_clay_button"
-                    android:backgroundTint="#1A7C6FE0" /> <!-- 10% alpha primary -->
+                    android:backgroundTint="@color/colorPrimaryTint" /> <!-- 10% alpha primary -->
 
                 <TextView
                     android:id="@+id/txtDueDateInfo"

@@ -72,7 +72,7 @@
                         android:layout_height="wrap_content"
                         android:layout_marginTop="8dp"
                         android:text="Excellent"
-                        android:textColor="#5DCAA5"
+                        android:textColor="@color/colorSuccess"
                         android:textSize="18sp"
                         android:textStyle="bold" />
 
@@ -294,8 +294,8 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginHorizontal="16dp"
-                app:cardBackgroundColor="#1AE24B4A"
-                app:strokeColor="#E24B4A"
+                app:cardBackgroundColor="@color/colorDangerTint"
+                app:strokeColor="@color/colorDanger"
                 app:strokeWidth="1dp">
 
                 <LinearLayout
@@ -308,7 +308,7 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="⚠️ Disclaimer"
-                        android:textColor="#E24B4A"
+                        android:textColor="@color/colorDanger"
                         android:textSize="13sp"
                         android:textStyle="bold"
                         android:layout_marginBottom="4dp" />

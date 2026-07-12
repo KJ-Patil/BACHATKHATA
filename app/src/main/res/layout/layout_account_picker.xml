@@ -11,7 +11,7 @@
         android:layout_width="40dp"
         android:layout_height="4dp"
         android:layout_gravity="center_horizontal"
-        android:background="#D1CFF5"
+        android:background="@color/colorCardBorder"
         android:layout_marginBottom="20dp" />
 
     <TextView

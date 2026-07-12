@@ -30,7 +30,7 @@
             android:layout_height="6dp"
             android:layout_margin="1dp"
             android:background="@drawable/bg_clay_button"
-            android:backgroundTint="#5DCAA5"
+            android:backgroundTint="@color/colorSuccess"
             android:visibility="gone" />
 
         <View
@@ -39,7 +39,7 @@
             android:layout_height="6dp"
             android:layout_margin="1dp"
             android:background="@drawable/bg_clay_button"
-            android:backgroundTint="#EF9F27"
+            android:backgroundTint="@color/colorWarning"
             android:visibility="gone" />
 
         <View
@@ -48,7 +48,7 @@
             android:layout_height="6dp"
             android:layout_margin="1dp"
             android:background="@drawable/bg_clay_button"
-            android:backgroundTint="#E24B4A"
+            android:backgroundTint="@color/colorDanger"
             android:visibility="gone" />
 
         <View
@@ -57,7 +57,7 @@
             android:layout_height="6dp"
             android:layout_margin="1dp"
             android:background="@drawable/bg_clay_button"
-            android:backgroundTint="#3B82F6"
+            android:backgroundTint="@color/colorAccent"
             android:visibility="gone" />
     </LinearLayout>
 </LinearLayout>

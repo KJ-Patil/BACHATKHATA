@@ -36,7 +36,7 @@
             android:padding="8dp"
             android:src="@drawable/ic_back"
             android:background="@drawable/bg_clay_button"
-            android:backgroundTint="#80FFFFFF"
+            android:backgroundTint="@color/onColorMuted"
             app:tint="@color/colorTextPrimary" />
     </RelativeLayout>
 
@@ -45,7 +45,7 @@
         android:id="@+id/layoutScanningProgress"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:background="#99000000"
+        android:background="@color/colorScrim"
         android:visibility="gone">
 
         <LinearLayout
@@ -78,8 +78,8 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_margin="16dp"
-        app:cardBackgroundColor="#CCFFFFFF"
-        app:strokeColor="#807C6FE0"
+        app:cardBackgroundColor="@color/colorSurface"
+        app:strokeColor="@color/colorPrimary"
         app:strokeWidth="1.5dp"
         app:layout_constraintBottom_toBottomOf="parent">
 

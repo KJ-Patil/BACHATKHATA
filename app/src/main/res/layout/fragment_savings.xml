@@ -29,7 +29,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="@string/savings_total_saved"
-                android:textColor="#B3FFFFFF"
+                android:textColor="@color/onColorMuted"
                 android:textSize="13sp" />
 
             <TextView
@@ -48,7 +48,7 @@
                 android:layout_height="wrap_content"
                 android:layout_marginTop="6dp"
                 android:text="Across 0 active goals"
-                android:textColor="#B3FFFFFF"
+                android:textColor="@color/onColorMuted"
                 android:textSize="13sp" />
         </LinearLayout>
     </com.google.android.material.card.MaterialCardView>

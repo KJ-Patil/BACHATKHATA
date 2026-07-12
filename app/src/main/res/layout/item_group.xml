@@ -58,7 +58,7 @@
                     android:paddingHorizontal="8dp"
                     android:paddingVertical="3dp"
                     android:background="@drawable/bg_clay_button"
-                    android:backgroundTint="#1A7C6FE0" />
+                    android:backgroundTint="@color/colorPrimaryTint" />
 
                 <!-- Member Count -->
                 <TextView

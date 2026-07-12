@@ -1,41 +1,30 @@
-<!-- res/drawable/card_dark_shadow_background.xml -->
-<!-- This creates a manually-drawn, darker shadow behind the card -->
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Bold raised card with a stacked drop shadow. Tokenised so the surface and shadow
+     adapt to light/dark (previously the surface was hardcoded near-white). -->
 <layer-list xmlns:android="http://schemas.android.com/apk/res/android">
 
-    <!-- Shadow layer (furthest back, largest offset, darkest/most opaque) -->
-    <item
-        android:left="0dp"
-        android:top="6dp"
-        android:right="0dp"
-        android:bottom="-6dp">
+    <!-- Outer shadow (largest offset, softest) -->
+    <item android:left="2dp" android:right="2dp" android:top="7dp" android:bottom="0dp">
         <shape android:shape="rectangle">
-            <solid android:color="#33000000" />
-            <corners android:radius="16dp" />
+            <solid android:color="@color/colorShadow" />
+            <corners android:radius="20dp" />
         </shape>
     </item>
 
-    <!-- Mid shadow layer (softer spread) -->
-    <item
-        android:left="0dp"
-        android:top="3dp"
-        android:right="0dp"
-        android:bottom="-3dp">
+    <!-- Inner shadow (tighter, stronger) -->
+    <item android:left="1dp" android:right="1dp" android:top="4dp" android:bottom="3dp">
         <shape android:shape="rectangle">
-            <solid android:color="#26000000" />
-            <corners android:radius="16dp" />
+            <solid android:color="@color/colorShadowStrong" />
+            <corners android:radius="20dp" />
         </shape>
     </item>
 
-    <!-- Actual card surface (on top, no offset) -->
-    <item
-        android:left="0dp"
-        android:top="0dp"
-        android:right="0dp"
-        android:bottom="0dp">
+    <!-- Card surface -->
+    <item android:bottom="7dp">
         <shape android:shape="rectangle">
-            <solid android:color="#FBFAFE" />
-            <corners android:radius="16dp" />
+            <solid android:color="@color/colorSurface" />
+            <corners android:radius="20dp" />
+            <stroke android:width="1dp" android:color="@color/colorCardBorder" />
         </shape>
     </item>
-
 </layer-list>

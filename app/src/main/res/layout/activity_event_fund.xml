@@ -161,8 +161,8 @@
                         android:layout_marginTop="8dp"
                         android:layout_marginBottom="16dp"
                         app:trackCornerRadius="3dp"
-                        app:trackColor="#E8E8EC"
-                        app:indicatorColor="#FFC107" />
+                        app:trackColor="@color/colorDivider"
+                        app:indicatorColor="@color/colorWarning" />
 
                     <!-- Add Contribution box -->
                     <LinearLayout

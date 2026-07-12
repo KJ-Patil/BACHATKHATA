@@ -3,10 +3,14 @@
     <style name="Base.Theme.BachatKhata" parent="Theme.Material3.Dark.NoActionBar">
         <!-- Customize your dark theme here. -->
         <item name="colorPrimary">@color/colorPrimary</item>
+        <item name="colorOnPrimary">@color/colorOnPrimary</item>
         <item name="colorSecondary">@color/colorSecondary</item>
+        <item name="colorError">@color/colorDanger</item>
         <item name="android:windowBackground">@color/colorBackground</item>
         <item name="colorSurface">@color/colorSurface</item>
-        
+        <item name="android:colorBackground">@color/colorBackground</item>
+        <item name="colorOnSurface">@color/colorTextPrimary</item>
+
         <!-- Status bar and navigation bar customization -->
         <item name="android:statusBarColor">@color/colorBackground</item>
         <item name="android:windowLightStatusBar" tools:targetApi="m">false</item>
@@ -16,21 +20,24 @@
     <style name="Theme.BachatKhata" parent="Base.Theme.BachatKhata" />
     <style name="Theme.BachatKhata.Dark" parent="Base.Theme.BachatKhata" />
 
-    <!-- ClayCard Style -->
+    <!-- ClayCard Style — bold raised card (deeper shadow reads better on dark). -->
     <style name="ClayCard" parent="Widget.Material3.CardView.Elevated">
         <item name="cardCornerRadius">@dimen/clay_card_radius</item>
-        <item name="cardElevation">8dp</item>
+        <item name="cardElevation">12dp</item>
+        <item name="android:stateListAnimator">@null</item>
         <item name="strokeColor">@color/colorCardBorder</item>
         <item name="strokeWidth">1dp</item>
         <item name="cardBackgroundColor">@color/colorSurface</item>
     </style>
 
-    <!-- ClayButton Style -->
+    <!-- ClayButton Style — filled, bold raised. -->
     <style name="ClayButton" parent="Widget.Material3.Button">
         <item name="cornerRadius">@dimen/clay_button_radius</item>
         <item name="android:paddingVertical">14dp</item>
         <item name="backgroundTint">@color/colorPrimary</item>
-        <item name="android:textColor">@color/colorBackground</item> <!-- contrast for dark surface -->
+        <item name="android:textColor">@color/colorOnPrimary</item> <!-- contrast for dark surface -->
+        <item name="iconTint">@color/colorOnPrimary</item>
+        <item name="android:elevation">6dp</item>
         <item name="android:insetTop">0dp</item>
         <item name="android:insetBottom">0dp</item>
     </style>

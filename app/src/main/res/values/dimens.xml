@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <!-- Claymorphism Radii -->
-    <dimen name="clay_card_radius">24dp</dimen>
-    <dimen name="clay_button_radius">20dp</dimen>
-    <dimen name="clay_input_radius">16dp</dimen>
+    <dimen name="clay_card_radius">20dp</dimen>
+    <dimen name="clay_button_radius">18dp</dimen>
+    <dimen name="clay_input_radius">14dp</dimen>
 
     <!-- Standard Spacings -->
     <dimen name="spacing_xs">4dp</dimen>

@@ -17,7 +17,7 @@
             android:layout_height="4dp"
             android:layout_gravity="center_horizontal"
             android:layout_marginBottom="16dp"
-            android:background="#CCCCCC" />
+            android:background="@color/colorDivider" />
 
         <TextView
             android:layout_width="wrap_content"
@@ -43,7 +43,7 @@
             android:layout_width="match_parent"
             android:layout_height="50dp"
             android:layout_marginBottom="14dp"
-            app:cardBackgroundColor="#F8F7FF">
+            app:cardBackgroundColor="@color/colorSurfaceVariant">
 
             <Spinner
                 android:id="@+id/spinnerAssetType"
@@ -98,8 +98,8 @@
             android:layout_height="wrap_content"
             android:layout_marginBottom="14dp"
             android:visibility="gone"
-            app:cardBackgroundColor="#FFFFF0"
-            app:strokeColor="#EF9F27"
+            app:cardBackgroundColor="@color/colorWarningTint"
+            app:strokeColor="@color/colorWarning"
             app:strokeWidth="1dp">
 
             <LinearLayout
@@ -112,7 +112,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="🪙 Gold Valuation Helper"
-                    android:textColor="#EF9F27"
+                    android:textColor="@color/colorWarning"
                     android:textSize="12sp"
                     android:textStyle="bold"
                     android:layout_marginBottom="8dp" />
@@ -196,8 +196,8 @@
             android:layout_width="match_parent"
             android:layout_height="54dp"
             android:text="Save Asset"
-            app:backgroundTint="#5DCAA5"
-            android:textColor="#FFFFFF" />
+            app:backgroundTint="@color/colorSuccess"
+            android:textColor="@android:color/white" />
 
     </LinearLayout>
 </androidx.core.widget.NestedScrollView>

@@ -109,7 +109,7 @@
                     android:layout_height="34dp"
                     android:layout_marginBottom="8dp"
                     app:cardCornerRadius="10dp"
-                    app:cardBackgroundColor="#203DAF85"
+                    app:cardBackgroundColor="@color/colorSuccessTint"
                     app:cardElevation="0dp"
                     app:strokeWidth="0dp">
                     <TextView
@@ -117,7 +117,7 @@
                         android:layout_height="wrap_content"
                         android:layout_gravity="center"
                         android:text="↑"
-                        android:textColor="#3DAF85"
+                        android:textColor="@color/colorSuccess"
                         android:textSize="16sp"
                         android:textStyle="bold" />
                 </com.google.android.material.card.MaterialCardView>
@@ -137,7 +137,7 @@
                     android:layout_height="wrap_content"
                     android:layout_marginTop="3dp"
                     android:text="₹0.00"
-                    android:textColor="#3DAF85"
+                    android:textColor="@color/colorSuccess"
                     android:textSize="14sp"
                     android:textStyle="bold" />
             </LinearLayout>
@@ -162,7 +162,7 @@
                     android:layout_height="34dp"
                     android:layout_marginBottom="8dp"
                     app:cardCornerRadius="10dp"
-                    app:cardBackgroundColor="#20E24B4A"
+                    app:cardBackgroundColor="@color/colorDangerTint"
                     app:cardElevation="0dp"
                     app:strokeWidth="0dp">
                     <TextView
@@ -215,7 +215,7 @@
                     android:layout_height="34dp"
                     android:layout_marginBottom="8dp"
                     app:cardCornerRadius="10dp"
-                    app:cardBackgroundColor="#207C6FE0"
+                    app:cardBackgroundColor="@color/colorPrimaryTint"
                     app:cardElevation="0dp"
                     app:strokeWidth="0dp">
                     <TextView

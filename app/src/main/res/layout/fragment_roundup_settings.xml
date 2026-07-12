@@ -170,7 +170,7 @@
                 style="@style/ClayCard"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                app:cardBackgroundColor="#1A7C6FE0"
+                app:cardBackgroundColor="@color/colorPrimaryTint"
                 app:strokeColor="@color/colorPrimary"
                 app:strokeWidth="1dp">
 

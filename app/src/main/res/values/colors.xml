@@ -1,17 +1,59 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <color name="colorPrimary">#7C6FE0</color>
-    <color name="colorSecondary">#5DCAA5</color>
-    <color name="colorAccent">#4FC3F7</color>
-    <color name="colorDanger">#E24B4A</color>
-    <color name="colorBackground">#F5F3FF</color>
-    <color name="colorSurface">#FFFFFF</color>
-    <color name="colorTextPrimary">#1A1A2E</color>
-    <color name="colorTextSecondary">#6B6B8A</color>
-    <color name="colorCardBorder">#E0DEFF</color>
-    <color name="colorShadow">#C4BDFF</color>
+    <!-- ============================================================
+         PaisaTrack / BachatKhata — Indigo + Neutral (fintech) palette
+         Light theme. Dark counterparts live in values-night/colors.xml
+         with the SAME token names, so every reference adapts automatically.
+         ============================================================ -->
 
-    <!-- Soft card treatment (portable slate look) -->
-    <color name="softCardBorder">#E5E7EB</color>
+    <!-- Brand -->
+    <color name="colorPrimary">#4F46E5</color>        <!-- indigo-600 -->
+    <color name="colorPrimaryDark">#4338CA</color>    <!-- indigo-700 -->
+    <color name="colorPrimaryLight">#EEF0FE</color>   <!-- indigo-50 tint (soft fills) -->
+    <color name="colorOnPrimary">#FFFFFF</color>      <!-- text/icon on primary -->
+
+    <!-- Accents -->
+    <color name="colorSecondary">#14B8A6</color>      <!-- teal-500 -->
+    <color name="colorAccent">#3B82F6</color>         <!-- blue-500 -->
+
+    <!-- Status -->
+    <color name="colorSuccess">#16A34A</color>        <!-- green-600 (income / positive) -->
+    <color name="colorDanger">#DC2626</color>         <!-- red-600 (expense / negative) -->
+    <color name="colorWarning">#F59E0B</color>        <!-- amber-500 -->
+
+    <!-- Surfaces & background (neutral slate) -->
+    <color name="colorBackground">#F1F5F9</color>     <!-- slate-100 -->
+    <color name="colorSurface">#FFFFFF</color>        <!-- cards / sheets -->
+    <color name="colorSurfaceElevated">#FFFFFF</color>
+    <color name="colorSurfaceVariant">#F8FAFC</color> <!-- slate-50 (subtle inner fills) -->
+
+    <!-- Text -->
+    <color name="colorTextPrimary">#0F172A</color>    <!-- slate-900 -->
+    <color name="colorTextSecondary">#64748B</color>  <!-- slate-500 -->
+    <color name="colorTextTertiary">#94A3B8</color>   <!-- slate-400 (hints) -->
+
+    <!-- Lines & shadows -->
+    <color name="colorCardBorder">#E2E8F0</color>     <!-- slate-200 -->
+    <color name="colorDivider">#E2E8F0</color>
+    <color name="colorShadow">#26334155</color>       <!-- slate-700 @ 15% — soft raised base -->
+    <color name="colorShadowStrong">#40334155</color> <!-- slate-700 @ 25% — bolder clay base -->
+    <color name="colorPrimaryShadow">#3730A3</color>  <!-- indigo-800 — 3D button base -->
+
+    <!-- On-color content (text/dividers that sit on saturated fills; light in both themes) -->
+    <color name="onColorText">#FFFFFF</color>
+    <color name="onColorMuted">#D9FFFFFF</color>   <!-- ~85% white -->
+    <color name="onColorDivider">#33FFFFFF</color> <!-- ~20% white -->
+    <color name="colorScrim">#99000000</color>     <!-- dimming overlay -->
+
+    <!-- Subtle tinted fills (10–12% of the status/brand color) -->
+    <color name="colorPrimaryTint">#1A4F46E5</color>
+    <color name="colorSecondaryTint">#1A14B8A6</color>
+    <color name="colorAccentTint">#1A3B82F6</color>
+    <color name="colorSuccessTint">#1A16A34A</color>
+    <color name="colorDangerTint">#1ADC2626</color>
+    <color name="colorWarningTint">#1AF59E0B</color>
+
+    <!-- Soft card treatment (kept for back-compat) -->
+    <color name="softCardBorder">#E2E8F0</color>
     <color name="softCardText">#64748B</color>
 </resources>

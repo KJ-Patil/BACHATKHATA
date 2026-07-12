@@ -70,7 +70,7 @@
                     android:layout_height="wrap_content"
                     android:layout_marginTop="4dp"
                     android:text="Active across 0 loans"
-                    android:textColor="#E6FFFFFF"
+                    android:textColor="@color/onColorMuted"
                     android:textSize="12sp" />
             </LinearLayout>
         </com.google.android.material.card.MaterialCardView>

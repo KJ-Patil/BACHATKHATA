@@ -75,8 +75,8 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="16dp"
-                app:cardBackgroundColor="#E0F2F1"
-                app:strokeColor="#B2DFDB">
+                app:cardBackgroundColor="@color/colorSuccessTint"
+                app:strokeColor="@color/colorSuccessTint">
 
                 <LinearLayout
                     android:layout_width="match_parent"
@@ -89,7 +89,7 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="Estimated CO₂ Footprint"
-                        android:textColor="#00695C"
+                        android:textColor="@color/colorSuccess"
                         android:textSize="12sp"
                         android:textStyle="bold" />
 
@@ -99,7 +99,7 @@
                         android:layout_height="wrap_content"
                         android:layout_marginTop="8dp"
                         android:text="0.0 kg CO₂"
-                        android:textColor="#004D40"
+                        android:textColor="@color/colorSuccess"
                         android:textSize="32sp"
                         android:textStyle="bold" />
 
@@ -115,14 +115,14 @@
                         android:textSize="11sp"
                         android:textStyle="bold"
                         android:background="@drawable/bg_clay_button"
-                        android:backgroundTint="#00796B" />
+                        android:backgroundTint="@color/colorSuccess" />
 
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_marginTop="12dp"
                         android:text="National Average: ~180 kg / month"
-                        android:textColor="#00796B"
+                        android:textColor="@color/colorSuccess"
                         android:textSize="12sp" />
                 </LinearLayout>
             </com.google.android.material.card.MaterialCardView>
@@ -163,8 +163,8 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="16dp"
-                app:cardBackgroundColor="#F0FDFC"
-                app:strokeColor="#B2DFDB">
+                app:cardBackgroundColor="@color/colorSuccessTint"
+                app:strokeColor="@color/colorSuccessTint">
 
                 <LinearLayout
                     android:layout_width="match_parent"
@@ -190,7 +190,7 @@
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:text="Carbon Reduction Tip"
-                            android:textColor="#004D40"
+                            android:textColor="@color/colorSuccess"
                             android:textSize="14sp"
                             android:textStyle="bold" />
 
@@ -200,7 +200,7 @@
                             android:layout_height="wrap_content"
                             android:layout_marginTop="4dp"
                             android:text="Your carbon footprint is looking great! Maintain local transit and smart habits."
-                            android:textColor="#004D40"
+                            android:textColor="@color/colorSuccess"
                             android:textSize="13sp" />
                     </LinearLayout>
                 </LinearLayout>

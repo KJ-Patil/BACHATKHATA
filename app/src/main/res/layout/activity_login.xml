@@ -75,7 +75,7 @@
                                     android:layout_height="wrap_content"
                                     android:letterSpacing="0.08"
                                     android:text="@string/brand_kicker"
-                                    android:textColor="#D6D2F5"
+                                    android:textColor="@color/onColorMuted"
                                     android:textSize="10sp"
                                     android:textStyle="bold" />
                             </LinearLayout>
@@ -96,7 +96,7 @@
                             android:layout_height="wrap_content"
                             android:layout_marginTop="10dp"
                             android:text="@string/brand_subline"
-                            android:textColor="#E4E1F7"
+                            android:textColor="@color/onColorMuted"
                             android:textSize="13sp" />
                     </LinearLayout>
 
@@ -303,7 +303,7 @@
         android:id="@+id/loaderOverlay"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:background="#8012101E"
+        android:background="@color/colorScrim"
         android:visibility="gone"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"

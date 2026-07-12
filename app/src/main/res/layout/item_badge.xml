@@ -27,7 +27,7 @@
             android:layout_height="60dp"
             android:layout_marginBottom="8dp"
             android:background="@drawable/dot_pin_filled"
-            android:backgroundTint="#1A7C6FE0">
+            android:backgroundTint="@color/colorPrimaryTint">
 
             <ImageView
                 android:id="@+id/imgBadgeIcon"

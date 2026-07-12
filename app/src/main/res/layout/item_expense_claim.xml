@@ -80,7 +80,7 @@
             android:layout_marginTop="8dp"
             android:scaleType="centerCrop"
             android:background="@drawable/bg_clay_button"
-            android:backgroundTint="#0D7C6FE0"
+            android:backgroundTint="@color/colorPrimaryTint"
             android:visibility="gone"
             android:contentDescription="Receipt Image" />
 
@@ -110,7 +110,7 @@
                 android:paddingHorizontal="8dp"
                 android:paddingVertical="3dp"
                 android:background="@drawable/bg_clay_button"
-                android:backgroundTint="#1A5DCAA5"
+                android:backgroundTint="@color/colorSuccessTint"
                 android:visibility="gone" />
 
             <!-- Admin Buttons -->

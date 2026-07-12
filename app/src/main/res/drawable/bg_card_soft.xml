@@ -1,11 +1,19 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- Portable "soft card" look: white surface, 1dp light-gray border, 16dp rounded corners.
-     Pair with android:elevation (e.g. 2dp) on the view for the subtle 0 1px 2px shadow. -->
-<shape xmlns:android="http://schemas.android.com/apk/res/android"
-    android:shape="rectangle">
-    <solid android:color="@color/colorSurface" />
-    <corners android:radius="16dp" />
-    <stroke
-        android:width="1dp"
-        android:color="@color/softCardBorder" />
-</shape>
+<!-- Raised soft card — same clay treatment, lighter shadow strip. -->
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <item android:left="2dp" android:right="2dp" android:top="3dp" android:bottom="0dp">
+        <shape android:shape="rectangle">
+            <solid android:color="@color/colorShadow" />
+            <corners android:radius="18dp" />
+        </shape>
+    </item>
+
+    <item android:bottom="4dp">
+        <shape android:shape="rectangle">
+            <solid android:color="@color/colorSurface" />
+            <corners android:radius="18dp" />
+            <stroke android:width="1dp" android:color="@color/colorCardBorder" />
+        </shape>
+    </item>
+</layer-list>
