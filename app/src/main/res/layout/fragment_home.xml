@@ -154,82 +154,11 @@
                     android:gravity="center_vertical"
                     android:orientation="horizontal">
 
-                <LinearLayout
-                    android:id="@+id/btnDataTools"
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:background="@drawable/bg_today_pill"
-                    android:foreground="?attr/selectableItemBackground"
-                    android:clickable="true"
-                    android:focusable="true"
-                    android:gravity="center_vertical"
-                    android:minHeight="46dp"
-                    android:orientation="horizontal"
-                    android:paddingStart="10dp"
-                    android:paddingEnd="14dp">
-
-                    <com.google.android.material.card.MaterialCardView
-                        style="@style/ClayCard"
-                        android:layout_width="24dp"
-                        android:layout_height="24dp"
-                        android:clickable="false"
-                        android:focusable="false"
-                        app:cardCornerRadius="8dp"
-                        app:cardElevation="2dp"
-                        app:strokeColor="@color/colorCardBorder"
-                        app:strokeWidth="1dp">
-
-                        <TextView
-                            android:layout_width="match_parent"
-                            android:layout_height="match_parent"
-                            android:background="@color/colorSurface"
-                            android:gravity="center"
-                            android:text="🧰"
-                            android:textSize="13sp" />
-                    </com.google.android.material.card.MaterialCardView>
-
-                    <LinearLayout
-                        android:layout_width="0dp"
-                        android:layout_height="wrap_content"
-                        android:layout_weight="1"
-                        android:layout_marginStart="10dp"
-                        android:orientation="vertical">
-
-                        <TextView
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:ellipsize="end"
-                            android:maxLines="1"
-                            android:text="@string/home_data_tools"
-                            android:textColor="@color/colorTextPrimary"
-                            android:textSize="14sp"
-                            android:textStyle="bold" />
-
-                        <TextView
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:ellipsize="end"
-                            android:maxLines="1"
-                            android:text="@string/home_data_tools_sub"
-                            android:textColor="@color/colorTextSecondary"
-                            android:textSize="11sp" />
-                    </LinearLayout>
-
-                    <ImageView
-                        android:layout_width="20dp"
-                        android:layout_height="20dp"
-                        android:layout_marginStart="6dp"
-                        android:src="@drawable/ic_chevron_right"
-                        app:tint="@color/colorTextSecondary" />
-                </LinearLayout>
-
-                    <!-- Today's summary pill (next to Data & Tools) -->
+                    <!-- Today's summary pill -->
                     <LinearLayout
                         android:id="@+id/cardTodaySummaryPill"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:layout_marginStart="10dp"
                         android:orientation="horizontal"
                         android:background="@drawable/bg_today_pill"
                         android:paddingHorizontal="14dp"

@@ -75,7 +75,19 @@ public class AddAccountBookBottomSheet extends BottomSheetDialogFragment {
     private void setupListeners() {
         binding.btnClose.setOnClickListener(v -> dismiss());
         binding.btnCancel.setOnClickListener(v -> dismiss());
+        binding.btnImportContact.setOnClickListener(v -> pickContact());
         binding.btnCreate.setOnClickListener(v -> createBook());
+    }
+
+    private void pickContact() {
+        ContactPickerBottomSheet picker = ContactPickerBottomSheet.newInstance(false);
+        picker.setListener(contacts -> {
+            if (contacts.isEmpty() || binding == null) return;
+            ContactPickerBottomSheet.Contact c = contacts.get(0);
+            binding.etName.setText(c.name);
+            binding.etPhone.setText(c.phone);
+        });
+        picker.show(getChildFragmentManager(), "contact_picker");
     }
 
     private void createBook() {

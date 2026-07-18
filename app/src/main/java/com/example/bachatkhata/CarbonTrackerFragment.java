@@ -9,6 +9,7 @@ import android.view.ViewGroup;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
+import androidx.navigation.Navigation;
 
 import com.github.mikephil.charting.charts.BarChart;
 import com.github.mikephil.charting.components.XAxis;
@@ -54,6 +55,8 @@ public class CarbonTrackerFragment extends Fragment {
         if (mAuth.getCurrentUser() != null) {
             uid = mAuth.getCurrentUser().getUid();
         }
+
+        binding.btnBack.setOnClickListener(v -> Navigation.findNavController(v).navigateUp());
 
         setupUI();
         loadCarbonData();
@@ -216,10 +219,11 @@ public class CarbonTrackerFragment extends Fragment {
         chart.clear();
 
         if (categoryCO2.isEmpty()) {
-            chart.setNoDataText("No expense transactions to calculate footprint.");
-            chart.invalidate();
+            // Hide the whole chart card instead of leaving a large empty box.
+            binding.cardCarbonChart.setVisibility(View.GONE);
             return;
         }
+        binding.cardCarbonChart.setVisibility(View.VISIBLE);
 
         List<BarEntry> entries = new ArrayList<>();
         List<String> labels = new ArrayList<>();

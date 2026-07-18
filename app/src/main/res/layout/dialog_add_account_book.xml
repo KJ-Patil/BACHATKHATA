@@ -146,6 +146,16 @@
             android:textColor="@color/colorTextSecondary"
             android:textSize="11sp" />
 
+        <!-- Import from contacts Button -->
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnImportContact"
+            style="@style/ClayButtonSecondary"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="12dp"
+            android:layout_marginBottom="20dp"
+            android:text="Import from Contacts" />
+
         <!-- Opening Balance label -->
         <TextView
             android:id="@+id/txtBalanceLabel"

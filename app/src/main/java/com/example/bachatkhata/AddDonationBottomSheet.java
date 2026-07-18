@@ -74,6 +74,9 @@ public class AddDonationBottomSheet extends BottomSheetDialogFragment {
         adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         binding.spinnerDonationProjects.setAdapter(adapter);
 
+        // Import donor from contacts
+        binding.btnImportDonorContact.setOnClickListener(v -> pickContact());
+
         // Date selector
         binding.cardDonationDate.setOnClickListener(v -> showDatePicker());
 
@@ -106,6 +109,17 @@ public class AddDonationBottomSheet extends BottomSheetDialogFragment {
                 Toast.makeText(getContext(), "Invalid number format", Toast.LENGTH_SHORT).show();
             }
         });
+    }
+
+    private void pickContact() {
+        ContactPickerBottomSheet picker = ContactPickerBottomSheet.newInstance(false);
+        picker.setListener(contacts -> {
+            if (contacts.isEmpty() || binding == null) return;
+            ContactPickerBottomSheet.Contact c = contacts.get(0);
+            binding.inputDonorName.setText(c.name);
+            binding.inputDonorPhone.setText(c.phone);
+        });
+        picker.show(getChildFragmentManager(), "contact_picker");
     }
 
     private void showDatePicker() {

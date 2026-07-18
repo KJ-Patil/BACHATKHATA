@@ -11,6 +11,7 @@ import android.widget.Toast;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
+import androidx.navigation.Navigation;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
@@ -57,6 +58,8 @@ public class FamilyWalletFragment extends Fragment {
     }
 
     private void setupUI() {
+        binding.btnBack.setOnClickListener(v -> Navigation.findNavController(v).navigateUp());
+
         binding.rvGroups.setLayoutManager(new LinearLayoutManager(getContext()));
         adapter = new GroupAdapter();
         binding.rvGroups.setAdapter(adapter);

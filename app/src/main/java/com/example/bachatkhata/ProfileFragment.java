@@ -64,6 +64,7 @@ public class ProfileFragment extends Fragment {
     private ActivityResultLauncher<String> requestCameraPermissionLauncher;
     private Uri cameraImageUri;
     private boolean hasProfilePhoto = false;
+    private com.google.firebase.firestore.ListenerRegistration profileListener;
 
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
@@ -154,7 +155,12 @@ public class ProfileFragment extends Fragment {
 
         binding.txtUserEmail.setText(mAuth.getCurrentUser().getEmail());
 
-        mFirestore.collection("users").document(uid).addSnapshotListener((documentSnapshot, error) -> {
+        // Detach any previous registration so re-entering Profile doesn't stack listeners.
+        if (profileListener != null) {
+            profileListener.remove();
+            profileListener = null;
+        }
+        profileListener = mFirestore.collection("users").document(uid).addSnapshotListener((documentSnapshot, error) -> {
             if (error != null || getContext() == null) return;
 
             if (documentSnapshot != null && documentSnapshot.exists()) {
@@ -751,6 +757,10 @@ public class ProfileFragment extends Fragment {
     @Override
     public void onDestroyView() {
         super.onDestroyView();
+        if (profileListener != null) {
+            profileListener.remove();
+            profileListener = null;
+        }
         binding = null;
     }
 }

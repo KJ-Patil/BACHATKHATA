@@ -143,7 +143,14 @@ public class MoodInsightActivity extends BaseActivity {
                             });
                         }
                     } else {
+                        // Detach the listener while applying the default so this programmatic
+                        // change doesn't fire it and write moodEnabled back to Firestore (which
+                        // also surfaced a spurious "Failed to save settings" toast on open).
+                        binding.switchMoodReminder.setOnCheckedChangeListener(null);
                         binding.switchMoodReminder.setChecked(true); // default true
+                        binding.switchMoodReminder.setOnCheckedChangeListener((buttonView, isChecked) -> {
+                            mFirestore.collection("users").document(uid).update("moodEnabled", isChecked);
+                        });
                     }
                 });
     }

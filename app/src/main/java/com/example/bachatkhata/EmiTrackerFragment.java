@@ -23,6 +23,7 @@ import com.google.firebase.Timestamp;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.ListenerRegistration;
 
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -41,6 +42,7 @@ public class EmiTrackerFragment extends Fragment {
     private EmiAdapter adapter;
     private final List<DocumentSnapshot> emiList = new ArrayList<>();
     private final SimpleDateFormat dateFormat = new SimpleDateFormat("dd MMM yyyy", Locale.US);
+    private ListenerRegistration emiListener;
 
     @Nullable
     @Override
@@ -83,7 +85,13 @@ public class EmiTrackerFragment extends Fragment {
     }
 
     private void observeEmis(String uid) {
-        mFirestore.collection("users").document(uid).collection("emis")
+        // Both onViewCreated() and onResume() call this. Detach any existing
+        // registration first so listeners don't stack up on every resume.
+        if (emiListener != null) {
+            emiListener.remove();
+            emiListener = null;
+        }
+        emiListener = mFirestore.collection("users").document(uid).collection("emis")
                 .addSnapshotListener((value, error) -> {
                     if (error != null || binding == null) return;
 
@@ -281,6 +289,10 @@ public class EmiTrackerFragment extends Fragment {
     @Override
     public void onDestroyView() {
         super.onDestroyView();
+        if (emiListener != null) {
+            emiListener.remove();
+            emiListener = null;
+        }
         binding = null;
     }
 }

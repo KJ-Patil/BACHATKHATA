@@ -47,6 +47,9 @@ public class BillSplitterActivity extends BaseActivity {
     private final List<String> groupNames = new ArrayList<>();
     private ArrayAdapter<String> groupSpinnerAdapter;
 
+    // Reference to the open "Add Participant" dialog, so contact import can close it.
+    private AlertDialog addParticipantDialog;
+
     public static class Participant {
         public String name;
         public String phone;
@@ -197,8 +200,6 @@ public class BillSplitterActivity extends BaseActivity {
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
         builder.setTitle("Add Participant");
 
-        View view = LayoutInflater.from(this).inflate(R.layout.layout_set_budget, null);
-        // We can customize the view dynamically
         LinearLayout layout = new LinearLayout(this);
         layout.setOrientation(LinearLayout.VERTICAL);
         layout.setPadding(24, 16, 24, 16);
@@ -211,6 +212,16 @@ public class BillSplitterActivity extends BaseActivity {
         inputPhone.setHint("Phone Number (Optional)");
         inputPhone.setInputType(android.text.InputType.TYPE_CLASS_PHONE);
         layout.addView(inputPhone);
+
+        final com.google.android.material.button.MaterialButton btnImport =
+                new com.google.android.material.button.MaterialButton(this);
+        btnImport.setText("Import from Contacts");
+        LinearLayout.LayoutParams importParams = new LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT);
+        importParams.topMargin = 16;
+        btnImport.setLayoutParams(importParams);
+        btnImport.setOnClickListener(v -> openContactPicker());
+        layout.addView(btnImport);
 
         builder.setView(layout);
 
@@ -226,7 +237,36 @@ public class BillSplitterActivity extends BaseActivity {
             adapter.notifyDataSetChanged();
         });
         builder.setNegativeButton("Cancel", null);
-        builder.show();
+        addParticipantDialog = builder.show();
+    }
+
+    private void openContactPicker() {
+        ContactPickerBottomSheet picker = ContactPickerBottomSheet.newInstance(true);
+        picker.setListener(this::addParticipantsFromContacts);
+        picker.show(getSupportFragmentManager(), "contact_picker");
+    }
+
+    private void addParticipantsFromContacts(java.util.List<ContactPickerBottomSheet.Contact> contacts) {
+        int added = 0;
+        for (ContactPickerBottomSheet.Contact c : contacts) {
+            boolean duplicate = false;
+            for (Participant p : participantsList) {
+                if (p.phone != null && !p.phone.isEmpty() && p.phone.equals(c.phone)) {
+                    duplicate = true;
+                    break;
+                }
+            }
+            if (duplicate) continue;
+            participantsList.add(new Participant(c.name, c.phone, 0.0));
+            added++;
+        }
+        if (added > 0) {
+            recalculateEqualOwed();
+            adapter.notifyDataSetChanged();
+        }
+        if (addParticipantDialog != null && addParticipantDialog.isShowing()) {
+            addParticipantDialog.dismiss();
+        }
     }
 
     private double getBillAmount() {

@@ -11,6 +11,9 @@
     <uses-permission android:name="android.permission.READ_SMS" />
     <uses-permission android:name="android.permission.RECEIVE_SMS" />
 
+    <!-- Import people from the device contact book -->
+    <uses-permission android:name="android.permission.READ_CONTACTS" />
+
     <!-- Voice logging -->
     <uses-permission android:name="android.permission.RECORD_AUDIO" />
 

@@ -18,9 +18,9 @@
         android:enabled="false" />
 
     <item
-        android:id="@+id/navigation_budget"
-        android:icon="@drawable/ic_budget"
-        android:title="@string/title_budget" />
+        android:id="@+id/navigation_data_tools"
+        android:icon="@drawable/ic_briefcase"
+        android:title="@string/home_data_tools" />
 
     <item
         android:id="@+id/navigation_customer_ledger"

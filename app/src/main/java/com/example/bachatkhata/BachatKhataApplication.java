@@ -1,6 +1,10 @@
 package com.example.bachatkhata;
 
 import android.app.Application;
+
+import androidx.emoji2.bundled.BundledEmojiCompatConfig;
+import androidx.emoji2.text.EmojiCompat;
+
 import com.google.firebase.FirebaseApp;
 
 public class BachatKhataApplication extends Application {
@@ -11,7 +15,12 @@ public class BachatKhataApplication extends Application {
     public void onCreate() {
         super.onCreate();
         instance = this;
-        
+
+        // Use the color emoji font bundled in the APK and replace every emoji
+        // (even ones the system font "supports") so tiles never fall back to
+        // the black-and-white outline glyphs on emulators / older devices.
+        EmojiCompat.init(new BundledEmojiCompatConfig(this).setReplaceAll(true));
+
         // Initialize Firebase
         FirebaseApp.initializeApp(this);
 

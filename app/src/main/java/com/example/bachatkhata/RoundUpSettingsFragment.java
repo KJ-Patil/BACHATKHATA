@@ -30,8 +30,11 @@ public class RoundUpSettingsFragment extends Fragment {
 
         prefs = SharedPreferencesManager.getInstance(requireContext());
 
-        setupListeners();
+        // Apply the stored state BEFORE attaching listeners, otherwise the initial
+        // setChecked()/check() calls fire the listeners on open and write the same
+        // values straight back to prefs (the "fires on load" bug class).
         loadSettings();
+        setupListeners();
     }
 
     private void setupListeners() {

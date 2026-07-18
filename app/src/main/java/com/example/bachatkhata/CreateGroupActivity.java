@@ -1,13 +1,8 @@
 package com.example.bachatkhata;
 
-import android.Manifest;
 import android.content.Intent;
-import android.content.pm.PackageManager;
-import android.database.Cursor;
 import android.graphics.Color;
-import android.net.Uri;
 import android.os.Bundle;
-import android.provider.ContactsContract;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.ImageView;
@@ -15,10 +10,7 @@ import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import androidx.activity.result.ActivityResultLauncher;
-import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
-import androidx.core.content.ContextCompat;
 
 import com.example.bachatkhata.databinding.ActivityCreateGroupBinding;
 import com.google.firebase.Timestamp;
@@ -41,46 +33,6 @@ public class CreateGroupActivity extends BaseActivity {
 
     private String selectedType = "Family"; // Default type
     private final List<Map<String, String>> selectedMembers = new ArrayList<>();
-
-    private final ActivityResultLauncher<String> requestContactsPermissionLauncher = registerForActivityResult(
-            new ActivityResultContracts.RequestPermission(),
-            isGranted -> {
-                if (isGranted) {
-                    launchContactPicker();
-                } else {
-                    Toast.makeText(this, "Contacts permission is required to select contacts.", Toast.LENGTH_SHORT).show();
-                }
-            }
-    );
-
-    private final ActivityResultLauncher<Intent> contactPickerLauncher = registerForActivityResult(
-            new ActivityResultContracts.StartActivityForResult(),
-            result -> {
-                if (result.getResultCode() == RESULT_OK && result.getData() != null) {
-                    Uri contactUri = result.getData().getData();
-                    String[] projection = new String[]{
-                            ContactsContract.CommonDataKinds.Phone.NUMBER,
-                            ContactsContract.CommonDataKinds.Phone.DISPLAY_NAME
-                    };
-                    try (Cursor cursor = getContentResolver().query(contactUri, projection, null, null, null)) {
-                        if (cursor != null && cursor.moveToFirst()) {
-                            int numberIdx = cursor.getColumnIndex(ContactsContract.CommonDataKinds.Phone.NUMBER);
-                            int nameIdx = cursor.getColumnIndex(ContactsContract.CommonDataKinds.Phone.DISPLAY_NAME);
-                            String phone = cursor.getString(numberIdx);
-                            String name = cursor.getString(nameIdx);
-                            if (phone != null) {
-                                // Format phone: strip spaces/dashes
-                                String cleanPhone = phone.replaceAll("[\\s\\-\\(\\)]", "");
-                                addMemberToList(name != null ? name : cleanPhone, cleanPhone);
-                            }
-                        }
-                    } catch (Exception e) {
-                        e.printStackTrace();
-                        Toast.makeText(this, "Failed to read contact info", Toast.LENGTH_SHORT).show();
-                    }
-                }
-            }
-    );
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -117,13 +69,15 @@ public class CreateGroupActivity extends BaseActivity {
             updateTypeSelectionUI();
         });
 
-        // Contact Picker Trigger
+        // Contact Picker Trigger — opens the in-app contact book (multi-select).
         binding.btnPickContact.setOnClickListener(v -> {
-            if (ContextCompat.checkSelfPermission(this, Manifest.permission.READ_CONTACTS) == PackageManager.PERMISSION_GRANTED) {
-                launchContactPicker();
-            } else {
-                requestContactsPermissionLauncher.launch(Manifest.permission.READ_CONTACTS);
-            }
+            ContactPickerBottomSheet picker = ContactPickerBottomSheet.newInstance(true);
+            picker.setListener(contacts -> {
+                for (ContactPickerBottomSheet.Contact c : contacts) {
+                    addMemberToList(c.name != null ? c.name : c.phone, c.phone);
+                }
+            });
+            picker.show(getSupportFragmentManager(), "contact_picker");
         });
 
         // Manual Add Member button
@@ -171,11 +125,6 @@ public class CreateGroupActivity extends BaseActivity {
                 binding.cardTypeEvent.setStrokeColor(Color.parseColor("#E24B4A"));
                 break;
         }
-    }
-
-    private void launchContactPicker() {
-        Intent intent = new Intent(Intent.ACTION_PICK, ContactsContract.CommonDataKinds.Phone.CONTENT_URI);
-        contactPickerLauncher.launch(intent);
     }
 
     private void addMemberToList(String name, String phone) {

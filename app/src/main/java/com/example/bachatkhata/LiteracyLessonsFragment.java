@@ -14,6 +14,7 @@ import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
+import androidx.navigation.Navigation;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
@@ -104,6 +105,8 @@ public class LiteracyLessonsFragment extends Fragment {
     }
 
     private void setupUI() {
+        binding.btnBack.setOnClickListener(v -> Navigation.findNavController(v).navigateUp());
+
         binding.rvLessons.setLayoutManager(new LinearLayoutManager(getContext()));
         adapter = new LessonAdapter();
         binding.rvLessons.setAdapter(adapter);

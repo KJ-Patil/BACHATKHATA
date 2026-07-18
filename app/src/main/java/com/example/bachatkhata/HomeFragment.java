@@ -146,10 +146,6 @@ public class HomeFragment extends Fragment {
             Navigation.findNavController(v).navigate(R.id.navigation_profile)
         );
 
-        binding.btnDataTools.setOnClickListener(v ->
-            Navigation.findNavController(v).navigate(R.id.action_home_to_data_tools)
-        );
-
         if (getActivity() != null) {
             View fab = getActivity().findViewById(R.id.fabAdd);
             if (fab != null) {

@@ -45,7 +45,8 @@ public class DataToolsFragment extends Fragment {
 
     private List<ToolsGridAdapter.ToolItem> buildTools() {
         return Arrays.asList(
-                ToolsGridAdapter.ToolItem.nav("👨‍👩‍👧", "Family Wallet", R.id.navigation_family_wallet),
+                ToolsGridAdapter.ToolItem.nav("🎯", "Set Budget", R.id.navigation_budget),
+                ToolsGridAdapter.ToolItem.nav("👪", "Family Wallet", R.id.navigation_family_wallet),
                 ToolsGridAdapter.ToolItem.activity("📄", "Export Reports", ExportActivity.class),
                 ToolsGridAdapter.ToolItem.nav("🔁", "Subscriptions", R.id.navigation_subscriptions),
                 ToolsGridAdapter.ToolItem.nav("🏦", "EMI & Loans", R.id.navigation_emi_tracker),

@@ -194,7 +194,8 @@ public class PinSetupActivity extends AppCompatActivity {
                     savePinHashSilently(hashPinV2(enteredPin));
                 }
                 BaseActivity.setAppUnlocked();
-                startActivity(new Intent(PinSetupActivity.this, MainActivity.class));
+                startActivity(new Intent(PinSetupActivity.this, MainActivity.class)
+                        .putExtra(MainActivity.EXTRA_SKIP_BIOMETRIC, true));
                 finish();
             } else {
                 shakeDots();
@@ -243,7 +244,8 @@ public class PinSetupActivity extends AppCompatActivity {
                         public void onAuthenticationSucceeded(@NonNull BiometricPrompt.AuthenticationResult result) {
                             super.onAuthenticationSucceeded(result);
                             BaseActivity.setAppUnlocked();
-                            startActivity(new Intent(PinSetupActivity.this, MainActivity.class));
+                            startActivity(new Intent(PinSetupActivity.this, MainActivity.class)
+                                    .putExtra(MainActivity.EXTRA_SKIP_BIOMETRIC, true));
                             finish();
                         }
 

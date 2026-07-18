@@ -13,7 +13,9 @@ import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
+import androidx.core.view.WindowCompat;
 import androidx.core.view.WindowInsetsCompat;
+import androidx.core.view.WindowInsetsControllerCompat;
 
 import com.google.android.material.snackbar.Snackbar;
 import com.google.firebase.auth.FirebaseAuth;
@@ -24,6 +26,12 @@ public class BaseActivity extends AppCompatActivity {
     private static int activeActivitiesCount = 0;
     private static long backgroundTimeMs = -1;
     private static boolean isAppLocked = false;
+    // Guards against launching the lock screen more than once. checkPinConfigAndLock()
+    // runs from both onStart() and onResume() and does an async Firestore read, so
+    // without this flag two (or more) PinSetupActivity instances could be launched,
+    // each auto-prompting biometrics. Set synchronously before the async read, and
+    // cleared once the lock is resolved (via setAppUnlocked / no-PIN / failure).
+    private static boolean isLockScreenActive = false;
     private AlertDialog loadingDialog;
 
     @Override
@@ -116,6 +124,53 @@ public class BaseActivity extends AppCompatActivity {
         }
     }
 
+    // --- Sticky Immersive Mode --------------------------------------------
+    // Hides the 3 system navigation buttons (back, home, recent) when the app
+    // is active. The user can swipe-up from the bottom edge to reveal them
+    // temporarily; they auto-hide again after a short delay.
+
+    @Override
+    public void onWindowFocusChanged(boolean hasFocus) {
+        super.onWindowFocusChanged(hasFocus);
+        if (hasFocus && shouldApplyImmersiveMode()) {
+            enableStickyImmersiveMode();
+        }
+    }
+
+    /**
+     * Enables sticky immersive mode: hides both status bar and navigation bar.
+     * When the user swipes from the edge, the bars appear translucently and
+     * auto-hide after a moment.
+     */
+    private void enableStickyImmersiveMode() {
+        WindowInsetsControllerCompat controller =
+                WindowCompat.getInsetsController(getWindow(), getWindow().getDecorView());
+        if (controller != null) {
+            // Bars appear translucently on swipe and auto-hide
+            controller.setSystemBarsBehavior(
+                    WindowInsetsControllerCompat.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE);
+            // Hide the system navigation bar (the 3 buttons)
+            controller.hide(WindowInsetsCompat.Type.navigationBars());
+        }
+    }
+
+    /**
+     * Returns true for screens that should run in immersive mode.
+     * Auth/lock/onboarding screens are excluded so the user can always
+     * see the system navigation while logging in or setting up.
+     */
+    private boolean shouldApplyImmersiveMode() {
+        String className = getClass().getSimpleName();
+        return !className.equals("PinSetupActivity")
+                && !className.equals("SplashActivity")
+                && !className.equals("LoginActivity")
+                && !className.equals("RegisterActivity")
+                && !className.equals("ForgotPasswordActivity")
+                && !className.equals("OnboardingActivity")
+                && !className.equals("BiometricSetupActivity")
+                && !className.equals("PhoneLoginActivity");
+    }
+
     @Override
     protected void onStop() {
         super.onStop();
@@ -138,11 +193,21 @@ public class BaseActivity extends AppCompatActivity {
     }
 
     private void checkPinConfigAndLock() {
+        // Already showing (or in the middle of launching) the lock screen — don't
+        // fire a second launch. This call comes from both onStart() and onResume().
+        if (isLockScreenActive) {
+            return;
+        }
+
         FirebaseAuth auth = FirebaseAuth.getInstance();
         if (auth.getCurrentUser() == null) {
             isAppLocked = false;
             return;
         }
+
+        // Claim the lock synchronously, before the async read, so a near-simultaneous
+        // onResume() call bails out at the guard above instead of racing us.
+        isLockScreenActive = true;
 
         String uid = auth.getCurrentUser().getUid();
         FirebaseFirestore.getInstance().collection("users").document(uid).get()
@@ -150,6 +215,8 @@ public class BaseActivity extends AppCompatActivity {
                     if (documentSnapshot.exists()) {
                         String pinHash = documentSnapshot.getString("pinHash");
                         if (pinHash != null && !pinHash.trim().isEmpty()) {
+                            // Keep isLockScreenActive == true until the user unlocks
+                            // (setAppUnlocked) so the lock screen isn't relaunched.
                             Intent intent = new Intent(BaseActivity.this, PinSetupActivity.class);
                             intent.putExtra("mode", "VERIFY");
                             intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
@@ -157,18 +224,22 @@ public class BaseActivity extends AppCompatActivity {
                             finish();
                         } else {
                             isAppLocked = false;
+                            isLockScreenActive = false;
                         }
                     } else {
                         isAppLocked = false;
+                        isLockScreenActive = false;
                     }
                 })
                 .addOnFailureListener(e -> {
                     isAppLocked = false;
+                    isLockScreenActive = false;
                 });
     }
 
     public static void setAppUnlocked() {
         isAppLocked = false;
+        isLockScreenActive = false;
         backgroundTimeMs = -1;
     }
 

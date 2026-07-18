@@ -55,6 +55,13 @@ public class SplashActivity extends AppCompatActivity {
                         if (task.isSuccessful() && task.getResult() != null) {
                             DocumentSnapshot document = task.getResult();
                             if (document.exists()) {
+                                // Sync the authoritative theme from Firestore into local prefs and
+                                // apply it BEFORE routing. Application.onCreate() only had the local
+                                // (possibly stale) value, so without this the app would show the
+                                // System default on first launch after login / on a new device until
+                                // Profile & Settings was opened.
+                                syncTheme(document.getString("themeMode"));
+
                                 String pinHash = document.getString("pinHash");
                                 Boolean onboardingComplete = document.getBoolean("onboardingComplete");
 
@@ -77,6 +84,20 @@ public class SplashActivity extends AppCompatActivity {
                         }
                         finish();
                     });
+        }
+    }
+
+    /**
+     * Persists the Firestore theme locally and applies it if it differs from what is already
+     * active. The diff check avoids a needless activity recreation when the local value (already
+     * applied in {@link BachatKhataApplication#onCreate()}) is correct.
+     */
+    private void syncTheme(String themeMode) {
+        if (themeMode == null || themeMode.trim().isEmpty()) return;
+        SharedPreferencesManager prefs = SharedPreferencesManager.getInstance(this);
+        if (!themeMode.equalsIgnoreCase(prefs.getThemeMode())) {
+            prefs.setThemeMode(themeMode);
+            SharedPreferencesManager.applyThemeMode(themeMode);
         }
     }
 

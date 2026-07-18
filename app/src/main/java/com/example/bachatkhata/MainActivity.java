@@ -30,6 +30,13 @@ import java.util.concurrent.TimeUnit;
 
 public class MainActivity extends BaseActivity {
 
+    /**
+     * Set to true on the Intent when MainActivity is launched from a screen that has
+     * already authenticated the user (the PIN/biometric lock screen). Prevents
+     * MainActivity from immediately re-prompting biometrics right after an unlock.
+     */
+    public static final String EXTRA_SKIP_BIOMETRIC = "already_authenticated";
+
     private ActivityMainBinding binding;
     private NavController navController;
     private FirebaseAuth mAuth;
@@ -46,6 +53,13 @@ public class MainActivity extends BaseActivity {
 
         mAuth = FirebaseAuth.getInstance();
         mFirestore = FirebaseFirestore.getInstance();
+
+        // If we were launched straight from the lock screen, the user just
+        // authenticated — suppress MainActivity's own cold-launch biometric prompt
+        // so it doesn't ask again immediately after unlocking.
+        if (getIntent().getBooleanExtra(EXTRA_SKIP_BIOMETRIC, false)) {
+            isBiometricPromptShown = true;
+        }
 
         // 1. Setup Navigation Component
         NavHostFragment navHostFragment = (NavHostFragment) getSupportFragmentManager()
@@ -232,13 +246,12 @@ public class MainActivity extends BaseActivity {
         return target.getTimeInMillis() - now.getTimeInMillis();
     }
 
-    @Override
-    protected void onResume() {
-        super.onResume();
-        if (isBiometricEnabled && !isBiometricPromptShown) {
-            promptBiometrics();
-        }
-    }
+    // NOTE: Do NOT re-prompt biometrics in onResume(). onResume fires every time
+    // the user returns to MainActivity (from a child screen, or when the biometric
+    // system dialog dismisses), which caused the prompt to reappear repeatedly.
+    // Cold-launch unlock is handled once via loadUserPreferences(); re-locking after
+    // the app has been backgrounded past the timeout is handled centrally by
+    // BaseActivity's app-lock (see BaseActivity#checkPinConfigAndLock).
 
     /** Rounds the top-left and top-right corners of the bottom bar for a soft, floating look. */
     private void applyRoundedTopBar() {

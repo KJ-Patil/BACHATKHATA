@@ -3,7 +3,8 @@
     android:height="24dp"
     android:viewportWidth="24"
     android:viewportHeight="24">
+    <!-- Home/dashboard: trust-blue, the calm overview hub. -->
     <path
-        android:fillColor="@color/bottom_nav_icon_color"
+        android:fillColor="@color/colorAccent"
         android:pathData="M10,20v-6h4v6h5v-8h3L12,3 2,12h3v8z"/>
 </vector>
