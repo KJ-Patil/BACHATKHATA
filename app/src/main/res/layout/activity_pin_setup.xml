@@ -5,339 +5,153 @@
     android:layout_height="match_parent"
     android:background="@color/colorBackground">
 
-    <!-- Decorative Top Circle -->
-    <View
-        android:id="@+id/viewDecorativeCircle"
-        android:layout_width="280dp"
-        android:layout_height="280dp"
-        android:layout_marginTop="-100dp"
-        android:layout_marginEnd="-80dp"
-        android:background="@drawable/bg_clay_button"
-        android:backgroundTint="@color/colorPrimary"
-        android:alpha="0.10"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
+    <androidx.core.widget.NestedScrollView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:fillViewport="true">
 
-    <!-- Screen Title -->
-    <TextView
-        android:id="@+id/txtPinTitle"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="40dp"
-        android:text="@string/pin_enter_title"
-        android:textColor="@color/colorTextPrimary"
-        android:textSize="24sp"
-        android:textStyle="bold"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
-
-    <!-- 4 PIN dot indicators -->
-    <LinearLayout
-        android:id="@+id/layoutDots"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="40dp"
-        android:orientation="horizontal"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/txtPinTitle">
-
-        <ImageView
-            android:id="@+id/dot1"
-            android:layout_width="16dp"
-            android:layout_height="16dp"
-            android:layout_margin="8dp"
-            android:src="@drawable/dot_pin_empty" />
-
-        <ImageView
-            android:id="@+id/dot2"
-            android:layout_width="16dp"
-            android:layout_height="16dp"
-            android:layout_margin="8dp"
-            android:src="@drawable/dot_pin_empty" />
-
-        <ImageView
-            android:id="@+id/dot3"
-            android:layout_width="16dp"
-            android:layout_height="16dp"
-            android:layout_margin="8dp"
-            android:src="@drawable/dot_pin_empty" />
-
-        <ImageView
-            android:id="@+id/dot4"
-            android:layout_width="16dp"
-            android:layout_height="16dp"
-            android:layout_margin="8dp"
-            android:src="@drawable/dot_pin_empty" />
-    </LinearLayout>
-
-    <!-- Custom Numeric Keypad -->
-    <LinearLayout
-        android:id="@+id/layoutNumpad"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginBottom="48dp"
-        android:orientation="vertical"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/layoutDots"
-        app:layout_constraintVertical_bias="0.8">
-
-        <!-- Row 1 -->
         <LinearLayout
-            android:layout_width="wrap_content"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="horizontal"
-            android:layout_marginBottom="16dp">
+            android:gravity="center"
+            android:orientation="vertical"
+            android:paddingTop="24dp"
+            android:paddingBottom="24dp">
 
             <com.google.android.material.card.MaterialCardView
-                android:id="@+id/btnKey1"
+                android:id="@+id/cardPin"
                 style="@style/ClayCard"
-                android:layout_width="64dp"
-                android:layout_height="64dp"
-                android:layout_margin="8dp"
-                app:cardCornerRadius="20dp"
-                android:clickable="true"
-                android:focusable="true">
-                <TextView
-                    android:layout_width="match_parent"
-                    android:layout_height="match_parent"
-                    android:gravity="center"
-                    android:text="1"
-                    android:textColor="@color/colorTextPrimary"
-                    android:textSize="24sp"
-                    android:textStyle="bold" />
-            </com.google.android.material.card.MaterialCardView>
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="24dp"
+                android:layout_marginEnd="24dp">
 
-            <com.google.android.material.card.MaterialCardView
-                android:id="@+id/btnKey2"
-                style="@style/ClayCard"
-                android:layout_width="64dp"
-                android:layout_height="64dp"
-                android:layout_margin="8dp"
-                app:cardCornerRadius="20dp"
-                android:clickable="true"
-                android:focusable="true">
-                <TextView
+                <LinearLayout
                     android:layout_width="match_parent"
-                    android:layout_height="match_parent"
-                    android:gravity="center"
-                    android:text="2"
-                    android:textColor="@color/colorTextPrimary"
-                    android:textSize="24sp"
-                    android:textStyle="bold" />
-            </com.google.android.material.card.MaterialCardView>
+                    android:layout_height="wrap_content"
+                    android:background="@color/colorSurface"
+                    android:orientation="vertical"
+                    android:padding="28dp">
 
-            <com.google.android.material.card.MaterialCardView
-                android:id="@+id/btnKey3"
-                style="@style/ClayCard"
-                android:layout_width="64dp"
-                android:layout_height="64dp"
-                android:layout_margin="8dp"
-                app:cardCornerRadius="20dp"
-                android:clickable="true"
-                android:focusable="true">
-                <TextView
-                    android:layout_width="match_parent"
-                    android:layout_height="match_parent"
-                    android:gravity="center"
-                    android:text="3"
-                    android:textColor="@color/colorTextPrimary"
-                    android:textSize="24sp"
-                    android:textStyle="bold" />
+                    <!-- Lock badge -->
+                    <ImageView
+                        android:layout_width="64dp"
+                        android:layout_height="64dp"
+                        android:layout_gravity="center_horizontal"
+                        android:background="@drawable/bg_login_logo"
+                        android:contentDescription="@string/pin_verify_title"
+                        android:padding="16dp"
+                        android:src="@drawable/ic_lock"
+                        app:tint="@color/colorPrimary" />
+
+                    <!-- Title -->
+                    <TextView
+                        android:id="@+id/txtPinTitle"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="20dp"
+                        android:gravity="center"
+                        android:text="@string/pin_verify_title"
+                        android:textColor="@color/colorTextPrimary"
+                        android:textSize="24sp"
+                        android:textStyle="bold" />
+
+                    <!-- Subtitle -->
+                    <TextView
+                        android:id="@+id/txtPinSubtitle"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="6dp"
+                        android:gravity="center"
+                        android:text="@string/pin_verify_subtitle"
+                        android:textColor="@color/colorTextSecondary"
+                        android:textSize="14sp" />
+
+                    <!-- PIN label -->
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="28dp"
+                        android:layout_marginBottom="6dp"
+                        android:letterSpacing="0.05"
+                        android:text="@string/pin_label"
+                        android:textColor="@color/colorTextSecondary"
+                        android:textSize="12sp"
+                        android:textStyle="bold" />
+
+                    <!-- PIN input with eye toggle -->
+                    <com.google.android.material.textfield.TextInputLayout
+                        android:id="@+id/tilPin"
+                        style="@style/ClayInput"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:hint="@string/pin_hint"
+                        app:endIconMode="password_toggle"
+                        app:endIconTint="@color/colorTextSecondary">
+
+                        <com.google.android.material.textfield.TextInputEditText
+                            android:id="@+id/etPin"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:imeOptions="actionDone"
+                            android:inputType="numberPassword"
+                            android:maxLength="4"
+                            android:textColor="@color/colorTextPrimary" />
+                    </com.google.android.material.textfield.TextInputLayout>
+
+                    <!-- Unlock / primary action -->
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/btnUnlock"
+                        style="@style/ClayButton"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="20dp"
+                        android:text="@string/pin_unlock" />
+
+                    <!-- Use fingerprint (visible only when biometric enabled) -->
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/btnUseFingerprint"
+                        style="@style/Widget.Material3.Button.TextButton"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_gravity="center"
+                        android:layout_marginTop="8dp"
+                        android:text="@string/pin_use_fingerprint"
+                        android:textColor="@color/colorPrimary"
+                        android:visibility="gone"
+                        app:icon="@drawable/ic_fingerprint"
+                        app:iconGravity="textStart"
+                        app:iconTint="@color/colorPrimary" />
+
+                    <!-- Forgot PIN -->
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/btnForgotPin"
+                        style="@style/Widget.Material3.Button.TextButton"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_gravity="center"
+                        android:layout_marginTop="8dp"
+                        android:text="@string/pin_forgot"
+                        android:textColor="@color/colorPrimary"
+                        android:textStyle="bold" />
+
+                    <!-- Switch account -->
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/btnSwitchAccount"
+                        style="@style/Widget.Material3.Button.TextButton"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_gravity="center"
+                        android:letterSpacing="0.08"
+                        android:text="@string/pin_switch_account"
+                        android:textAllCaps="true"
+                        android:textColor="@color/colorTextSecondary"
+                        android:textSize="12sp"
+                        android:textStyle="bold" />
+                </LinearLayout>
             </com.google.android.material.card.MaterialCardView>
         </LinearLayout>
-
-        <!-- Row 2 -->
-        <LinearLayout
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:orientation="horizontal"
-            android:layout_marginBottom="16dp">
-
-            <com.google.android.material.card.MaterialCardView
-                android:id="@+id/btnKey4"
-                style="@style/ClayCard"
-                android:layout_width="64dp"
-                android:layout_height="64dp"
-                android:layout_margin="8dp"
-                app:cardCornerRadius="20dp"
-                android:clickable="true"
-                android:focusable="true">
-                <TextView
-                    android:layout_width="match_parent"
-                    android:layout_height="match_parent"
-                    android:gravity="center"
-                    android:text="4"
-                    android:textColor="@color/colorTextPrimary"
-                    android:textSize="24sp"
-                    android:textStyle="bold" />
-            </com.google.android.material.card.MaterialCardView>
-
-            <com.google.android.material.card.MaterialCardView
-                android:id="@+id/btnKey5"
-                style="@style/ClayCard"
-                android:layout_width="64dp"
-                android:layout_height="64dp"
-                android:layout_margin="8dp"
-                app:cardCornerRadius="20dp"
-                android:clickable="true"
-                android:focusable="true">
-                <TextView
-                    android:layout_width="match_parent"
-                    android:layout_height="match_parent"
-                    android:gravity="center"
-                    android:text="5"
-                    android:textColor="@color/colorTextPrimary"
-                    android:textSize="24sp"
-                    android:textStyle="bold" />
-            </com.google.android.material.card.MaterialCardView>
-
-            <com.google.android.material.card.MaterialCardView
-                android:id="@+id/btnKey6"
-                style="@style/ClayCard"
-                android:layout_width="64dp"
-                android:layout_height="64dp"
-                android:layout_margin="8dp"
-                app:cardCornerRadius="20dp"
-                android:clickable="true"
-                android:focusable="true">
-                <TextView
-                    android:layout_width="match_parent"
-                    android:layout_height="match_parent"
-                    android:gravity="center"
-                    android:text="6"
-                    android:textColor="@color/colorTextPrimary"
-                    android:textSize="24sp"
-                    android:textStyle="bold" />
-            </com.google.android.material.card.MaterialCardView>
-        </LinearLayout>
-
-        <!-- Row 3 -->
-        <LinearLayout
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:orientation="horizontal"
-            android:layout_marginBottom="16dp">
-
-            <com.google.android.material.card.MaterialCardView
-                android:id="@+id/btnKey7"
-                style="@style/ClayCard"
-                android:layout_width="64dp"
-                android:layout_height="64dp"
-                android:layout_margin="8dp"
-                app:cardCornerRadius="20dp"
-                android:clickable="true"
-                android:focusable="true">
-                <TextView
-                    android:layout_width="match_parent"
-                    android:layout_height="match_parent"
-                    android:gravity="center"
-                    android:text="7"
-                    android:textColor="@color/colorTextPrimary"
-                    android:textSize="24sp"
-                    android:textStyle="bold" />
-            </com.google.android.material.card.MaterialCardView>
-
-            <com.google.android.material.card.MaterialCardView
-                android:id="@+id/btnKey8"
-                style="@style/ClayCard"
-                android:layout_width="64dp"
-                android:layout_height="64dp"
-                android:layout_margin="8dp"
-                app:cardCornerRadius="20dp"
-                android:clickable="true"
-                android:focusable="true">
-                <TextView
-                    android:layout_width="match_parent"
-                    android:layout_height="match_parent"
-                    android:gravity="center"
-                    android:text="8"
-                    android:textColor="@color/colorTextPrimary"
-                    android:textSize="24sp"
-                    android:textStyle="bold" />
-            </com.google.android.material.card.MaterialCardView>
-
-            <com.google.android.material.card.MaterialCardView
-                android:id="@+id/btnKey9"
-                style="@style/ClayCard"
-                android:layout_width="64dp"
-                android:layout_height="64dp"
-                android:layout_margin="8dp"
-                app:cardCornerRadius="20dp"
-                android:clickable="true"
-                android:focusable="true">
-                <TextView
-                    android:layout_width="match_parent"
-                    android:layout_height="match_parent"
-                    android:gravity="center"
-                    android:text="9"
-                    android:textColor="@color/colorTextPrimary"
-                    android:textSize="24sp"
-                    android:textStyle="bold" />
-            </com.google.android.material.card.MaterialCardView>
-        </LinearLayout>
-
-        <!-- Row 4 -->
-        <LinearLayout
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:orientation="horizontal">
-
-            <com.google.android.material.card.MaterialCardView
-                android:id="@+id/btnKeyFingerprint"
-                style="@style/ClayCard"
-                android:layout_width="64dp"
-                android:layout_height="64dp"
-                android:layout_margin="8dp"
-                app:cardCornerRadius="20dp"
-                android:clickable="true"
-                android:focusable="true">
-                <ImageView
-                    android:layout_width="28dp"
-                    android:layout_height="28dp"
-                    android:layout_gravity="center"
-                    android:src="@drawable/ic_fingerprint" />
-            </com.google.android.material.card.MaterialCardView>
-
-            <com.google.android.material.card.MaterialCardView
-                android:id="@+id/btnKey0"
-                style="@style/ClayCard"
-                android:layout_width="64dp"
-                android:layout_height="64dp"
-                android:layout_margin="8dp"
-                app:cardCornerRadius="20dp"
-                android:clickable="true"
-                android:focusable="true">
-                <TextView
-                    android:layout_width="match_parent"
-                    android:layout_height="match_parent"
-                    android:gravity="center"
-                    android:text="0"
-                    android:textColor="@color/colorTextPrimary"
-                    android:textSize="24sp"
-                    android:textStyle="bold" />
-            </com.google.android.material.card.MaterialCardView>
-
-            <com.google.android.material.card.MaterialCardView
-                android:id="@+id/btnKeyBackspace"
-                style="@style/ClayCard"
-                android:layout_width="64dp"
-                android:layout_height="64dp"
-                android:layout_margin="8dp"
-                app:cardCornerRadius="20dp"
-                android:clickable="true"
-                android:focusable="true">
-                <ImageView
-                    android:layout_width="28dp"
-                    android:layout_height="28dp"
-                    android:layout_gravity="center"
-                    android:src="@drawable/ic_backspace" />
-            </com.google.android.material.card.MaterialCardView>
-        </LinearLayout>
-    </LinearLayout>
+    </androidx.core.widget.NestedScrollView>
 
     <!-- Overlay Loader -->
     <FrameLayout

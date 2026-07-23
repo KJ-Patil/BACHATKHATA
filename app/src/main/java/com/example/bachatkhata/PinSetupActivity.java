@@ -1,11 +1,12 @@
 package com.example.bachatkhata;
 
+import android.app.AlertDialog;
 import android.content.Intent;
 import android.os.Bundle;
 import android.view.View;
 import android.view.animation.Animation;
 import android.view.animation.TranslateAnimation;
-import android.widget.ImageView;
+import android.view.inputmethod.EditorInfo;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
@@ -16,7 +17,6 @@ import androidx.core.content.ContextCompat;
 import com.example.bachatkhata.databinding.ActivityPinSetupBinding;
 import com.google.android.material.snackbar.Snackbar;
 import com.google.firebase.auth.FirebaseAuth;
-import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.SetOptions;
 
@@ -34,7 +34,6 @@ public class PinSetupActivity extends AppCompatActivity {
     private String mode = "SETUP"; // "SETUP" or "VERIFY"
     private String correctPinHash = "";
     private String tempPin = "";
-    private String enteredPin = "";
     private boolean isConfirming = false;
     private boolean isBiometricEnabled = false;
 
@@ -64,11 +63,17 @@ public class PinSetupActivity extends AppCompatActivity {
 
     private void setupUI() {
         if ("VERIFY".equals(mode)) {
-            binding.txtPinTitle.setText(getString(R.string.pin_enter_title));
-            binding.btnKeyFingerprint.setVisibility(View.VISIBLE);
+            binding.txtPinTitle.setText(getString(R.string.pin_verify_title));
+            binding.txtPinSubtitle.setText(getString(R.string.pin_verify_subtitle));
+            binding.btnUnlock.setText(getString(R.string.pin_unlock));
+            binding.btnForgotPin.setVisibility(View.VISIBLE);
+            binding.btnSwitchAccount.setVisibility(View.VISIBLE);
         } else {
             binding.txtPinTitle.setText(getString(R.string.pin_create_title));
-            binding.btnKeyFingerprint.setVisibility(View.GONE);
+            binding.txtPinSubtitle.setText(getString(R.string.pin_create_subtitle));
+            binding.btnUnlock.setText(getString(R.string.pin_continue));
+            binding.btnForgotPin.setVisibility(View.GONE);
+            binding.btnSwitchAccount.setVisibility(View.GONE);
         }
     }
 
@@ -93,10 +98,10 @@ public class PinSetupActivity extends AppCompatActivity {
 
                         // Auto-prompt fingerprint if verify mode & biometric enabled
                         if ("VERIFY".equals(mode) && isBiometricEnabled) {
-                            binding.btnKeyFingerprint.setVisibility(View.VISIBLE);
+                            binding.btnUseFingerprint.setVisibility(View.VISIBLE);
                             promptBiometrics();
                         } else {
-                            binding.btnKeyFingerprint.setVisibility(View.GONE);
+                            binding.btnUseFingerprint.setVisibility(View.GONE);
                         }
                     }
                 })
@@ -107,103 +112,140 @@ public class PinSetupActivity extends AppCompatActivity {
     }
 
     private void setupListeners() {
-        // Numpad Numbers
-        binding.btnKey0.setOnClickListener(v -> appendDigit("0"));
-        binding.btnKey1.setOnClickListener(v -> appendDigit("1"));
-        binding.btnKey2.setOnClickListener(v -> appendDigit("2"));
-        binding.btnKey3.setOnClickListener(v -> appendDigit("3"));
-        binding.btnKey4.setOnClickListener(v -> appendDigit("4"));
-        binding.btnKey5.setOnClickListener(v -> appendDigit("5"));
-        binding.btnKey6.setOnClickListener(v -> appendDigit("6"));
-        binding.btnKey7.setOnClickListener(v -> appendDigit("7"));
-        binding.btnKey8.setOnClickListener(v -> appendDigit("8"));
-        binding.btnKey9.setOnClickListener(v -> appendDigit("9"));
+        binding.btnUnlock.setOnClickListener(v -> submitPin());
 
-        // Backspace
-        binding.btnKeyBackspace.setOnClickListener(v -> {
-            if (enteredPin.length() > 0) {
-                enteredPin = enteredPin.substring(0, enteredPin.length() - 1);
-                updateDots();
+        // Allow submitting from the keyboard's "Done" action.
+        binding.etPin.setOnEditorActionListener((tv, actionId, event) -> {
+            if (actionId == EditorInfo.IME_ACTION_DONE) {
+                submitPin();
+                return true;
             }
+            return false;
         });
 
         // Fingerprint
-        binding.btnKeyFingerprint.setOnClickListener(v -> {
+        binding.btnUseFingerprint.setOnClickListener(v -> {
             if (isBiometricEnabled) {
                 promptBiometrics();
             } else {
                 Snackbar.make(binding.getRoot(), "Biometrics not enabled on profile.", Snackbar.LENGTH_SHORT).show();
             }
         });
+
+        // Forgot PIN — reset via phone re-verification
+        binding.btnForgotPin.setOnClickListener(v -> showForgotPinDialog());
+
+        // Switch account — sign out and return to the login screen
+        binding.btnSwitchAccount.setOnClickListener(v -> switchAccount());
     }
 
-    private void appendDigit(String digit) {
-        if (enteredPin.length() < 4) {
-            enteredPin += digit;
-            updateDots();
-
-            if (enteredPin.length() == 4) {
-                // Trigger logic after entering 4 digits
-                new android.os.Handler(android.os.Looper.getMainLooper()).postDelayed(this::processPinEntry, 200);
-            }
+    private void submitPin() {
+        String pin = binding.etPin.getText() == null ? "" : binding.etPin.getText().toString().trim();
+        if (pin.length() < 4) {
+            showError(getString(R.string.pin_too_short));
+            shakeInput();
+            return;
         }
-    }
 
-    private void updateDots() {
-        int length = enteredPin.length();
-        setDotFilled(binding.dot1, length >= 1);
-        setDotFilled(binding.dot2, length >= 2);
-        setDotFilled(binding.dot3, length >= 3);
-        setDotFilled(binding.dot4, length >= 4);
-    }
-
-    private void setDotFilled(ImageView dot, boolean filled) {
-        dot.setImageResource(filled ? R.drawable.dot_pin_filled : R.drawable.dot_pin_empty);
-    }
-
-    private void processPinEntry() {
         if ("SETUP".equals(mode)) {
             if (!isConfirming) {
                 // First step of PIN setup
-                tempPin = enteredPin;
-                enteredPin = "";
+                tempPin = pin;
                 isConfirming = true;
-                updateDots();
+                clearInput();
                 binding.txtPinTitle.setText(getString(R.string.pin_confirm_title));
+                binding.txtPinSubtitle.setText(getString(R.string.pin_confirm_subtitle));
+                binding.btnUnlock.setText(getString(R.string.pin_confirm_action));
             } else {
                 // Confirmation step of PIN setup
-                if (enteredPin.equals(tempPin)) {
-                    String hashed = hashPinV2(enteredPin);
-                    savePinToFirestore(hashed);
+                if (pin.equals(tempPin)) {
+                    savePinToFirestore(hashPinV2(pin));
                 } else {
-                    shakeDots();
+                    shakeInput();
                     showError(getString(R.string.pin_setup_mismatch));
-                    // Reset to initial create state
-                    tempPin = "";
-                    enteredPin = "";
-                    isConfirming = false;
-                    updateDots();
-                    binding.txtPinTitle.setText(getString(R.string.pin_create_title));
+                    resetToCreateState();
                 }
             }
         } else {
             // VERIFY Mode
-            if (verifyPin(enteredPin, correctPinHash)) {
+            if (verifyPin(pin, correctPinHash)) {
                 // Transparently upgrade legacy unsalted hashes to the salted v2$ format.
                 if (!correctPinHash.startsWith("v2$")) {
-                    savePinHashSilently(hashPinV2(enteredPin));
+                    savePinHashSilently(hashPinV2(pin));
                 }
                 BaseActivity.setAppUnlocked();
                 startActivity(new Intent(PinSetupActivity.this, MainActivity.class)
                         .putExtra(MainActivity.EXTRA_SKIP_BIOMETRIC, true));
                 finish();
             } else {
-                shakeDots();
+                shakeInput();
                 showError(getString(R.string.pin_incorrect));
-                enteredPin = "";
-                updateDots();
+                clearInput();
             }
         }
+    }
+
+    private void resetToCreateState() {
+        tempPin = "";
+        isConfirming = false;
+        clearInput();
+        binding.txtPinTitle.setText(getString(R.string.pin_create_title));
+        binding.txtPinSubtitle.setText(getString(R.string.pin_create_subtitle));
+        binding.btnUnlock.setText(getString(R.string.pin_continue));
+    }
+
+    private void clearInput() {
+        binding.etPin.setText("");
+    }
+
+    private void showForgotPinDialog() {
+        new AlertDialog.Builder(this)
+                .setTitle(R.string.pin_forgot_dialog_title)
+                .setMessage(R.string.pin_forgot_dialog_message)
+                .setPositiveButton(R.string.pin_forgot_confirm, (d, w) -> resetPinAndReLogin())
+                .setNegativeButton(R.string.cancel, null)
+                .show();
+    }
+
+    /**
+     * Clears the stored PIN and sends the user back through phone verification. The PIN can only
+     * be re-created after the account owner proves ownership via OTP, so a forgotten PIN never
+     * lets an unauthorised person bypass the lock.
+     */
+    private void resetPinAndReLogin() {
+        if (mAuth.getCurrentUser() == null) {
+            goToPhoneLogin();
+            return;
+        }
+        String uid = mAuth.getCurrentUser().getUid();
+        showLoading(true);
+        mFirestore.collection("users").document(uid)
+                .set(Collections.singletonMap("pinHash", ""), SetOptions.merge())
+                .addOnSuccessListener(aVoid -> {
+                    showLoading(false);
+                    mAuth.signOut();
+                    goToPhoneLogin();
+                })
+                .addOnFailureListener(e -> {
+                    showLoading(false);
+                    showError("Couldn't reset PIN: " + e.getMessage());
+                });
+    }
+
+    private void goToPhoneLogin() {
+        Intent intent = new Intent(PinSetupActivity.this, PhoneLoginActivity.class);
+        intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+        startActivity(intent);
+        finish();
+    }
+
+    /** Sign out of the current account and return to the login screen to switch users. */
+    private void switchAccount() {
+        mAuth.signOut();
+        Intent intent = new Intent(PinSetupActivity.this, LoginActivity.class);
+        intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+        startActivity(intent);
+        finish();
     }
 
     private void savePinToFirestore(String hash) {
@@ -222,10 +264,7 @@ public class PinSetupActivity extends AppCompatActivity {
                 .addOnFailureListener(e -> {
                     showLoading(false);
                     showError("Failed to configure PIN lock: " + e.getMessage());
-                    enteredPin = "";
-                    isConfirming = false;
-                    updateDots();
-                    binding.txtPinTitle.setText(getString(R.string.pin_create_title));
+                    resetToCreateState();
                 });
     }
 
@@ -265,12 +304,12 @@ public class PinSetupActivity extends AppCompatActivity {
         }
     }
 
-    private void shakeDots() {
+    private void shakeInput() {
         TranslateAnimation shake = new TranslateAnimation(0, 10, 0, 0);
         shake.setDuration(50);
         shake.setRepeatMode(Animation.REVERSE);
         shake.setRepeatCount(5);
-        binding.layoutDots.startAnimation(shake);
+        binding.tilPin.startAnimation(shake);
     }
 
     /** Produce a salted PIN hash in the {@code v2$<saltHex>$<hashHex>} format. */

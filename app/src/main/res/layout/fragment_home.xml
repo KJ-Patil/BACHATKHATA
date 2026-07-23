@@ -349,7 +349,7 @@
                                 android:layout_height="wrap_content"
                                 android:layout_marginTop="2dp"
                                 android:text="₹0.00 left · 0 days"
-                                android:textColor="@color/colorTextSecondary"
+                                android:textColor="@android:color/black"
                                 android:textSize="12sp" />
                         </LinearLayout>
 
