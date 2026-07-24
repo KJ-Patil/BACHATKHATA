@@ -4,10 +4,14 @@ import android.app.AlertDialog;
 import android.content.res.ColorStateList;
 import android.graphics.Color;
 import android.os.Bundle;
+import android.text.InputType;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.EditText;
+import android.widget.FrameLayout;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
@@ -18,15 +22,24 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.bachatkhata.databinding.FragmentBudgetBinding;
+import com.example.bachatkhata.databinding.ItemBucketRollupBinding;
+import com.example.bachatkhata.databinding.ItemBucketSummaryBinding;
 import com.example.bachatkhata.databinding.ItemBudgetBinding;
+import com.example.bachatkhata.databinding.ItemRollupRowBinding;
+import com.example.bachatkhata.domain.BucketConfig;
+import com.example.bachatkhata.domain.BucketType;
+import com.example.bachatkhata.domain.Categories;
+import com.example.bachatkhata.domain.MoneyRule;
 import com.google.android.material.progressindicator.LinearProgressIndicator;
 import com.google.android.material.snackbar.Snackbar;
+import com.google.android.material.tabs.TabLayout;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.FirebaseFirestore;
 
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
@@ -43,6 +56,15 @@ public class BudgetFragment extends Fragment {
     private BudgetAdapter adapter;
     private final List<Budget> budgetsList = new ArrayList<>();
     private final Map<String, Double> spentMap = new HashMap<>();
+    private final List<Transaction> monthExpenses = new ArrayList<>();
+    private final List<Category> categories = new ArrayList<>();
+
+    private static final int TAB_RULE = 0;
+    private static final int TAB_CATEGORY_LIMITS = 1;
+    private static final int TAB_SPENT_VS_INVESTED = 2;
+    private int selectedTab = TAB_RULE;
+
+    private final List<Transaction> monthIncome = new ArrayList<>();
 
     private final SimpleDateFormat monthYearFormat = new SimpleDateFormat("MMMM yyyy", Locale.US);
 
@@ -64,10 +86,66 @@ public class BudgetFragment extends Fragment {
         targetCalendar = Calendar.getInstance();
 
         setupRecyclerView();
+        setupTabs();
         setupListeners();
         observeViewModel();
 
+        if (mAuth.getCurrentUser() != null) {
+            String uid = mAuth.getCurrentUser().getUid();
+            viewModel.loadCategories(uid);
+            // The split drives every allocation on screen, so pull the account's copy before
+            // rendering rather than showing 50/30/20 and correcting it a moment later.
+            MoneyRuleSettings.loadFromFirestore(requireContext(), uid, () -> {
+                if (binding != null) renderRuleTab();
+            });
+        }
+
         loadData();
+    }
+
+    private void setupTabs() {
+        binding.tabBudgetMode.addTab(binding.tabBudgetMode.newTab().setText("Rule Allocations"));
+        binding.tabBudgetMode.addTab(binding.tabBudgetMode.newTab().setText("Category Limits"));
+        binding.tabBudgetMode.addTab(binding.tabBudgetMode.newTab().setText("Spent vs Invested"));
+        binding.tabBudgetMode.setTabMode(TabLayout.MODE_SCROLLABLE);
+
+        binding.tabBudgetMode.addOnTabSelectedListener(new TabLayout.OnTabSelectedListener() {
+            @Override
+            public void onTabSelected(TabLayout.Tab tab) {
+                selectedTab = tab.getPosition();
+                applyTabVisibility();
+            }
+
+            @Override
+            public void onTabUnselected(TabLayout.Tab tab) { }
+
+            @Override
+            public void onTabReselected(TabLayout.Tab tab) { }
+        });
+
+        applyTabVisibility();
+    }
+
+    private void applyTabVisibility() {
+        if (binding == null) return;
+        boolean ruleTab = selectedTab == TAB_RULE;
+        boolean limitsTab = selectedTab == TAB_CATEGORY_LIMITS;
+        boolean investedTab = selectedTab == TAB_SPENT_VS_INVESTED;
+
+        binding.scrollRuleAllocations.setVisibility(ruleTab ? View.VISIBLE : View.GONE);
+        binding.scrollSpentVsInvested.setVisibility(investedTab ? View.VISIBLE : View.GONE);
+        binding.cardBudgetSummary.setVisibility(limitsTab ? View.VISIBLE : View.GONE);
+        binding.btnAddBudget.setVisibility(limitsTab ? View.VISIBLE : View.GONE);
+
+        if (limitsTab) {
+            // Restores the correct list-vs-empty-state split for the category view.
+            updateSummaryAndHealth();
+        } else {
+            binding.rvBudgets.setVisibility(View.GONE);
+            binding.layoutEmptyState.setVisibility(View.GONE);
+            if (ruleTab) renderRuleTab();
+            else renderSpentVsInvestedTab();
+        }
     }
 
     private void setupRecyclerView() {
@@ -96,6 +174,9 @@ public class BudgetFragment extends Fragment {
             ).show(getChildFragmentManager(), "SET_BUDGET");
         };
         binding.btnAddBudget.setOnClickListener(addListener);
+
+        binding.btnEditIncome.setOnClickListener(v -> showEditIncomeDialog());
+        binding.btnEditSplit.setOnClickListener(v -> showEditSplitDialog());
     }
 
     private void loadData() {
@@ -114,6 +195,7 @@ public class BudgetFragment extends Fragment {
             budgetsList.clear();
             budgetsList.addAll(list);
             updateSummaryAndHealth();
+            renderRuleTab(); // category limits roll up into each bucket's allocation
             adapter.notifyDataSetChanged();
         });
 
@@ -123,9 +205,275 @@ public class BudgetFragment extends Fragment {
             updateSummaryAndHealth();
             adapter.notifyDataSetChanged();
         });
+
+        viewModel.getMonthExpenses().observe(getViewLifecycleOwner(), list -> {
+            monthExpenses.clear();
+            monthExpenses.addAll(list);
+            renderRuleTab();
+        });
+
+        viewModel.getCategories().observe(getViewLifecycleOwner(), list -> {
+            categories.clear();
+            categories.addAll(list);
+            renderRuleTab();
+            renderSpentVsInvestedTab();
+        });
+
+        viewModel.getMonthIncome().observe(getViewLifecycleOwner(), list -> {
+            monthIncome.clear();
+            monthIncome.addAll(list);
+            renderSpentVsInvestedTab();
+        });
+    }
+
+    // ── Spent vs Invested tab ───────────────────────────────────────────
+
+    private void renderSpentVsInvestedTab() {
+        if (binding == null || selectedTab != TAB_SPENT_VS_INVESTED) return;
+
+        CurrencyManager cm = CurrencyManager.getInstance();
+        MoneyRule.Result result = MoneyRule.compute(
+                MoneyRuleSettings.getIncome(requireContext()),
+                monthExpenses,
+                targetCalendar.get(Calendar.YEAR),
+                targetCalendar.get(Calendar.MONTH),
+                MoneyRuleSettings.getSplit(requireContext()),
+                null,
+                categories);
+
+        binding.txtTotalConsumed.setText(cm.formatAmount(result.totalConsumed()));
+        binding.txtTotalInvested.setText(cm.formatAmount(result.totalInvested()));
+        binding.txtInvestRate.setText(String.format(Locale.US,
+                "%.1f%% of everything that went out", result.investRate()));
+
+        double returns = 0;
+        for (Transaction t : monthIncome) {
+            if (BucketConfig.isInvestmentIncome(t.getCategory())) returns += t.getAmount();
+        }
+        binding.txtInvestmentReturns.setText(cm.formatAmount(returns));
+
+        // Per-bucket category rollups, largest first.
+        binding.containerRollups.removeAllViews();
+        for (BucketType bucket : BucketType.values()) {
+            binding.containerRollups.addView(buildRollupCard(bucket));
+        }
+    }
+
+    private View buildRollupCard(BucketType bucket) {
+        ItemBucketRollupBinding card = ItemBucketRollupBinding.inflate(
+                getLayoutInflater(), binding.containerRollups, false);
+        CurrencyManager cm = CurrencyManager.getInstance();
+
+        Map<String, Double> perCategory = new HashMap<>();
+        double total = 0;
+        for (Transaction t : monthExpenses) {
+            if (Categories.resolveBucketForCategory(t.getCategory(), categories) != bucket) continue;
+            String name = t.getCategory() != null ? t.getCategory() : "Uncategorised";
+            perCategory.put(name, perCategory.getOrDefault(name, 0.0) + t.getAmount());
+            total += t.getAmount();
+        }
+
+        card.txtRollupTitle.setText(bucket.label());
+        card.txtRollupTotal.setText(cm.formatAmount(total));
+
+        List<Map.Entry<String, Double>> sorted = new ArrayList<>(perCategory.entrySet());
+        Collections.sort(sorted, (a, b) -> Double.compare(b.getValue(), a.getValue()));
+
+        card.txtRollupEmpty.setVisibility(sorted.isEmpty() ? View.VISIBLE : View.GONE);
+        for (Map.Entry<String, Double> entry : sorted) {
+            ItemRollupRowBinding row = ItemRollupRowBinding.inflate(
+                    getLayoutInflater(), card.containerRollupRows, false);
+            row.txtRowCategory.setText(entry.getKey());
+            row.txtRowAmount.setText(cm.formatAmount(entry.getValue()));
+            card.containerRollupRows.addView(row.getRoot());
+        }
+
+        return card.getRoot();
+    }
+
+    // ── Rule Allocations tab ────────────────────────────────────────────
+
+    private void renderRuleTab() {
+        if (binding == null || selectedTab != TAB_RULE) return;
+
+        double income = MoneyRuleSettings.getIncome(requireContext());
+        MoneyRule.Split split = MoneyRuleSettings.getSplit(requireContext());
+
+        binding.txtMonthlyIncome.setText(CurrencyManager.getInstance().formatAmount(income));
+        binding.txtSplitSummary.setText(String.format(Locale.US,
+                "Split %d / %d / %d  ·  Needs / Wants / Investments",
+                split.needs, split.wants, split.investments));
+
+        boolean hasIncome = income > 0;
+        binding.containerBuckets.setVisibility(hasIncome ? View.VISIBLE : View.GONE);
+        binding.layoutIncomeEmptyState.setVisibility(hasIncome ? View.GONE : View.VISIBLE);
+        if (!hasIncome) {
+            binding.containerBuckets.removeAllViews();
+            return;
+        }
+
+        Map<String, Double> limits = new HashMap<>();
+        for (Budget b : budgetsList) {
+            limits.put(b.getCategory(), limits.getOrDefault(b.getCategory(), 0.0) + b.getLimitAmount());
+        }
+
+        MoneyRule.Result result = MoneyRule.compute(
+                income,
+                monthExpenses,
+                targetCalendar.get(Calendar.YEAR),
+                targetCalendar.get(Calendar.MONTH),
+                split,
+                limits,
+                categories);
+
+        binding.containerBuckets.removeAllViews();
+        for (BucketType bucket : BucketType.values()) {
+            binding.containerBuckets.addView(buildBucketCard(bucket, result.get(bucket)));
+        }
+    }
+
+    private View buildBucketCard(BucketType bucket, MoneyRule.BucketSummary summary) {
+        ItemBucketSummaryBinding card = ItemBucketSummaryBinding.inflate(
+                getLayoutInflater(), binding.containerBuckets, false);
+
+        CurrencyManager cm = CurrencyManager.getInstance();
+
+        card.txtBucketName.setText(bucket.label());
+        card.txtBucketSpentVsLimit.setText(String.format(Locale.US, "%s of %s  ·  %.1f%% used",
+                cm.formatAmount(summary.spent), cm.formatAmount(summary.budget), summary.usage));
+        card.progressBucket.setProgress((int) Math.min(summary.usage, 100));
+
+        int statusColor;
+        if (MoneyRule.STATUS_OVER_BUDGET.equals(summary.status)) {
+            statusColor = Color.parseColor("#E24B4A");
+        } else if (MoneyRule.STATUS_NEAR_LIMIT.equals(summary.status)) {
+            statusColor = Color.parseColor("#EF9F27");
+        } else {
+            statusColor = Color.parseColor("#3DAF85");
+        }
+        card.txtBucketStatus.setText(summary.status);
+        card.txtBucketStatus.setBackgroundTintList(ColorStateList.valueOf(statusColor));
+        card.progressBucket.setIndicatorColor(statusColor);
+
+        card.txtBucketAllocation.setText(String.format("Category limits set: %s",
+                cm.formatAmount(summary.allocatedBudget)));
+
+        // Warn when per-category limits promise more than the rule allows — the two views
+        // would otherwise disagree with no explanation.
+        if (summary.isOverAllocated()) {
+            card.txtBucketAllocationWarning.setVisibility(View.VISIBLE);
+            card.txtBucketAllocationWarning.setText(String.format(
+                    "Your category limits exceed this bucket's rule limit by %s.",
+                    cm.formatAmount(summary.allocatedBudget - summary.budget)));
+        } else {
+            card.txtBucketAllocationWarning.setVisibility(View.GONE);
+        }
+
+        return card.getRoot();
+    }
+
+    private void showEditIncomeDialog() {
+        EditText input = new EditText(requireContext());
+        input.setInputType(InputType.TYPE_CLASS_NUMBER | InputType.TYPE_NUMBER_FLAG_DECIMAL);
+        input.setHint("e.g. 50000");
+        double current = MoneyRuleSettings.getIncome(requireContext());
+        if (current > 0) input.setText(String.format(Locale.US, "%.0f", current));
+
+        int pad = (int) (20 * getResources().getDisplayMetrics().density);
+        FrameLayout container = new FrameLayout(requireContext());
+        container.setPadding(pad, pad / 2, pad, 0);
+        container.addView(input);
+
+        new AlertDialog.Builder(requireContext())
+                .setTitle("Monthly take-home income")
+                .setMessage("Used to work out your Needs / Wants / Investments allocations.")
+                .setView(container)
+                .setPositiveButton("Save", (d, which) -> {
+                    String raw = input.getText().toString().trim();
+                    double value;
+                    try {
+                        value = raw.isEmpty() ? 0 : Double.parseDouble(raw);
+                    } catch (NumberFormatException e) {
+                        Snackbar.make(binding.getRoot(), "Enter a valid amount", Snackbar.LENGTH_SHORT).show();
+                        return;
+                    }
+                    String uid = mAuth.getCurrentUser() != null ? mAuth.getCurrentUser().getUid() : null;
+                    MoneyRuleSettings.setIncome(requireContext(), uid, value);
+                    renderRuleTab();
+                })
+                .setNegativeButton("Cancel", null)
+                .show();
+    }
+
+    private void showEditSplitDialog() {
+        MoneyRule.Split current = MoneyRuleSettings.getSplit(requireContext());
+
+        LinearLayout layout = new LinearLayout(requireContext());
+        layout.setOrientation(LinearLayout.VERTICAL);
+        int pad = (int) (20 * getResources().getDisplayMetrics().density);
+        layout.setPadding(pad, pad / 2, pad, 0);
+
+        EditText needsInput = splitField("Needs %", current.needs);
+        EditText wantsInput = splitField("Wants %", current.wants);
+        EditText investInput = splitField("Investments %", current.investments);
+        layout.addView(needsInput);
+        layout.addView(wantsInput);
+        layout.addView(investInput);
+
+        AlertDialog dialog = new AlertDialog.Builder(requireContext())
+                .setTitle("Adjust your split")
+                .setMessage("The three percentages must add up to exactly 100.")
+                .setView(layout)
+                .setPositiveButton("Save", null) // bound below so it can stay open on error
+                .setNeutralButton("Reset to 50/30/20", (d, which) -> {
+                    String uid = mAuth.getCurrentUser() != null ? mAuth.getCurrentUser().getUid() : null;
+                    MoneyRuleSettings.setSplit(requireContext(), uid, MoneyRule.Split.defaultSplit());
+                    renderRuleTab();
+                })
+                .setNegativeButton("Cancel", null)
+                .create();
+
+        dialog.setOnShowListener(d -> dialog.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener(v -> {
+            MoneyRule.Split entered = new MoneyRule.Split(
+                    parseIntOrZero(needsInput), parseIntOrZero(wantsInput), parseIntOrZero(investInput));
+
+            if (!entered.isValid()) {
+                Snackbar.make(binding.getRoot(),
+                        "Percentages add up to " + entered.total() + "%, they must total 100%",
+                        Snackbar.LENGTH_LONG).show();
+                return;
+            }
+            String uid = mAuth.getCurrentUser() != null ? mAuth.getCurrentUser().getUid() : null;
+            MoneyRuleSettings.setSplit(requireContext(), uid, entered);
+            renderRuleTab();
+            dialog.dismiss();
+        }));
+
+        dialog.show();
+    }
+
+    private EditText splitField(String hint, int value) {
+        EditText field = new EditText(requireContext());
+        field.setInputType(InputType.TYPE_CLASS_NUMBER);
+        field.setHint(hint);
+        field.setText(String.valueOf(value));
+        return field;
+    }
+
+    private int parseIntOrZero(EditText field) {
+        try {
+            String raw = field.getText().toString().trim();
+            return raw.isEmpty() ? 0 : Integer.parseInt(raw);
+        } catch (NumberFormatException e) {
+            return 0;
+        }
     }
 
     private void updateSummaryAndHealth() {
+        if (binding == null) return;
+        // This owns the category-tab views; on the rule tab it must not fight applyTabVisibility.
+        if (selectedTab == TAB_RULE) return;
+
         double totalLimit = 0;
         double totalSpent = 0;
 

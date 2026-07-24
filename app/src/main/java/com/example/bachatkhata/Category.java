@@ -13,6 +13,16 @@ public class Category implements Serializable {
     private String color; // hex color string
     private String type; // "income" or "expense"
     private boolean isDefault;
+    /**
+     * Archived categories are hidden from pickers but still resolve for reporting — old
+     * transactions keep their category name and their history must stay classified.
+     */
+    private boolean archived;
+    /**
+     * Expense-only 50/30/20 bucket: "needs" | "wants" | "investments".
+     * Null on categories created before buckets existed; {@link BucketConfig} falls back.
+     */
+    private String bucket;
 
     public Category() {
         // Required empty public constructor for Firestore
@@ -87,6 +97,26 @@ public class Category implements Serializable {
         this.isDefault = isDefault;
     }
 
+    @PropertyName("archived")
+    public boolean getArchived() {
+        return archived;
+    }
+
+    @PropertyName("archived")
+    public void setArchived(boolean archived) {
+        this.archived = archived;
+    }
+
+    @PropertyName("bucket")
+    public String getBucket() {
+        return bucket;
+    }
+
+    @PropertyName("bucket")
+    public void setBucket(String bucket) {
+        this.bucket = bucket;
+    }
+
     public static Category fromDocument(DocumentSnapshot doc) {
         Category c = new Category();
         c.setId(doc.getString("id"));
@@ -96,6 +126,9 @@ public class Category implements Serializable {
         c.setType(doc.getString("type"));
         Boolean isDef = doc.getBoolean("isDefault");
         c.setIsDefault(isDef != null ? isDef : false);
+        Boolean arch = doc.getBoolean("archived");
+        c.setArchived(arch != null ? arch : false);
+        c.setBucket(doc.getString("bucket"));
         return c;
     }
 }

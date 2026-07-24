@@ -133,6 +133,12 @@ public class ProfileFragment extends Fragment {
         binding.rowLockTimeout.setOnClickListener(v -> showLockTimeoutDialog());
         binding.rowCloudBackup.setOnClickListener(v ->
                 startActivity(new Intent(getContext(), CloudBackupActivity.class)));
+        binding.rowSmsGateway.setOnClickListener(v ->
+                startActivity(new Intent(getContext(), SmsGatewayActivity.class)));
+        binding.rowHelp.setOnClickListener(v ->
+                startActivity(new Intent(getContext(), HelpActivity.class)));
+        binding.rowAbout.setOnClickListener(v ->
+                startActivity(new Intent(getContext(), AboutActivity.class)));
         binding.rowClearData.setOnClickListener(v -> confirmClearData());
 
         binding.rowSetupPin.setOnClickListener(v -> {
@@ -743,7 +749,60 @@ public class ProfileFragment extends Fragment {
         new Handler(Looper.getMainLooper()).postDelayed(finalize, 4000);
     }
 
+    /**
+     * Firestore queues writes made while offline and replays them when connectivity returns.
+     * Signing out tears that queue down, so anything still unacknowledged is lost silently —
+     * a transaction added in airplane mode simply disappears. Wait for the queue to drain
+     * first, and if it won't drain, say so instead of discarding the writes quietly.
+     */
     private void logoutUser() {
+        BaseActivity activity = (BaseActivity) getActivity();
+        if (activity == null) {
+            performSignOut();
+            return;
+        }
+        activity.showLoadingDialog();
+
+        final boolean[] settled = {false};
+        Handler handler = new Handler(Looper.getMainLooper());
+
+        // The wait never resolves while offline, so it needs a bound of its own.
+        Runnable onTimeout = () -> {
+            if (settled[0]) return;
+            settled[0] = true;
+            activity.hideLoadingDialog();
+            confirmSignOutWithUnsyncedWrites();
+        };
+        handler.postDelayed(onTimeout, 5000);
+
+        FirebaseFirestore.getInstance().waitForPendingWrites()
+                .addOnCompleteListener(task -> {
+                    if (settled[0]) return;
+                    settled[0] = true;
+                    handler.removeCallbacks(onTimeout);
+                    activity.hideLoadingDialog();
+                    if (task.isSuccessful()) {
+                        performSignOut();
+                    } else {
+                        confirmSignOutWithUnsyncedWrites();
+                    }
+                });
+    }
+
+    private void confirmSignOutWithUnsyncedWrites() {
+        if (getContext() == null) {
+            performSignOut();
+            return;
+        }
+        new AlertDialog.Builder(getContext())
+                .setTitle(R.string.logout_unsynced_title)
+                .setMessage(R.string.logout_unsynced_message)
+                .setPositiveButton(R.string.logout_unsynced_confirm, (d, which) -> performSignOut())
+                .setNegativeButton(R.string.logout_unsynced_cancel, null)
+                .show();
+    }
+
+    private void performSignOut() {
         mAuth.signOut();
         GoogleSignInOptions gso = new GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN).build();
         GoogleSignInClient client = GoogleSignIn.getClient(requireActivity(), gso);

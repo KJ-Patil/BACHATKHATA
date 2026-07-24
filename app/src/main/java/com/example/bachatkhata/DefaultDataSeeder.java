@@ -1,5 +1,6 @@
 package com.example.bachatkhata;
 
+import com.example.bachatkhata.domain.BucketType;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.firebase.firestore.CollectionReference;
@@ -33,6 +34,15 @@ public class DefaultDataSeeder {
         addCategoryToBatch(batch, catColRef, "Gifts", "🎁", "#ED93B1", "expense");
         addCategoryToBatch(batch, catColRef, "Other", "📦", "#B4B2A9", "expense");
 
+        // Categories the app writes on the user's behalf when a savings goal is topped up.
+        // Seeded so those rows render with a real icon and colour instead of a placeholder.
+        addCategoryToBatch(batch, catColRef, "Investment", "📈", "#1D9E75", "expense",
+                BucketType.INVESTMENTS.key());
+        addCategoryToBatch(batch, catColRef, "Savings (Needs)", "🏦", "#3B82F6", "expense",
+                BucketType.NEEDS.key());
+        addCategoryToBatch(batch, catColRef, "Savings (Wants)", "🐖", "#F0997B", "expense",
+                BucketType.WANTS.key());
+
         // Seed 3 Income Categories
         addCategoryToBatch(batch, catColRef, "Salary", "💰", "#1D9E75", "income");
         addCategoryToBatch(batch, catColRef, "Freelance", "💻", "#5DCAA5", "income");
@@ -49,6 +59,14 @@ public class DefaultDataSeeder {
     }
 
     private static void addCategoryToBatch(WriteBatch batch, CollectionReference col, String name, String icon, String color, String type) {
+        addCategoryToBatch(batch, col, name, icon, color, type, null);
+    }
+
+    /**
+     * @param bucket 50/30/20 bucket key, or null to let {@code Categories.resolveBucketForCategory}
+     *               fall back to the built-in map — which is what the 12 defaults rely on.
+     */
+    private static void addCategoryToBatch(WriteBatch batch, CollectionReference col, String name, String icon, String color, String type, String bucket) {
         DocumentReference docRef = col.document();
         Map<String, Object> category = new HashMap<>();
         category.put("id", docRef.getId());
@@ -57,6 +75,8 @@ public class DefaultDataSeeder {
         category.put("color", color);
         category.put("type", type);
         category.put("isDefault", true);
+        category.put("archived", false);
+        category.put("bucket", bucket);
         batch.set(docRef, category);
     }
 

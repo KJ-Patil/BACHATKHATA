@@ -21,6 +21,7 @@ import androidx.activity.result.contract.ActivityResultContracts;
 
 import com.google.android.gms.tasks.OnFailureListener;
 import com.example.bachatkhata.databinding.ActivityAddTransactionBinding;
+import com.example.bachatkhata.domain.Discounts;
 import com.google.android.material.datepicker.MaterialDatePicker;
 import com.google.android.material.snackbar.Snackbar;
 import com.google.firebase.Timestamp;
@@ -57,6 +58,9 @@ public class AddTransactionActivity extends BaseActivity {
 
     private String groupId = null;
     private String groupName = null;
+
+    /** Whether the discount row is showing. Collapsed by default. */
+    private boolean discountExpanded = false;
 
     private ActivityResultLauncher<String> requestRecordAudioLauncher;
     private VoiceLoggingHelper voiceLoggingHelper;
@@ -126,6 +130,7 @@ public class AddTransactionActivity extends BaseActivity {
         binding.txtCurrencySymbolLarge.setText(userCurrencySymbol);
 
         setupToggleGroup();
+        setupDiscountSection();
         setupCategoryRecyclerView();
         setupDatePicker();
         setupAccountPicker();
@@ -165,8 +170,108 @@ public class AddTransactionActivity extends BaseActivity {
                 binding.etAmount.setTextColor(Color.parseColor("#E24B4A"));
                 binding.txtCurrencySymbolLarge.setTextColor(Color.parseColor("#E24B4A"));
             }
+            // Buckets aside, a discount only makes sense on money going out.
+            // Switching to Income hides and resets it so a stale value can't be saved.
+            applyDiscountVisibility();
             loadCategories();
         });
+    }
+
+    // ── Discount ────────────────────────────────────────────────────────────
+
+    private void setupDiscountSection() {
+        binding.toggleDiscountMode.check(R.id.btnDiscountPercent);
+
+        binding.btnToggleDiscount.setOnClickListener(v -> {
+            discountExpanded = !discountExpanded;
+            if (!discountExpanded) {
+                binding.etDiscount.setText(""); // collapsing clears, never hides a live value
+            }
+            applyDiscountVisibility();
+        });
+
+        binding.toggleDiscountMode.addOnButtonCheckedListener((group, checkedId, isChecked) -> {
+            if (isChecked) renderDiscountSummary();
+        });
+
+        binding.etAmount.addTextChangedListener(new SimpleTextWatcher(this::renderDiscountSummary));
+        binding.etDiscount.addTextChangedListener(new SimpleTextWatcher(this::renderDiscountSummary));
+
+        applyDiscountVisibility();
+    }
+
+    private void applyDiscountVisibility() {
+        boolean isExpense = "expense".equals(transactionType);
+        if (!isExpense) {
+            discountExpanded = false;
+            binding.etDiscount.setText("");
+        }
+        binding.btnToggleDiscount.setVisibility(isExpense ? View.VISIBLE : View.GONE);
+        binding.layoutDiscount.setVisibility(isExpense && discountExpanded ? View.VISIBLE : View.GONE);
+        binding.btnToggleDiscount.setText(discountExpanded
+                ? R.string.discount_remove : R.string.discount_add);
+        renderDiscountSummary();
+    }
+
+    /** Current discount as typed, already clamped. Null when none applies. */
+    private Discounts.Result currentDiscount() {
+        if (!"expense".equals(transactionType) || !discountExpanded) return null;
+
+        double gross = parseAmountOrZero(binding.etAmount.getText().toString());
+        double raw = parseAmountOrZero(binding.etDiscount.getText().toString());
+        if (gross <= 0 || raw <= 0) return null;
+
+        Discounts.Mode mode = binding.toggleDiscountMode.getCheckedButtonId() == R.id.btnDiscountFlat
+                ? Discounts.Mode.FLAT : Discounts.Mode.PERCENT;
+        Discounts.Result result = Discounts.apply(gross, raw, mode);
+        return result.hasDiscount() ? result : null;
+    }
+
+    private void renderDiscountSummary() {
+        if (binding.layoutDiscount.getVisibility() != View.VISIBLE) {
+            binding.txtDiscountSummary.setVisibility(View.GONE);
+            return;
+        }
+
+        Discounts.Result result = currentDiscount();
+        if (result == null) {
+            binding.txtDiscountSummary.setVisibility(View.GONE);
+            return;
+        }
+
+        CurrencyManager currency = CurrencyManager.getInstance();
+        binding.txtDiscountSummary.setText(getString(R.string.discount_summary,
+                currency.formatAmount(result.discount), currency.formatAmount(result.net)));
+        binding.txtDiscountSummary.setVisibility(View.VISIBLE);
+    }
+
+    private static double parseAmountOrZero(String raw) {
+        if (raw == null) return 0;
+        try {
+            return Double.parseDouble(raw.trim());
+        } catch (NumberFormatException e) {
+            return 0;
+        }
+    }
+
+    /** Minimal TextWatcher that only needs the "changed" callback. */
+    private static class SimpleTextWatcher implements android.text.TextWatcher {
+        private final Runnable onChanged;
+
+        SimpleTextWatcher(Runnable onChanged) {
+            this.onChanged = onChanged;
+        }
+
+        @Override
+        public void beforeTextChanged(CharSequence s, int start, int count, int after) { }
+
+        @Override
+        public void onTextChanged(CharSequence s, int start, int before, int count) { }
+
+        @Override
+        public void afterTextChanged(android.text.Editable s) {
+            onChanged.run();
+        }
     }
 
     private void setupCategoryRecyclerView() {
@@ -246,7 +351,9 @@ public class AddTransactionActivity extends BaseActivity {
                     } else {
                         availableCategories.clear();
                         for (DocumentSnapshot doc : queryDocumentSnapshots.getDocuments()) {
-                            availableCategories.add(Category.fromDocument(doc));
+                            Category c = Category.fromDocument(doc);
+                            if (c.getArchived()) continue; // hidden from pickers
+                            availableCategories.add(c);
                         }
                         categoryGridAdapter.setCategories(availableCategories);
                         selectedCategory = null;
@@ -284,15 +391,15 @@ public class AddTransactionActivity extends BaseActivity {
             return;
         }
 
-        double amount;
+        double typedAmount;
         try {
-            amount = Double.parseDouble(amountStr);
+            typedAmount = Double.parseDouble(amountStr);
         } catch (NumberFormatException e) {
             showError(getString(R.string.err_invalid_amount));
             return;
         }
 
-        if (amount <= 0) {
+        if (typedAmount <= 0) {
             showError(getString(R.string.err_invalid_amount));
             return;
         }
@@ -301,6 +408,12 @@ public class AddTransactionActivity extends BaseActivity {
             showError(getString(R.string.err_select_category));
             return;
         }
+
+        // With a discount applied, the figure typed is the PRE-discount price and
+        // the net is what hits the ledger. Everything downstream — budgets, the
+        // 50/30/20 rollups, analytics — reads `amount`, so it must be the net.
+        final Discounts.Result discount = currentDiscount();
+        final double amount = discount != null ? discount.net : typedAmount;
 
         String note = binding.etNote.getText().toString().trim();
 
@@ -322,6 +435,11 @@ public class AddTransactionActivity extends BaseActivity {
                 userCurrencySymbol,
                 Timestamp.now()
         );
+
+        if (discount != null) {
+            transaction.setOriginalAmount(discount.gross);
+            transaction.setDiscountAmount(discount.discount);
+        }
 
         if (groupId != null && "expense".equals(transactionType)) {
             mFirestore.collection("groups").document(groupId).get()
@@ -642,7 +760,9 @@ public class AddTransactionActivity extends BaseActivity {
                             .addOnSuccessListener(queryDocumentSnapshots -> {
                                 availableCategories.clear();
                                 for (DocumentSnapshot doc : queryDocumentSnapshots.getDocuments()) {
-                                    availableCategories.add(Category.fromDocument(doc));
+                                    Category c = Category.fromDocument(doc);
+                                    if (c.getArchived()) continue; // hidden from pickers
+                                    availableCategories.add(c);
                                 }
                                 categoryGridAdapter.setCategories(availableCategories);
                                 categoryGridAdapter.setSelectedCategoryByName(categoryName);

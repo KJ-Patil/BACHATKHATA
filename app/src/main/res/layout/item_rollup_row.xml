@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:paddingVertical="6dp">
+
+    <TextView
+        android:id="@+id/txtRowCategory"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentStart="true"
+        android:layout_toStartOf="@+id/txtRowAmount"
+        android:ellipsize="end"
+        android:maxLines="1"
+        android:text="Category"
+        android:textColor="@color/colorTextSecondary"
+        android:textSize="13sp" />
+
+    <TextView
+        android:id="@+id/txtRowAmount"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentEnd="true"
+        android:text="₹0"
+        android:textColor="@color/colorTextPrimary"
+        android:textSize="13sp" />
+</RelativeLayout>

@@ -103,6 +103,7 @@ public class SubmitClaimBottomSheet extends BottomSheetDialogFragment {
                     if (binding == null) return;
                     binding.chipGroupCategory.removeAllViews();
                     for (DocumentSnapshot doc : queryDocumentSnapshots.getDocuments()) {
+                        if (Boolean.TRUE.equals(doc.getBoolean("archived"))) continue; // hidden from pickers
                         String catName = doc.getString("name");
                         if (catName != null) {
                             Chip chip = (Chip) LayoutInflater.from(getContext())

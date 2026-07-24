@@ -18,6 +18,7 @@ public class SavingsGoal implements Serializable {
     private String currency;
     private Timestamp deadline;
     private Timestamp createdAt;
+    private String bucket; // "needs" | "wants" | "investments"; null = legacy
 
     public SavingsGoal() {
         // Required empty public constructor for Firestore
@@ -114,6 +115,19 @@ public class SavingsGoal implements Serializable {
         this.createdAt = createdAt;
     }
 
+    /**
+     * Which 50/30/20 bucket this goal's <em>deposits</em> count toward: a phone fund is a
+     * want, an emergency fund an investment. Null on goals created before the tag existed;
+     * those fall back to investments, the original behaviour.
+     */
+    public String getBucket() {
+        return bucket;
+    }
+
+    public void setBucket(String bucket) {
+        this.bucket = bucket;
+    }
+
     public Map<String, Object> toMap() {
         Map<String, Object> map = new HashMap<>();
         map.put("id", id);
@@ -124,6 +138,7 @@ public class SavingsGoal implements Serializable {
         map.put("currency", currency);
         map.put("deadline", deadline);
         map.put("createdAt", createdAt);
+        map.put("bucket", bucket);
         return map;
     }
 
@@ -142,6 +157,7 @@ public class SavingsGoal implements Serializable {
         g.setCurrency(doc.getString("currency"));
         g.setDeadline(doc.getTimestamp("deadline"));
         g.setCreatedAt(doc.getTimestamp("createdAt"));
+        g.setBucket(doc.getString("bucket"));
         return g;
     }
 }

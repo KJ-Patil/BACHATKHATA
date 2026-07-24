@@ -104,7 +104,9 @@ public class SetBudgetBottomSheet extends BottomSheetDialogFragment {
                     }
                     expenseCategories.clear();
                     for (DocumentSnapshot doc : queryDocumentSnapshots.getDocuments()) {
-                        expenseCategories.add(Category.fromDocument(doc));
+                        Category c = Category.fromDocument(doc);
+                        if (c.getArchived()) continue; // hidden from pickers
+                        expenseCategories.add(c);
                     }
                     chipAdapter.notifyDataSetChanged();
 

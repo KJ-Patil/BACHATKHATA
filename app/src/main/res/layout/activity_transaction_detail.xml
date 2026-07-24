@@ -208,6 +208,52 @@
                                 android:textStyle="bold" />
                         </RelativeLayout>
 
+                        <!-- Discount breakdown: only present when one was applied,
+                             so the row set is unchanged for ordinary transactions. -->
+                        <LinearLayout
+                            android:id="@+id/layoutDiscountDetail"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:orientation="vertical"
+                            android:visibility="gone">
+
+                            <RelativeLayout
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:layout_marginBottom="16dp">
+                                <TextView
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:text="@string/discount_detail_original"
+                                    android:textColor="@color/colorTextSecondary" />
+                                <TextView
+                                    android:id="@+id/txtDetailOriginalAmount"
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:layout_alignParentEnd="true"
+                                    android:textColor="@color/colorTextSecondary"
+                                    android:textStyle="bold" />
+                            </RelativeLayout>
+
+                            <RelativeLayout
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:layout_marginBottom="16dp">
+                                <TextView
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:text="@string/discount_detail_saved"
+                                    android:textColor="@color/colorTextSecondary" />
+                                <TextView
+                                    android:id="@+id/txtDetailDiscountAmount"
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:layout_alignParentEnd="true"
+                                    android:textColor="@color/colorSuccess"
+                                    android:textStyle="bold" />
+                            </RelativeLayout>
+                        </LinearLayout>
+
                         <!-- Note -->
                         <LinearLayout
                             android:layout_width="match_parent"

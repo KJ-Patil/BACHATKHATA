@@ -20,6 +20,8 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.example.bachatkhata.databinding.ActivitySavingsDetailBinding;
 import com.example.bachatkhata.databinding.ItemCategoryGridCellBinding;
 import com.example.bachatkhata.databinding.ItemDepositHistoryBinding;
+import com.example.bachatkhata.domain.BucketConfig;
+import com.example.bachatkhata.domain.BucketType;
 import com.google.android.material.datepicker.MaterialDatePicker;
 import com.google.android.material.snackbar.Snackbar;
 import com.google.firebase.Timestamp;
@@ -297,6 +299,8 @@ public class SavingsDetailActivity extends BaseActivity {
                             .collection("savings_goals").document(goal.getId())
                             .collection("transactions").add(transaction);
 
+                    logDepositToLedger(uid, amount);
+
                     // Add Notification
                     saveNotificationToFirestore(
                             "Funds Added",
@@ -314,6 +318,35 @@ public class SavingsDetailActivity extends BaseActivity {
                     showLoading(false);
                     showError("Failed to update savings: " + e.getMessage());
                 });
+    }
+
+    /**
+     * Mirrors a goal deposit into the main ledger as an expense, under the category that
+     * matches the goal's bucket. Without this the money leaves your spendable balance but
+     * appears nowhere in totals, budgets or the Budgeting Rule — a phone fund would look
+     * free, and an emergency fund wouldn't count as investing.
+     *
+     * <p>Goals with no bucket set fall back to "Investment", exactly as before.
+     */
+    private void logDepositToLedger(String uid, double amount) {
+        String category = BucketConfig.savingsDepositCategory(BucketType.fromKey(goal.getBucket()));
+
+        Transaction t = new Transaction();
+        t.setAmount(amount);
+        t.setType("expense");
+        t.setCategory(category);
+        t.setNote("Deposit to " + goal.getName());
+        t.setDate(new java.util.Date());
+        t.setAccount("Savings");
+        t.setCurrency(CurrencyManager.getInstance().getCurrentCurrencyCode());
+        t.setCurrencySymbol(CurrencyManager.getInstance().getCurrentCurrencySymbol());
+        t.setSource("savings");
+        t.setCreatedAt(Timestamp.now());
+
+        TransactionRepository.getInstance().addTransaction(uid, t,
+                aVoid -> { /* balance and reports pick it up on their next read */ },
+                e -> showError("Deposit saved, but it couldn't be added to your ledger: "
+                        + e.getLocalizedMessage()));
     }
 
     private void saveGoalChanges() {

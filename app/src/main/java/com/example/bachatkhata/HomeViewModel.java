@@ -50,6 +50,8 @@ public class HomeViewModel extends ViewModel {
     private final FirebaseFirestore mFirestore = FirebaseFirestore.getInstance();
     private ListenerRegistration savingsListener;
     private final List<Transaction> allTransactionsList = new ArrayList<>();
+    private final MutableLiveData<List<Transaction>> allTransactions = new MutableLiveData<>(new ArrayList<>());
+    private final MutableLiveData<List<Category>> categories = new MutableLiveData<>(new ArrayList<>());
 
     public LiveData<Double> getTotalIncome() { return totalIncome; }
     public LiveData<Double> getTotalSpent() { return totalSpent; }
@@ -66,6 +68,21 @@ public class HomeViewModel extends ViewModel {
     public LiveData<List<String>> getBarSpentLabels() { return barSpentLabels; }
     public LiveData<String> getChartMode() { return chartMode; }
     public LiveData<String> getSelectedPeriod() { return selectedPeriod; }
+    public LiveData<List<Transaction>> getAllTransactions() { return allTransactions; }
+    public LiveData<List<Category>> getCategories() { return categories; }
+
+    /** Categories are needed to resolve each expense to its 50/30/20 bucket. */
+    public void loadCategories(String uid) {
+        mFirestore.collection("users").document(uid).collection("categories")
+                .get()
+                .addOnSuccessListener(snapshots -> {
+                    List<Category> list = new ArrayList<>();
+                    for (com.google.firebase.firestore.DocumentSnapshot doc : snapshots.getDocuments()) {
+                        list.add(Category.fromDocument(doc));
+                    }
+                    categories.setValue(list);
+                });
+    }
 
     public void changeChartMode(String mode) {
         chartMode.setValue(mode);
@@ -78,6 +95,7 @@ public class HomeViewModel extends ViewModel {
         TransactionRepository.getInstance().observeTransactions(uid, list -> {
             allTransactionsList.clear();
             allTransactionsList.addAll(list);
+            allTransactions.setValue(new ArrayList<>(allTransactionsList));
             processAndEmitData(period);
             recomputeSafeToSpend();
         });

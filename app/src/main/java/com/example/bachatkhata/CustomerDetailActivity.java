@@ -9,6 +9,8 @@ import android.graphics.Paint;
 import android.graphics.Typeface;
 import android.graphics.pdf.PdfDocument;
 import android.net.Uri;
+
+import com.example.bachatkhata.domain.ReminderService;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -37,8 +39,6 @@ import com.google.firebase.firestore.WriteBatch;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.UnsupportedEncodingException;
-import java.net.URLEncoder;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
@@ -288,40 +288,35 @@ public class CustomerDetailActivity extends BaseActivity {
                 });
     }
 
+    /**
+     * Opens the reminder composer. The relation follows the ledger balance: a
+     * positive balance is money owed TO the user (a request to pay), a negative
+     * one is money the user owes (an acknowledgement). A settled account has
+     * nothing to chase, so it says so rather than sending an empty nudge.
+     */
     private void sendWhatsAppReminder() {
         String phone = customer.getPhone();
-        if (phone == null || phone.trim().isEmpty()) return;
-
-        String cleanPhone = phone.replaceAll("[^0-9]", "");
-        if (cleanPhone.length() == 10) {
-            cleanPhone = "91" + cleanPhone;
+        if (phone == null || phone.trim().isEmpty()) {
+            showError(getString(R.string.reminder_no_phone));
+            return;
         }
 
         double balance = customer.getBalance();
-        String text;
-        if (balance > 0) {
-            text = String.format(Locale.US,
-                    "Hello %s, this is a friendly reminder that a pending balance of %s is due. Please settle it soon. Thank you!",
-                    customer.getName(),
-                    CurrencyManager.getInstance().formatAmount(balance)
-            );
-        } else if (balance < 0) {
-            text = String.format(Locale.US,
-                    "Hello %s, please share your details so I can clear the pending balance of %s that I owe you. Thank you!",
-                    customer.getName(),
-                    CurrencyManager.getInstance().formatAmount(Math.abs(balance))
-            );
-        } else {
-            text = String.format(Locale.US, "Hello %s, our ledger balance is currently settled. Thank you!", customer.getName());
+        if (balance == 0) {
+            showSnackbar(getString(R.string.reminder_balance_settled), "INFO");
+            return;
         }
 
-        try {
-            Uri uri = Uri.parse("https://wa.me/" + cleanPhone + "?text=" + URLEncoder.encode(text, "UTF-8"));
-            Intent intent = new Intent(Intent.ACTION_VIEW, uri);
-            startActivity(intent);
-        } catch (UnsupportedEncodingException e) {
-            e.printStackTrace();
-        }
+        ReminderService.Relation relation = balance > 0
+                ? ReminderService.Relation.CREDIT
+                : ReminderService.Relation.DEBIT;
+
+        FlashReminderBottomSheet.newInstance(
+                        customer.getName(),
+                        phone,
+                        CurrencyManager.getInstance().formatAmount(Math.abs(balance)),
+                        relation)
+                .show(getSupportFragmentManager(), "FlashReminderBottomSheet");
     }
 
     private void generatePdfStatement() {

@@ -45,6 +45,269 @@
             android:src="@drawable/ic_chevron_right" />
     </LinearLayout>
 
+    <!-- Tab selector: Rule Allocations vs Category Limits. Both share the month switcher. -->
+    <com.google.android.material.tabs.TabLayout
+        android:id="@+id/tabBudgetMode"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        app:layout_constraintTop_toBottomOf="@+id/layoutMonthSwitcher"
+        app:tabGravity="fill"
+        app:tabIndicatorColor="@color/colorPrimary"
+        app:tabMode="fixed"
+        app:tabSelectedTextColor="@color/colorPrimary"
+        app:tabTextColor="@color/colorTextSecondary" />
+
+    <!-- ══ Tab 1: Rule Allocations ══ -->
+    <ScrollView
+        android:id="@+id/scrollRuleAllocations"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:clipToPadding="false"
+        android:paddingBottom="16dp"
+        android:visibility="gone"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/tabBudgetMode">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
+
+            <!-- Monthly take-home income -->
+            <com.google.android.material.card.MaterialCardView
+                style="@style/ClayCard"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="20dp"
+                android:layout_marginTop="16dp"
+                android:layout_marginEnd="20dp">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:padding="20dp">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Monthly take-home income"
+                        android:textColor="@color/colorTextSecondary"
+                        android:textSize="13sp" />
+
+                    <RelativeLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="4dp">
+
+                        <TextView
+                            android:id="@+id/txtMonthlyIncome"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_centerVertical="true"
+                            android:text="₹0"
+                            android:textColor="@color/colorTextPrimary"
+                            android:textSize="24sp"
+                            android:textStyle="bold" />
+
+                        <com.google.android.material.button.MaterialButton
+                            android:id="@+id/btnEditIncome"
+                            style="@style/Widget.MaterialComponents.Button.TextButton"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_alignParentEnd="true"
+                            android:layout_centerVertical="true"
+                            android:text="Edit"
+                            android:textColor="@color/colorPrimary" />
+                    </RelativeLayout>
+
+                    <TextView
+                        android:id="@+id/txtSplitSummary"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="8dp"
+                        android:text="Split 50 / 30 / 20"
+                        android:textColor="@color/colorTextSecondary"
+                        android:textSize="13sp" />
+
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/btnEditSplit"
+                        style="@style/Widget.MaterialComponents.Button.TextButton"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="-8dp"
+                        android:text="Adjust split"
+                        android:textColor="@color/colorPrimary" />
+                </LinearLayout>
+            </com.google.android.material.card.MaterialCardView>
+
+            <!-- One card per bucket, inflated at runtime -->
+            <LinearLayout
+                android:id="@+id/containerBuckets"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical" />
+
+            <!-- Shown instead of the bucket cards when no income is set -->
+            <LinearLayout
+                android:id="@+id/layoutIncomeEmptyState"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="center"
+                android:orientation="vertical"
+                android:padding="32dp"
+                android:visibility="gone">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:gravity="center"
+                    android:text="Set your monthly income"
+                    android:textColor="@color/colorTextPrimary"
+                    android:textSize="18sp"
+                    android:textStyle="bold" />
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="8dp"
+                    android:gravity="center"
+                    android:text="The 50/30/20 rule splits your take-home pay across Needs, Wants and Investments. Add your income to see how this month measures up."
+                    android:textColor="@color/colorTextSecondary"
+                    android:textSize="14sp" />
+            </LinearLayout>
+        </LinearLayout>
+    </ScrollView>
+
+    <!-- ══ Tab 3: Spent vs Invested ══ -->
+    <ScrollView
+        android:id="@+id/scrollSpentVsInvested"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:clipToPadding="false"
+        android:paddingBottom="16dp"
+        android:visibility="gone"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/tabBudgetMode">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
+
+            <com.google.android.material.card.MaterialCardView
+                style="@style/ClayCard"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="20dp"
+                android:layout_marginTop="16dp"
+                android:layout_marginEnd="20dp">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:padding="20dp">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Total spent"
+                        android:textColor="@color/colorTextSecondary"
+                        android:textSize="13sp" />
+
+                    <TextView
+                        android:id="@+id/txtTotalConsumed"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="₹0"
+                        android:textColor="@color/colorTextPrimary"
+                        android:textSize="22sp"
+                        android:textStyle="bold" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="2dp"
+                        android:text="Needs + Wants"
+                        android:textColor="@color/colorTextSecondary"
+                        android:textSize="12sp" />
+
+                    <View
+                        android:layout_width="match_parent"
+                        android:layout_height="1dp"
+                        android:layout_marginVertical="16dp"
+                        android:background="@color/colorCardBorder" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Total invested"
+                        android:textColor="@color/colorTextSecondary"
+                        android:textSize="13sp" />
+
+                    <TextView
+                        android:id="@+id/txtTotalInvested"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="₹0"
+                        android:textColor="@color/colorSecondary"
+                        android:textSize="22sp"
+                        android:textStyle="bold" />
+
+                    <TextView
+                        android:id="@+id/txtInvestRate"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="2dp"
+                        android:text="0% of everything that went out"
+                        android:textColor="@color/colorTextSecondary"
+                        android:textSize="12sp" />
+
+                    <View
+                        android:layout_width="match_parent"
+                        android:layout_height="1dp"
+                        android:layout_marginVertical="16dp"
+                        android:background="@color/colorCardBorder" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Investment returns"
+                        android:textColor="@color/colorTextSecondary"
+                        android:textSize="13sp" />
+
+                    <TextView
+                        android:id="@+id/txtInvestmentReturns"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="₹0"
+                        android:textColor="@color/colorSecondary"
+                        android:textSize="22sp"
+                        android:textStyle="bold" />
+
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="2dp"
+                        android:text="Money coming in from investments — shown separately, never netted against spending."
+                        android:textColor="@color/colorTextSecondary"
+                        android:textSize="12sp" />
+                </LinearLayout>
+            </com.google.android.material.card.MaterialCardView>
+
+            <!-- Per-bucket category rollups, high to low -->
+            <LinearLayout
+                android:id="@+id/containerRollups"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical" />
+        </LinearLayout>
+    </ScrollView>
+
+    <!-- ══ Tab 2: Category Limits (the original view) ══ -->
+
     <!-- Summary Hero Card -->
     <com.google.android.material.card.MaterialCardView
         android:id="@+id/cardBudgetSummary"
@@ -54,7 +317,7 @@
         android:layout_marginStart="20dp"
         android:layout_marginTop="16dp"
         android:layout_marginEnd="20dp"
-        app:layout_constraintTop_toBottomOf="@+id/layoutMonthSwitcher">
+        app:layout_constraintTop_toBottomOf="@+id/tabBudgetMode">
 
         <LinearLayout
             android:layout_width="match_parent"

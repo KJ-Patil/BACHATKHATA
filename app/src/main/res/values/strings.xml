@@ -300,4 +300,120 @@
     <string name="backup_label_hint">Backup name (e.g. Before cleanup)</string>
     <string name="backup_restore_confirm">Restore this backup? Your current transactions will be replaced.</string>
     <string name="backup_delete_confirm">Delete this backup permanently?</string>
+
+    <!-- Floating calculator -->
+    <string name="calc_title">Calculator</string>
+    <string name="calc_expression">Expression</string>
+    <string name="calc_clear">C</string>
+    <string name="calc_copy">Copy result</string>
+    <string name="calc_copied">Result copied</string>
+    <string name="calc_nothing_to_copy">Nothing to copy yet</string>
+
+    <!-- Transaction discounts -->
+    <string name="discount_add">+ Add discount</string>
+    <string name="discount_remove">− Remove discount</string>
+    <string name="discount_percent">%</string>
+    <string name="discount_flat">Flat</string>
+    <string name="discount_hint">Discount</string>
+    <string name="discount_summary">You saved %1$s · pay %2$s</string>
+    <string name="discount_detail_original">Original price</string>
+    <string name="discount_detail_saved">You saved</string>
+    <string name="discount_cleared_on_edit">Discount details removed — the amount was edited.</string>
+
+    <!-- Payment reminders -->
+    <string name="reminder_title">Send a reminder</string>
+    <string name="reminder_subtitle">To %1$s · %2$s outstanding</string>
+    <string name="reminder_tone">Tone</string>
+    <string name="reminder_tone_friendly">Friendly</string>
+    <string name="reminder_tone_formal">Formal</string>
+    <string name="reminder_tone_urgent">Urgent</string>
+    <string name="reminder_language">Language</string>
+    <string name="reminder_lang_en">English</string>
+    <string name="reminder_lang_hi">हिन्दी</string>
+    <string name="reminder_lang_mr">मराठी</string>
+    <string name="reminder_message">Message</string>
+    <string name="reminder_send_whatsapp">Send on WhatsApp</string>
+    <string name="reminder_send_sms">Send as SMS</string>
+    <string name="reminder_no_phone">No phone number saved for this contact.</string>
+    <string name="reminder_no_whatsapp">WhatsApp isn\'t installed on this device.</string>
+    <string name="reminder_no_sms">No SMS app found on this device.</string>
+    <string name="reminder_balance_settled">This account is already settled — nothing to remind about.</string>
+
+    <!-- Help & Support -->
+    <string name="help_title">Help &amp; Support</string>
+    <string name="help_search_hint">Search help topics</string>
+    <string name="help_no_results">No help topics match your search.</string>
+    <string name="help_contact_whatsapp">Chat with support on WhatsApp</string>
+    <string name="help_contact_call">Call support</string>
+    <string name="help_contact_email">Email support</string>
+    <string name="help_whatsapp_prefill">Hi, I need help with Bachat Khata.</string>
+    <string name="help_no_app_for_action">No app on this device can open that.</string>
+
+    <string name="faq_q_add_txn">How do I add a transaction?</string>
+    <string name="faq_a_add_txn">Tap the + button in the centre of the bottom bar. Choose Expense or Income, enter the amount, pick a category, and save. You can also add one by voice, by pasting a bank SMS, or by scanning a receipt.</string>
+    <string name="faq_q_discount">Can I record a discount on a purchase?</string>
+    <string name="faq_a_discount">Yes. On an expense, tap "Add discount" and enter either a percentage or a flat amount. The app stores the price you actually paid, and keeps the original price and your saving alongside it so you can see them later. Editing the amount afterwards removes the discount details, because they no longer describe the new figure.</string>
+    <string name="faq_q_buckets">What are Needs, Wants and Investments?</string>
+    <string name="faq_a_buckets">Every expense category belongs to one of three buckets. Needs are essentials like rent and groceries, Wants are discretionary spending, and Investments are money you put aside. You can set the bucket for any category in Manage Categories; categories you have not set one for fall back to a sensible default.</string>
+    <string name="faq_q_rule">What is the 50/30/20 rule?</string>
+    <string name="faq_a_rule">It splits your monthly income across the three buckets: 50% to Needs, 30% to Wants, 20% to Investments. Enter your take-home income on the Budgets screen and the app shows how your actual spending compares. The split is adjustable — set it to 60/20/20 or anything else that adds up to 100.</string>
+    <string name="faq_q_budget_vs_rule">How is a category budget different from the rule?</string>
+    <string name="faq_a_budget_vs_rule">The rule caps a whole bucket; a category budget caps one category. They work together — the Budgets screen warns you when your category limits add up to more than the bucket the rule allows.</string>
+    <string name="faq_q_sms">How does bank SMS import work?</string>
+    <string name="faq_a_sms">Paste a bank message into the import box on the Home screen and the app reads the amount, the merchant and whether it was money in or out. Nothing is sent anywhere — the parsing happens entirely on your device.</string>
+    <string name="faq_q_ledger">What is the Notebook (Khata) for?</string>
+    <string name="faq_a_ledger">It tracks money you have lent or borrowed, per person. Record what you gave and what you got, and the running balance tells you who owes whom. Entries also mirror into your transactions so your overall balance stays correct.</string>
+    <string name="faq_q_reminder">How do payment reminders work?</string>
+    <string name="faq_a_reminder">Open a contact in the Notebook and tap the reminder button. Pick a tone and a language, edit the draft if you want, then send it through WhatsApp or your SMS app. The app hands the message to that app — it does not send anything by itself.</string>
+    <string name="faq_q_family">How do I share a wallet with my family?</string>
+    <string name="faq_a_family">Create a group in Family Wallet and share the 6-digit invite code. Anyone with the code can join, and everyone in the group sees the same expenses in real time. Nobody outside the group can find or read it.</string>
+    <string name="faq_q_backup">How do backups work?</string>
+    <string name="faq_a_backup">Settings → Backup &amp; Recovery creates a snapshot of your data in your own cloud account. You can restore or delete a snapshot at any time. Restoring replaces what is currently in the app, so it asks you to confirm first.</string>
+    <string name="faq_q_offline">Does the app work without internet?</string>
+    <string name="faq_a_offline">Yes. Everything you add offline is stored on your device and syncs automatically when you reconnect. A banner at the top tells you when you are offline.</string>
+    <string name="faq_q_pin">What if I forget my PIN?</string>
+    <string name="faq_a_pin">Use "Forgot PIN" on the lock screen to sign in again with your account and set a new one. Your data is safe — it lives in your account, not behind the PIN alone.</string>
+    <string name="faq_q_currency">Can I change my currency?</string>
+    <string name="faq_a_currency">Yes, in Settings. Exchange rates refresh roughly twice a day when you are online, and the last known rates are used when you are not.</string>
+    <string name="faq_q_export">How do I export my data?</string>
+    <string name="faq_a_export">Settings → Export Reports. Pick a date range and export as Excel, CSV or a PDF report. The file is saved to your Downloads folder.</string>
+    <string name="faq_q_clear_data">How do I delete everything?</string>
+    <string name="faq_a_clear_data">Settings → Clear All Data. It asks you to confirm twice because it cannot be undone. Consider creating a backup first.</string>
+
+    <!-- About -->
+    <string name="about_title">About</string>
+    <string name="about_tagline">Your Secure Personal Finance Companion</string>
+    <string name="about_version">Version %1$s</string>
+    <string name="about_credits">Credits</string>
+    <string name="about_credits_body">Built with Firebase, Material Design and MPAndroidChart. Exchange rates provided by open.er-api.com. Icons from Material Symbols.</string>
+    <string name="about_privacy">Privacy Policy</string>
+    <string name="about_terms">Terms of Use</string>
+    <string name="about_policy_unavailable">Policy links are not configured in this build.</string>
+
+    <!-- SMS gateway (Fast2SMS) -->
+    <string name="gateway_title">SMS Gateway</string>
+    <string name="gateway_banner_title">Not sending yet</string>
+    <string name="gateway_banner_body">Saving a key here does not make the app send SMS. Real sending needs a server that holds the key — a key shipped inside the app can be extracted from it. Reminders still go out through WhatsApp or your own SMS app, which work today.</string>
+    <string name="gateway_enable">Enable SMS gateway</string>
+    <string name="gateway_api_key">Fast2SMS API key</string>
+    <string name="gateway_stored_key">Stored: %1$s</string>
+    <string name="gateway_no_key">No key saved yet.</string>
+    <string name="gateway_reveal">Reveal</string>
+    <string name="gateway_hide">Hide</string>
+    <string name="gateway_save">Save</string>
+    <string name="gateway_saved">Gateway settings saved.</string>
+    <string name="gateway_key_required">Enter an API key before enabling the gateway.</string>
+    <string name="gateway_caveats_title">About the Quick route</string>
+    <string name="gateway_caveats_body">This uses Fast2SMS\'s Quick route, which needs no DLT registration, sender ID or pre-approved templates — hence the single API key. In exchange: messages come from a shared number, are reviewed before dispatch, and never reach numbers registered on DND.</string>
+    <string name="gateway_pricing_title">Published pricing</string>
+    <string name="gateway_pricing_body">Fast2SMS bills the Quick route per message from a prepaid wallet. Check the current rate on their site before topping up — pricing changes without notice.</string>
+    <string name="gateway_pricing_asof">Recorded July 2026. Verify on Fast2SMS before relying on it.</string>
+    <string name="gateway_open_site">Open Fast2SMS wallet</string>
+    <string name="profile_sms_gateway">SMS Gateway</string>
+
+    <!-- Sign-out durability guard -->
+    <string name="logout_unsynced_title">Changes not yet synced</string>
+    <string name="logout_unsynced_message">Some recent changes haven\'t reached the cloud yet. Signing out now will discard them permanently. Reconnect and try again, or sign out anyway?</string>
+    <string name="logout_unsynced_confirm">Sign Out Anyway</string>
+    <string name="logout_unsynced_cancel">Stay Signed In</string>
 </resources>

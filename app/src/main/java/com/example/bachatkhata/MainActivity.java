@@ -79,6 +79,7 @@ public class MainActivity extends BaseActivity {
         });
         animateFABEntry();
         applyRoundedTopBar();
+        setupFloatingCalculator();
 
         // 3. Request Notifications Permission (Android 13+)
         requestNotificationPermission();
@@ -252,6 +253,17 @@ public class MainActivity extends BaseActivity {
     // Cold-launch unlock is handled once via loadUserPreferences(); re-locking after
     // the app has been backgrounded past the timeout is handled centrally by
     // BaseActivity's app-lock (see BaseActivity#checkPinConfigAndLock).
+
+    /**
+     * Wires the draggable calculator bubble. The user can park it anywhere on the
+     * screen, so it never permanently covers whatever they're reading.
+     */
+    private void setupFloatingCalculator() {
+        binding.fabCalculator.setOnTouchListener(
+                new DraggableBubbleTouchListener(binding.fabCalculator, () ->
+                        new CalculatorBottomSheet()
+                                .show(getSupportFragmentManager(), "CalculatorBottomSheet")));
+    }
 
     /** Rounds the top-left and top-right corners of the bottom bar for a soft, floating look. */
     private void applyRoundedTopBar() {

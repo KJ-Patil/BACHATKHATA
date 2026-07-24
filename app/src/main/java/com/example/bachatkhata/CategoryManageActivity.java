@@ -17,6 +17,8 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.example.bachatkhata.databinding.ActivityCategoryManageBinding;
 import com.example.bachatkhata.databinding.DialogAddCategoryBinding;
 import com.example.bachatkhata.databinding.ItemCategoryManageBinding;
+import com.example.bachatkhata.domain.BucketType;
+import com.example.bachatkhata.domain.Categories;
 import com.google.android.material.chip.Chip;
 import com.google.android.material.snackbar.Snackbar;
 import com.google.firebase.auth.FirebaseAuth;
@@ -118,9 +120,18 @@ public class CategoryManageActivity extends BaseActivity {
 
                     categoryList.clear();
                     if (value != null) {
+                        // Firestore already returns these name-ascending; partitioning keeps
+                        // that order within each group and sinks archived ones to the bottom.
+                        List<Category> archived = new ArrayList<>();
                         for (DocumentSnapshot doc : value.getDocuments()) {
-                            categoryList.add(Category.fromDocument(doc));
+                            Category c = Category.fromDocument(doc);
+                            if (c.getArchived()) {
+                                archived.add(c);
+                            } else {
+                                categoryList.add(c);
+                            }
                         }
+                        categoryList.addAll(archived);
                     }
 
                     if (categoryList.isEmpty()) {
@@ -160,10 +171,14 @@ public class CategoryManageActivity extends BaseActivity {
             dialogBinding.chipGroupColors.addView(chip);
         }
 
+        // Buckets are expense-only; income is grouped by source instead.
+        boolean isExpense = "expense".equals(selectedType);
+        dialogBinding.layoutBucketPicker.setVisibility(isExpense ? View.VISIBLE : View.GONE);
+
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
         builder.setTitle("Add Custom Category");
         builder.setView(dialogBinding.getRoot());
-        
+
         builder.setPositiveButton("Add", (dialog, which) -> {
             String name = dialogBinding.etCategoryName.getText().toString().trim();
             if (name.isEmpty()) {
@@ -191,14 +206,27 @@ public class CategoryManageActivity extends BaseActivity {
                 }
             }
 
-            addCategory(name, selectedEmoji, selectedColor);
+            // Null for income categories, so nothing meaningless is stored on them.
+            String bucketKey = null;
+            if (isExpense) {
+                int checkedBucket = dialogBinding.chipGroupBucket.getCheckedChipId();
+                if (checkedBucket == R.id.chipBucketWants) {
+                    bucketKey = BucketType.WANTS.key();
+                } else if (checkedBucket == R.id.chipBucketInvestments) {
+                    bucketKey = BucketType.INVESTMENTS.key();
+                } else {
+                    bucketKey = BucketType.NEEDS.key();
+                }
+            }
+
+            addCategory(name, selectedEmoji, selectedColor, bucketKey);
         });
 
         builder.setNegativeButton("Cancel", null);
         builder.show();
     }
 
-    private void addCategory(String name, String emoji, String color) {
+    private void addCategory(String name, String emoji, String color, String bucketKey) {
         if (mAuth.getCurrentUser() == null) return;
         showLoading(true);
         String uid = mAuth.getCurrentUser().getUid();
@@ -213,6 +241,8 @@ public class CategoryManageActivity extends BaseActivity {
         category.put("color", color);
         category.put("type", selectedType);
         category.put("isDefault", false); // Custom category
+        category.put("archived", false);
+        category.put("bucket", bucketKey);
 
         docRef.set(category)
                 .addOnSuccessListener(aVoid -> {
@@ -225,30 +255,85 @@ public class CategoryManageActivity extends BaseActivity {
                 });
     }
 
-    private void confirmDeleteCategory(Category category) {
+    private void confirmArchiveCategory(Category category) {
         new AlertDialog.Builder(this)
-                .setTitle("Delete Category")
-                .setMessage(String.format("Are you sure you want to delete '%s'? Any transaction under this category might not be properly classified.", category.getName()))
-                .setPositiveButton("Delete", (dialog, which) -> deleteCategory(category))
+                .setTitle("Archive Category")
+                .setMessage(String.format("Hide '%s' from category pickers? Existing transactions "
+                        + "keep this category and stay in your reports. You can restore it anytime.",
+                        category.getName()))
+                .setPositiveButton("Archive", (dialog, which) -> setArchived(category, true))
                 .setNegativeButton("Cancel", null)
                 .show();
     }
 
-    private void deleteCategory(Category category) {
+    /**
+     * Categories are archived rather than deleted: transactions reference a category by
+     * <em>name</em>, so deleting the record orphaned every historical row that used it —
+     * losing its icon, colour and (once buckets land) its spending classification.
+     */
+    private void setArchived(Category category, boolean archived) {
         if (mAuth.getCurrentUser() == null) return;
         showLoading(true);
         String uid = mAuth.getCurrentUser().getUid();
 
         mFirestore.collection("users").document(uid)
                 .collection("categories").document(category.getId())
-                .delete()
+                .update("archived", archived)
                 .addOnSuccessListener(aVoid -> {
                     showLoading(false);
-                    showSuccess("Category deleted successfully!");
+                    showSuccess(archived ? "Category archived" : "Category restored");
                 })
                 .addOnFailureListener(e -> {
                     showLoading(false);
-                    showError("Failed to delete category: " + e.getMessage());
+                    showError((archived ? "Failed to archive: " : "Failed to restore: ") + e.getMessage());
+                });
+    }
+
+    /**
+     * "Custom Category · Wants". Expense rows always show a bucket — the resolved one when
+     * the user hasn't chosen, so the value driving their reports is never hidden.
+     */
+    private String labelFor(Category category, String base) {
+        if (!"expense".equalsIgnoreCase(category.getType())) return base;
+        BucketType bucket = Categories.resolveBucketForCategory(category.getName(), categoryList);
+        return base + " · " + bucket.label();
+    }
+
+    private void showBucketPicker(Category category) {
+        BucketType current = Categories.resolveBucketForCategory(category.getName(), categoryList);
+        BucketType[] options = BucketType.values();
+
+        String[] labels = new String[options.length];
+        int checked = 0;
+        for (int i = 0; i < options.length; i++) {
+            labels[i] = options[i].label();
+            if (options[i] == current) checked = i;
+        }
+
+        final int[] picked = {checked};
+        new AlertDialog.Builder(this)
+                .setTitle("Counts as — " + category.getName())
+                .setSingleChoiceItems(labels, checked, (d, which) -> picked[0] = which)
+                .setPositiveButton("Save", (d, which) -> saveBucket(category, options[picked[0]]))
+                .setNegativeButton("Cancel", null)
+                .show();
+    }
+
+    private void saveBucket(Category category, BucketType bucket) {
+        if (mAuth.getCurrentUser() == null) return;
+        showLoading(true);
+        String uid = mAuth.getCurrentUser().getUid();
+
+        mFirestore.collection("users").document(uid)
+                .collection("categories").document(category.getId())
+                .update("bucket", bucket.key())
+                .addOnSuccessListener(aVoid -> {
+                    showLoading(false);
+                    showSuccess(category.getName() + " now counts as " + bucket.label());
+                })
+                .addOnFailureListener(e -> {
+                    showLoading(false);
+                    showError("Failed to update bucket: " + e.getMessage());
                 });
     }
 
@@ -311,13 +396,34 @@ public class CategoryManageActivity extends BaseActivity {
                 int baseColor = Color.parseColor(category.getColor() != null ? category.getColor() : "#7C6FE0");
                 itemBinding.layoutIconFrame.setBackgroundTintList(ColorStateList.valueOf(baseColor));
 
-                if (category.getIsDefault()) {
-                    itemBinding.txtCategoryType.setText("System Default");
-                    itemBinding.btnDeleteCategory.setVisibility(View.GONE);
+                boolean archived = category.getArchived();
+                // Dim the whole row so archived entries read as inactive at a glance.
+                itemBinding.getRoot().setAlpha(archived ? 0.5f : 1f);
+
+                boolean isExpense = "expense".equalsIgnoreCase(category.getType());
+                // Tapping an expense row re-assigns its bucket. Rows show the *resolved*
+                // value, so an untagged category reads as its fallback rather than blank.
+                if (isExpense && !archived) {
+                    itemBinding.getRoot().setOnClickListener(v -> showBucketPicker(category));
                 } else {
-                    itemBinding.txtCategoryType.setText("Custom Category");
+                    itemBinding.getRoot().setOnClickListener(null);
+                    itemBinding.getRoot().setClickable(false);
+                }
+
+                if (archived) {
+                    itemBinding.txtCategoryType.setText("Archived");
                     itemBinding.btnDeleteCategory.setVisibility(View.VISIBLE);
-                    itemBinding.btnDeleteCategory.setOnClickListener(v -> confirmDeleteCategory(category));
+                    itemBinding.btnDeleteCategory.setImageResource(R.drawable.ic_restore);
+                    itemBinding.btnDeleteCategory.setOnClickListener(v -> setArchived(category, false));
+                } else if (category.getIsDefault()) {
+                    itemBinding.txtCategoryType.setText(labelFor(category, "System Default"));
+                    itemBinding.btnDeleteCategory.setVisibility(View.GONE);
+                    itemBinding.btnDeleteCategory.setOnClickListener(null);
+                } else {
+                    itemBinding.txtCategoryType.setText(labelFor(category, "Custom Category"));
+                    itemBinding.btnDeleteCategory.setVisibility(View.VISIBLE);
+                    itemBinding.btnDeleteCategory.setImageResource(R.drawable.ic_archive);
+                    itemBinding.btnDeleteCategory.setOnClickListener(v -> confirmArchiveCategory(category));
                 }
             }
         }

@@ -61,6 +61,24 @@
 
     </com.google.android.material.bottomappbar.BottomAppBar>
 
+    <!-- Draggable floating calculator bubble. Lives in the authenticated shell
+         only (this Activity), never over the login/register screens. -->
+    <com.google.android.material.floatingactionbutton.FloatingActionButton
+        android:id="@+id/fabCalculator"
+        android:layout_width="46dp"
+        android:layout_height="46dp"
+        android:layout_gravity="end"
+        android:layout_marginTop="96dp"
+        android:layout_marginEnd="16dp"
+        android:src="@drawable/ic_calculator"
+        app:tint="@color/colorPrimary"
+        android:backgroundTint="@color/colorSurface"
+        app:elevation="8dp"
+        app:fabCustomSize="46dp"
+        app:maxImageSize="22dp"
+        app:borderWidth="0dp"
+        android:contentDescription="@string/calc_title" />
+
     <!-- Floating Action Button (FAB) -->
     <com.google.android.material.floatingactionbutton.FloatingActionButton
         android:id="@+id/fabAdd"

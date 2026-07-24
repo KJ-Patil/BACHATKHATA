@@ -275,4 +275,120 @@
     <string name="backup_label_hint">बैकअप नाम (जैसे सफ़ाई से पहले)</string>
     <string name="backup_restore_confirm">इस बैकअप को पुनर्स्थापित करें? आपके वर्तमान लेन-देन बदल दिए जाएँगे।</string>
     <string name="backup_delete_confirm">इस बैकअप को स्थायी रूप से हटाएँ?</string>
+
+    <!-- Floating calculator -->
+    <string name="calc_title">कैलकुलेटर</string>
+    <string name="calc_expression">व्यंजक</string>
+    <string name="calc_clear">C</string>
+    <string name="calc_copy">परिणाम कॉपी करें</string>
+    <string name="calc_copied">परिणाम कॉपी हो गया</string>
+    <string name="calc_nothing_to_copy">कॉपी करने के लिए अभी कुछ नहीं है</string>
+
+    <!-- Transaction discounts -->
+    <string name="discount_add">+ छूट जोड़ें</string>
+    <string name="discount_remove">− छूट हटाएँ</string>
+    <string name="discount_percent">%</string>
+    <string name="discount_flat">सीधी</string>
+    <string name="discount_hint">छूट</string>
+    <string name="discount_summary">आपने %1$s बचाए · देना है %2$s</string>
+    <string name="discount_detail_original">मूल कीमत</string>
+    <string name="discount_detail_saved">आपने बचाए</string>
+    <string name="discount_cleared_on_edit">छूट का विवरण हटा दिया गया — राशि बदली गई थी।</string>
+
+    <!-- Payment reminders -->
+    <string name="reminder_title">अनुस्मारक भेजें</string>
+    <string name="reminder_subtitle">%1$s को · %2$s बकाया</string>
+    <string name="reminder_tone">लहजा</string>
+    <string name="reminder_tone_friendly">मैत्रीपूर्ण</string>
+    <string name="reminder_tone_formal">औपचारिक</string>
+    <string name="reminder_tone_urgent">तत्काल</string>
+    <string name="reminder_language">भाषा</string>
+    <string name="reminder_lang_en">English</string>
+    <string name="reminder_lang_hi">हिन्दी</string>
+    <string name="reminder_lang_mr">मराठी</string>
+    <string name="reminder_message">संदेश</string>
+    <string name="reminder_send_whatsapp">WhatsApp पर भेजें</string>
+    <string name="reminder_send_sms">SMS से भेजें</string>
+    <string name="reminder_no_phone">इस संपर्क का कोई फ़ोन नंबर सहेजा नहीं गया है।</string>
+    <string name="reminder_no_whatsapp">इस डिवाइस पर WhatsApp इंस्टॉल नहीं है।</string>
+    <string name="reminder_no_sms">इस डिवाइस पर कोई SMS ऐप नहीं मिला।</string>
+    <string name="reminder_balance_settled">यह खाता पहले ही चुकता है — याद दिलाने को कुछ नहीं है।</string>
+
+    <!-- Help & Support -->
+    <string name="help_title">सहायता एवं समर्थन</string>
+    <string name="help_search_hint">सहायता विषय खोजें</string>
+    <string name="help_no_results">आपकी खोज से कोई विषय मेल नहीं खाता।</string>
+    <string name="help_contact_whatsapp">WhatsApp पर सहायता से बात करें</string>
+    <string name="help_contact_call">सहायता को कॉल करें</string>
+    <string name="help_contact_email">सहायता को ईमेल करें</string>
+    <string name="help_whatsapp_prefill">नमस्ते, मुझे बचत खाता में सहायता चाहिए।</string>
+    <string name="help_no_app_for_action">इस डिवाइस पर कोई ऐप इसे नहीं खोल सकता।</string>
+
+    <string name="faq_q_add_txn">लेन-देन कैसे जोड़ें?</string>
+    <string name="faq_a_add_txn">नीचे बीच में + बटन दबाएँ। खर्च या आय चुनें, राशि भरें, श्रेणी चुनें और सहेजें। आप आवाज़ से, बैंक SMS चिपकाकर, या रसीद स्कैन करके भी जोड़ सकते हैं।</string>
+    <string name="faq_q_discount">क्या मैं खरीद पर छूट दर्ज कर सकता हूँ?</string>
+    <string name="faq_a_discount">हाँ। खर्च पर "छूट जोड़ें" दबाएँ और प्रतिशत या सीधी राशि भरें। ऐप वही कीमत सहेजता है जो आपने चुकाई, साथ ही मूल कीमत और आपकी बचत भी रखता है। बाद में राशि बदलने पर छूट का विवरण हट जाता है, क्योंकि वह नई राशि पर लागू नहीं होता।</string>
+    <string name="faq_q_buckets">ज़रूरतें, इच्छाएँ और निवेश क्या हैं?</string>
+    <string name="faq_a_buckets">हर खर्च श्रेणी तीन में से एक वर्ग में आती है। ज़रूरतें यानी किराया और राशन जैसी आवश्यक चीज़ें, इच्छाएँ यानी वैकल्पिक खर्च, और निवेश यानी बचाया गया पैसा। आप "श्रेणियाँ प्रबंधित करें" में किसी भी श्रेणी का वर्ग तय कर सकते हैं।</string>
+    <string name="faq_q_rule">50/30/20 नियम क्या है?</string>
+    <string name="faq_a_rule">यह आपकी मासिक आय को तीन वर्गों में बाँटता है: 50% ज़रूरतें, 30% इच्छाएँ, 20% निवेश। बजट स्क्रीन पर अपनी आय भरें और ऐप बताएगा कि आपका असली खर्च कैसा चल रहा है। यह बँटवारा बदला जा सकता है — कुल 100 होना चाहिए।</string>
+    <string name="faq_q_budget_vs_rule">श्रेणी बजट और नियम में क्या फर्क है?</string>
+    <string name="faq_a_budget_vs_rule">नियम पूरे वर्ग की सीमा तय करता है; श्रेणी बजट एक श्रेणी की। दोनों साथ काम करते हैं — अगर आपकी श्रेणी सीमाएँ नियम की सीमा से ज़्यादा हो जाएँ तो बजट स्क्रीन चेतावनी देती है।</string>
+    <string name="faq_q_sms">बैंक SMS आयात कैसे काम करता है?</string>
+    <string name="faq_a_sms">होम स्क्रीन के बॉक्स में बैंक संदेश चिपकाएँ; ऐप राशि, दुकानदार और आना-जाना पहचान लेता है। कुछ भी कहीं नहीं भेजा जाता — सारा काम आपके डिवाइस पर ही होता है।</string>
+    <string name="faq_q_ledger">बही-खाता किसलिए है?</string>
+    <string name="faq_a_ledger">यह हर व्यक्ति के हिसाब से उधार दिया या लिया पैसा दर्ज करता है। आपने क्या दिया और क्या लिया, यह भरें और बकाया अपने-आप दिखता है। ये प्रविष्टियाँ आपके लेन-देन में भी दर्ज होती हैं।</string>
+    <string name="faq_q_reminder">भुगतान अनुस्मारक कैसे काम करते हैं?</string>
+    <string name="faq_a_reminder">बही-खाते में संपर्क खोलें और अनुस्मारक बटन दबाएँ। लहजा और भाषा चुनें, चाहें तो संदेश बदलें, फिर WhatsApp या SMS ऐप से भेजें। ऐप संदेश उस ऐप को सौंपता है — खुद कुछ नहीं भेजता।</string>
+    <string name="faq_q_family">परिवार के साथ वॉलेट कैसे साझा करें?</string>
+    <string name="faq_a_family">फैमिली वॉलेट में समूह बनाएँ और 6-अंकों का कोड साझा करें। कोड वाला कोई भी जुड़ सकता है और सबको वही खर्च तुरंत दिखते हैं। समूह के बाहर कोई इसे न ढूँढ सकता है, न पढ़ सकता है।</string>
+    <string name="faq_q_backup">बैकअप कैसे काम करता है?</string>
+    <string name="faq_a_backup">सेटिंग्स → बैकअप एवं रिकवरी आपके अपने क्लाउड खाते में आपके डेटा का स्नैपशॉट बनाता है। आप कभी भी पुनर्स्थापित या हटा सकते हैं। पुनर्स्थापना मौजूदा डेटा बदल देती है, इसलिए पहले पुष्टि माँगी जाती है।</string>
+    <string name="faq_q_offline">क्या ऐप बिना इंटरनेट चलता है?</string>
+    <string name="faq_a_offline">हाँ। ऑफ़लाइन जोड़ी गई हर चीज़ डिवाइस पर सहेजी जाती है और दोबारा जुड़ते ही अपने-आप सिंक हो जाती है। ऊपर एक पट्टी बताती है कि आप ऑफ़लाइन हैं।</string>
+    <string name="faq_q_pin">PIN भूल जाऊँ तो?</string>
+    <string name="faq_a_pin">लॉक स्क्रीन पर "PIN भूल गए" चुनें, खाते से दोबारा साइन इन करें और नया PIN बनाएँ। आपका डेटा सुरक्षित है — वह आपके खाते में रहता है।</string>
+    <string name="faq_q_currency">क्या मैं मुद्रा बदल सकता हूँ?</string>
+    <string name="faq_a_currency">हाँ, सेटिंग्स में। ऑनलाइन रहने पर विनिमय दरें दिन में करीब दो बार ताज़ा होती हैं; ऑफ़लाइन में पिछली ज्ञात दरें इस्तेमाल होती हैं।</string>
+    <string name="faq_q_export">अपना डेटा कैसे निर्यात करें?</string>
+    <string name="faq_a_export">सेटिंग्स → रिपोर्ट निर्यात। तिथि सीमा चुनें और Excel, CSV या PDF में निर्यात करें। फ़ाइल आपके डाउनलोड फ़ोल्डर में सहेजी जाती है।</string>
+    <string name="faq_q_clear_data">सब कुछ कैसे हटाएँ?</string>
+    <string name="faq_a_clear_data">सेटिंग्स → सारा डेटा हटाएँ। यह दो बार पुष्टि माँगता है क्योंकि इसे पलटा नहीं जा सकता। पहले बैकअप बना लेना बेहतर है।</string>
+
+    <!-- About -->
+    <string name="about_title">ऐप के बारे में</string>
+    <string name="about_tagline">आपका सुरक्षित निजी वित्त साथी</string>
+    <string name="about_version">संस्करण %1$s</string>
+    <string name="about_credits">आभार</string>
+    <string name="about_credits_body">Firebase, Material Design और MPAndroidChart से बनाया गया। विनिमय दरें open.er-api.com से। आइकन Material Symbols से।</string>
+    <string name="about_privacy">गोपनीयता नीति</string>
+    <string name="about_terms">उपयोग की शर्तें</string>
+    <string name="about_policy_unavailable">इस बिल्ड में नीति लिंक सेट नहीं किए गए हैं।</string>
+
+    <!-- SMS gateway (Fast2SMS) -->
+    <string name="gateway_title">SMS गेटवे</string>
+    <string name="gateway_banner_title">अभी भेजा नहीं जाता</string>
+    <string name="gateway_banner_body">यहाँ कुंजी सहेजने से ऐप SMS भेजने नहीं लगता। असल में भेजने के लिए एक सर्वर चाहिए जो कुंजी रखे — ऐप के भीतर रखी कुंजी उसमें से निकाली जा सकती है। अनुस्मारक आज भी WhatsApp या आपके अपने SMS ऐप से जाते हैं।</string>
+    <string name="gateway_enable">SMS गेटवे चालू करें</string>
+    <string name="gateway_api_key">Fast2SMS API कुंजी</string>
+    <string name="gateway_stored_key">सहेजी गई: %1$s</string>
+    <string name="gateway_no_key">अभी कोई कुंजी सहेजी नहीं गई।</string>
+    <string name="gateway_reveal">दिखाएँ</string>
+    <string name="gateway_hide">छिपाएँ</string>
+    <string name="gateway_save">सहेजें</string>
+    <string name="gateway_saved">गेटवे सेटिंग्स सहेजी गईं।</string>
+    <string name="gateway_key_required">गेटवे चालू करने से पहले API कुंजी भरें।</string>
+    <string name="gateway_caveats_title">Quick रूट के बारे में</string>
+    <string name="gateway_caveats_body">यह Fast2SMS का Quick रूट इस्तेमाल करता है, जिसमें DLT पंजीकरण, प्रेषक ID या पूर्व-स्वीकृत टेम्पलेट की ज़रूरत नहीं — इसीलिए सिर्फ़ एक API कुंजी। बदले में: संदेश एक साझा नंबर से जाते हैं, भेजने से पहले जाँचे जाते हैं, और DND पर पंजीकृत नंबरों तक कभी नहीं पहुँचते।</string>
+    <string name="gateway_pricing_title">घोषित मूल्य</string>
+    <string name="gateway_pricing_body">Fast2SMS Quick रूट का शुल्क प्रीपेड वॉलेट से प्रति संदेश लेता है। रिचार्ज से पहले उनकी साइट पर मौजूदा दर देख लें — दरें बिना सूचना बदलती हैं।</string>
+    <string name="gateway_pricing_asof">जुलाई 2026 में दर्ज। भरोसा करने से पहले Fast2SMS पर जाँच लें।</string>
+    <string name="gateway_open_site">Fast2SMS वॉलेट खोलें</string>
+    <string name="profile_sms_gateway">SMS गेटवे</string>
+
+    <!-- Sign-out durability guard -->
+    <string name="logout_unsynced_title">बदलाव अभी सिंक नहीं हुए</string>
+    <string name="logout_unsynced_message">कुछ हालिया बदलाव अभी तक क्लाउड तक नहीं पहुँचे हैं। अभी साइन आउट करने पर वे स्थायी रूप से खो जाएँगे। दोबारा जुड़कर प्रयास करें, या फिर भी साइन आउट करें?</string>
+    <string name="logout_unsynced_confirm">फिर भी साइन आउट करें</string>
+    <string name="logout_unsynced_cancel">साइन इन रहें</string>
 </resources>

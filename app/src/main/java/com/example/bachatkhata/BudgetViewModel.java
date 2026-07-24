@@ -19,6 +19,12 @@ public class BudgetViewModel extends ViewModel {
 
     private final MutableLiveData<List<Budget>> budgets = new MutableLiveData<>(new ArrayList<>());
     private final MutableLiveData<Map<String, Double>> spentPerCategory = new MutableLiveData<>(new HashMap<>());
+    /** The target month's expense transactions — what the Budgeting Rule buckets. */
+    private final MutableLiveData<List<Transaction>> monthExpenses = new MutableLiveData<>(new ArrayList<>());
+    /** The user's categories, needed to resolve each expense to its bucket. */
+    private final MutableLiveData<List<Category>> categories = new MutableLiveData<>(new ArrayList<>());
+    /** The target month's income — used for the Investment Returns rollup. */
+    private final MutableLiveData<List<Transaction>> monthIncome = new MutableLiveData<>(new ArrayList<>());
 
     private final FirebaseFirestore mFirestore = FirebaseFirestore.getInstance();
 
@@ -28,6 +34,32 @@ public class BudgetViewModel extends ViewModel {
 
     public LiveData<Map<String, Double>> getSpentPerCategory() {
         return spentPerCategory;
+    }
+
+    public LiveData<List<Transaction>> getMonthExpenses() {
+        return monthExpenses;
+    }
+
+    public LiveData<List<Category>> getCategories() {
+        return categories;
+    }
+
+    public LiveData<List<Transaction>> getMonthIncome() {
+        return monthIncome;
+    }
+
+    public void loadCategories(String uid) {
+        mFirestore.collection("users").document(uid).collection("categories")
+                .get()
+                .addOnSuccessListener(snapshots -> {
+                    List<Category> list = new ArrayList<>();
+                    for (DocumentSnapshot doc : snapshots.getDocuments()) {
+                        // Archived categories are included on purpose: old transactions
+                        // still carry their names and must keep resolving to their bucket.
+                        list.add(Category.fromDocument(doc));
+                    }
+                    categories.setValue(list);
+                });
     }
 
     public void loadBudgetData(String uid, int month, int year) {
@@ -64,28 +96,37 @@ public class BudgetViewModel extends ViewModel {
         cal.set(Calendar.SECOND, 59);
         Date endBound = cal.getTime();
 
+        // Fetches both directions: expenses drive the buckets, income drives the
+        // Investment Returns rollup on the Spent vs Invested tab.
         mFirestore.collection("users").document(uid).collection("transactions")
-                .whereEqualTo("type", "expense")
                 .get()
                 .addOnSuccessListener(queryDocumentSnapshots -> {
                     Map<String, Double> map = new HashMap<>();
+                    List<Transaction> expenses = new ArrayList<>();
+                    List<Transaction> income = new ArrayList<>();
                     for (DocumentSnapshot doc : queryDocumentSnapshots.getDocuments()) {
                         Timestamp dateStamp = doc.getTimestamp("date");
-                        if (dateStamp != null) {
-                            Date txnDate = dateStamp.toDate();
-                            if ((txnDate.after(startBound) || txnDate.equals(startBound)) && 
-                                (txnDate.before(endBound) || txnDate.equals(endBound))) {
-                                
-                                String category = doc.getString("category");
-                                Double amount = doc.getDouble("amount");
-                                if (category != null && amount != null) {
-                                    double current = map.getOrDefault(category, 0.0);
-                                    map.put(category, current + amount);
-                                }
-                            }
+                        if (dateStamp == null) continue;
+
+                        Date txnDate = dateStamp.toDate();
+                        if (txnDate.before(startBound) || txnDate.after(endBound)) continue;
+
+                        Transaction t = Transaction.fromDocument(doc);
+                        if ("income".equalsIgnoreCase(t.getType())) {
+                            income.add(t);
+                            continue;
+                        }
+                        if (!"expense".equalsIgnoreCase(t.getType())) continue;
+
+                        expenses.add(t);
+                        String category = t.getCategory();
+                        if (category != null) {
+                            map.put(category, map.getOrDefault(category, 0.0) + t.getAmount());
                         }
                     }
                     spentPerCategory.setValue(map);
+                    monthExpenses.setValue(expenses);
+                    monthIncome.setValue(income);
                 });
     }
 }

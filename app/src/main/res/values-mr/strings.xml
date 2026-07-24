@@ -275,4 +275,120 @@
     <string name="backup_label_hint">बॅकअप नाव (उदा. साफसफाईपूर्वी)</string>
     <string name="backup_restore_confirm">हा बॅकअप पुनर्संचयित करायचा? आपले सध्याचे व्यवहार बदलले जातील.</string>
     <string name="backup_delete_confirm">हा बॅकअप कायमचा हटवायचा?</string>
+
+    <!-- Floating calculator -->
+    <string name="calc_title">कॅल्क्युलेटर</string>
+    <string name="calc_expression">अभिव्यक्ती</string>
+    <string name="calc_clear">C</string>
+    <string name="calc_copy">निकाल कॉपी करा</string>
+    <string name="calc_copied">निकाल कॉपी झाला</string>
+    <string name="calc_nothing_to_copy">कॉपी करण्यासाठी अजून काही नाही</string>
+
+    <!-- Transaction discounts -->
+    <string name="discount_add">+ सवलत जोडा</string>
+    <string name="discount_remove">− सवलत काढा</string>
+    <string name="discount_percent">%</string>
+    <string name="discount_flat">सरळ</string>
+    <string name="discount_hint">सवलत</string>
+    <string name="discount_summary">तुम्ही %1$s वाचवले · द्यायचे %2$s</string>
+    <string name="discount_detail_original">मूळ किंमत</string>
+    <string name="discount_detail_saved">तुम्ही वाचवले</string>
+    <string name="discount_cleared_on_edit">सवलतीचा तपशील काढला — रक्कम बदलली होती.</string>
+
+    <!-- Payment reminders -->
+    <string name="reminder_title">स्मरणपत्र पाठवा</string>
+    <string name="reminder_subtitle">%1$s ला · %2$s थकीत</string>
+    <string name="reminder_tone">सूर</string>
+    <string name="reminder_tone_friendly">मैत्रीपूर्ण</string>
+    <string name="reminder_tone_formal">औपचारिक</string>
+    <string name="reminder_tone_urgent">तातडीचे</string>
+    <string name="reminder_language">भाषा</string>
+    <string name="reminder_lang_en">English</string>
+    <string name="reminder_lang_hi">हिन्दी</string>
+    <string name="reminder_lang_mr">मराठी</string>
+    <string name="reminder_message">संदेश</string>
+    <string name="reminder_send_whatsapp">WhatsApp वर पाठवा</string>
+    <string name="reminder_send_sms">SMS ने पाठवा</string>
+    <string name="reminder_no_phone">या संपर्काचा फोन नंबर जतन केलेला नाही.</string>
+    <string name="reminder_no_whatsapp">या डिव्हाइसवर WhatsApp स्थापित नाही.</string>
+    <string name="reminder_no_sms">या डिव्हाइसवर SMS अ‍ॅप सापडले नाही.</string>
+    <string name="reminder_balance_settled">हे खाते आधीच निकाली निघाले आहे — स्मरण देण्यासारखे काही नाही.</string>
+
+    <!-- Help & Support -->
+    <string name="help_title">मदत व सहाय्य</string>
+    <string name="help_search_hint">मदत विषय शोधा</string>
+    <string name="help_no_results">तुमच्या शोधाशी जुळणारा विषय नाही.</string>
+    <string name="help_contact_whatsapp">WhatsApp वर सहाय्याशी बोला</string>
+    <string name="help_contact_call">सहाय्याला कॉल करा</string>
+    <string name="help_contact_email">सहाय्याला ईमेल करा</string>
+    <string name="help_whatsapp_prefill">नमस्कार, मला बचत खाता मध्ये मदत हवी आहे.</string>
+    <string name="help_no_app_for_action">या डिव्हाइसवरील कोणतेही अ‍ॅप हे उघडू शकत नाही.</string>
+
+    <string name="faq_q_add_txn">व्यवहार कसा जोडायचा?</string>
+    <string name="faq_a_add_txn">तळाच्या मध्यभागी असलेले + बटण दाबा. खर्च किंवा उत्पन्न निवडा, रक्कम भरा, श्रेणी निवडा आणि जतन करा. आवाजाने, बँक SMS चिकटवून किंवा पावती स्कॅन करूनही जोडता येते.</string>
+    <string name="faq_q_discount">खरेदीवरील सवलत नोंदवता येते का?</string>
+    <string name="faq_a_discount">होय. खर्चावर "सवलत जोडा" दाबा आणि टक्केवारी किंवा सरळ रक्कम भरा. अ‍ॅप तुम्ही प्रत्यक्ष दिलेली किंमत जतन करते, सोबत मूळ किंमत व तुमची बचतही ठेवते. नंतर रक्कम बदलल्यास सवलतीचा तपशील काढला जातो, कारण तो नव्या रकमेला लागू होत नाही.</string>
+    <string name="faq_q_buckets">गरजा, इच्छा आणि गुंतवणूक म्हणजे काय?</string>
+    <string name="faq_a_buckets">प्रत्येक खर्च श्रेणी तीनपैकी एका गटात येते. गरजा म्हणजे भाडे व किराणा यांसारख्या आवश्यक बाबी, इच्छा म्हणजे ऐच्छिक खर्च, आणि गुंतवणूक म्हणजे बाजूला ठेवलेला पैसा. "श्रेणी व्यवस्थापित करा" मध्ये कोणत्याही श्रेणीचा गट ठरवता येतो.</string>
+    <string name="faq_q_rule">50/30/20 नियम म्हणजे काय?</string>
+    <string name="faq_a_rule">तो तुमचे मासिक उत्पन्न तीन गटांत विभागतो: 50% गरजा, 30% इच्छा, 20% गुंतवणूक. बजेट स्क्रीनवर उत्पन्न भरा आणि अ‍ॅप तुमचा प्रत्यक्ष खर्च कसा चालला आहे ते दाखवते. हे प्रमाण बदलता येते — बेरीज 100 हवी.</string>
+    <string name="faq_q_budget_vs_rule">श्रेणी बजेट आणि नियम यात फरक काय?</string>
+    <string name="faq_a_budget_vs_rule">नियम संपूर्ण गटाची मर्यादा ठरवतो; श्रेणी बजेट एका श्रेणीची. दोन्ही एकत्र चालतात — तुमच्या श्रेणी मर्यादा नियमाच्या मर्यादेपेक्षा जास्त झाल्यास बजेट स्क्रीन इशारा देते.</string>
+    <string name="faq_q_sms">बँक SMS आयात कसे चालते?</string>
+    <string name="faq_a_sms">होम स्क्रीनवरील पेटीत बँक संदेश चिकटवा; अ‍ॅप रक्कम, दुकानदार व येणे-जाणे ओळखते. काहीही कुठे पाठवले जात नाही — सर्व काम तुमच्या डिव्हाइसवरच होते.</string>
+    <string name="faq_q_ledger">वहीखाते कशासाठी आहे?</string>
+    <string name="faq_a_ledger">ते प्रत्येक व्यक्तीनुसार दिलेले किंवा घेतलेले पैसे नोंदवते. तुम्ही काय दिले व काय घेतले ते भरा, शिल्लक आपोआप दिसते. या नोंदी तुमच्या व्यवहारांतही उमटतात.</string>
+    <string name="faq_q_reminder">देयक स्मरणपत्रे कशी चालतात?</string>
+    <string name="faq_a_reminder">वहीखात्यात संपर्क उघडा आणि स्मरणपत्र बटण दाबा. सूर व भाषा निवडा, हवे असल्यास मसुदा बदला, मग WhatsApp किंवा SMS अ‍ॅपने पाठवा. अ‍ॅप संदेश त्या अ‍ॅपकडे सोपवते — स्वतः काहीही पाठवत नाही.</string>
+    <string name="faq_q_family">कुटुंबासोबत वॉलेट कसे शेअर करायचे?</string>
+    <string name="faq_a_family">फॅमिली वॉलेटमध्ये गट तयार करा आणि 6-अंकी कोड शेअर करा. कोड असलेला कोणीही सामील होऊ शकतो आणि सर्वांना तेच खर्च लगेच दिसतात. गटाबाहेरील कोणी तो शोधू किंवा वाचू शकत नाही.</string>
+    <string name="faq_q_backup">बॅकअप कसा चालतो?</string>
+    <string name="faq_a_backup">सेटिंग्ज → बॅकअप व पुनर्प्राप्ती तुमच्या स्वतःच्या क्लाउड खात्यात तुमच्या डेटाचा स्नॅपशॉट तयार करते. कधीही पुनर्संचयित किंवा हटवता येते. पुनर्संचयन सध्याचा डेटा बदलते, म्हणून आधी खात्री विचारली जाते.</string>
+    <string name="faq_q_offline">इंटरनेटशिवाय अ‍ॅप चालते का?</string>
+    <string name="faq_a_offline">होय. ऑफलाइन जोडलेले सर्व काही डिव्हाइसवर साठवले जाते आणि पुन्हा जोडल्यावर आपोआप सिंक होते. वरची पट्टी तुम्ही ऑफलाइन असल्याचे सांगते.</string>
+    <string name="faq_q_pin">PIN विसरलो तर?</string>
+    <string name="faq_a_pin">लॉक स्क्रीनवर "PIN विसरलात" निवडा, खात्याने पुन्हा साइन इन करा आणि नवा PIN ठरवा. तुमचा डेटा सुरक्षित आहे — तो तुमच्या खात्यात राहतो.</string>
+    <string name="faq_q_currency">चलन बदलता येते का?</string>
+    <string name="faq_a_currency">होय, सेटिंग्जमध्ये. ऑनलाइन असताना विनिमय दर दिवसातून सुमारे दोनदा ताजे होतात; ऑफलाइन असताना शेवटचे ज्ञात दर वापरले जातात.</string>
+    <string name="faq_q_export">माझा डेटा कसा निर्यात करायचा?</string>
+    <string name="faq_a_export">सेटिंग्ज → अहवाल निर्यात. तारीख श्रेणी निवडा आणि Excel, CSV किंवा PDF मध्ये निर्यात करा. फाइल तुमच्या डाउनलोड फोल्डरमध्ये जतन होते.</string>
+    <string name="faq_q_clear_data">सर्व काही कसे हटवायचे?</string>
+    <string name="faq_a_clear_data">सेटिंग्ज → सर्व डेटा हटवा. ते दोनदा खात्री विचारते कारण ते परत आणता येत नाही. आधी बॅकअप घेणे उत्तम.</string>
+
+    <!-- About -->
+    <string name="about_title">अ‍ॅपविषयी</string>
+    <string name="about_tagline">तुमचा सुरक्षित वैयक्तिक अर्थसाथी</string>
+    <string name="about_version">आवृत्ती %1$s</string>
+    <string name="about_credits">श्रेयनामावली</string>
+    <string name="about_credits_body">Firebase, Material Design आणि MPAndroidChart वापरून तयार. विनिमय दर open.er-api.com कडून. चिन्हे Material Symbols कडून.</string>
+    <string name="about_privacy">गोपनीयता धोरण</string>
+    <string name="about_terms">वापराच्या अटी</string>
+    <string name="about_policy_unavailable">या बिल्डमध्ये धोरण दुवे सेट केलेले नाहीत.</string>
+
+    <!-- SMS gateway (Fast2SMS) -->
+    <string name="gateway_title">SMS गेटवे</string>
+    <string name="gateway_banner_title">अद्याप पाठवत नाही</string>
+    <string name="gateway_banner_body">इथे की जतन केल्याने अ‍ॅप SMS पाठवू लागत नाही. प्रत्यक्ष पाठवण्यासाठी की ठेवणारा सर्व्हर लागतो — अ‍ॅपमध्ये ठेवलेली की त्यातून काढता येते. स्मरणपत्रे आजही WhatsApp किंवा तुमच्या स्वतःच्या SMS अ‍ॅपने जातात.</string>
+    <string name="gateway_enable">SMS गेटवे सुरू करा</string>
+    <string name="gateway_api_key">Fast2SMS API की</string>
+    <string name="gateway_stored_key">जतन केलेली: %1$s</string>
+    <string name="gateway_no_key">अद्याप कोणतीही की जतन केलेली नाही.</string>
+    <string name="gateway_reveal">दाखवा</string>
+    <string name="gateway_hide">लपवा</string>
+    <string name="gateway_save">जतन करा</string>
+    <string name="gateway_saved">गेटवे सेटिंग्ज जतन झाल्या.</string>
+    <string name="gateway_key_required">गेटवे सुरू करण्यापूर्वी API की भरा.</string>
+    <string name="gateway_caveats_title">Quick मार्गाविषयी</string>
+    <string name="gateway_caveats_body">हे Fast2SMS चा Quick मार्ग वापरते, ज्यास DLT नोंदणी, प्रेषक ID किंवा पूर्वमंजूर टेम्पलेट लागत नाहीत — म्हणूनच फक्त एक API की. त्याबदल्यात: संदेश सामायिक क्रमांकावरून जातात, पाठवण्यापूर्वी तपासले जातात, आणि DND नोंदणीकृत क्रमांकांपर्यंत कधीही पोहोचत नाहीत.</string>
+    <string name="gateway_pricing_title">जाहीर दर</string>
+    <string name="gateway_pricing_body">Fast2SMS Quick मार्गासाठी प्रीपेड वॉलेटमधून प्रति संदेश शुल्क घेते. रिचार्जपूर्वी त्यांच्या संकेतस्थळावर सध्याचा दर पाहा — दर सूचनेशिवाय बदलतात.</string>
+    <string name="gateway_pricing_asof">जुलै 2026 मध्ये नोंदवले. विसंबण्यापूर्वी Fast2SMS वर तपासा.</string>
+    <string name="gateway_open_site">Fast2SMS वॉलेट उघडा</string>
+    <string name="profile_sms_gateway">SMS गेटवे</string>
+
+    <!-- Sign-out durability guard -->
+    <string name="logout_unsynced_title">बदल अद्याप सिंक झाले नाहीत</string>
+    <string name="logout_unsynced_message">काही अलीकडील बदल अद्याप क्लाउडपर्यंत पोहोचले नाहीत. आता साइन आउट केल्यास ते कायमचे नष्ट होतील. पुन्हा जोडून प्रयत्न करा, किंवा तरीही साइन आउट करा?</string>
+    <string name="logout_unsynced_confirm">तरीही साइन आउट करा</string>
+    <string name="logout_unsynced_cancel">साइन इन राहा</string>
 </resources>

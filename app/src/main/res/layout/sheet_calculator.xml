@@ -1,0 +1,143 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:padding="20dp"
+    android:background="@drawable/bg_clay_card"
+    android:backgroundTint="@color/colorBackground">
+
+    <!-- Header -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        android:layout_marginBottom="16dp">
+
+        <ImageView
+            android:layout_width="26dp"
+            android:layout_height="26dp"
+            android:src="@drawable/ic_calculator"
+            android:contentDescription="@string/calc_title"
+            app:tint="@color/colorPrimary" />
+
+        <TextView
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:layout_marginStart="12dp"
+            android:text="@string/calc_title"
+            android:textColor="@color/colorTextPrimary"
+            android:textSize="18sp"
+            android:textStyle="bold" />
+
+        <ImageView
+            android:id="@+id/btnCopyResult"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:padding="8dp"
+            android:src="@drawable/ic_copy"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:contentDescription="@string/calc_copy"
+            app:tint="@color/colorTextSecondary" />
+    </LinearLayout>
+
+    <!-- Expression + live result -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:gravity="end"
+        android:padding="16dp"
+        android:layout_marginBottom="16dp"
+        android:background="@drawable/bg_clay_card"
+        android:backgroundTint="@color/colorSurface">
+
+        <TextView
+            android:id="@+id/txtExpression"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="end"
+            android:maxLines="2"
+            android:ellipsize="start"
+            android:textColor="@color/colorTextPrimary"
+            android:textSize="26sp"
+            android:textStyle="bold"
+            android:text="0"
+            android:contentDescription="@string/calc_expression" />
+
+        <TextView
+            android:id="@+id/txtResult"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="6dp"
+            android:gravity="end"
+            android:maxLines="1"
+            android:textColor="@color/colorTextSecondary"
+            android:textSize="16sp"
+            android:text="" />
+    </LinearLayout>
+
+    <!-- Keypad: 4 rows of 4 -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:layout_marginBottom="8dp">
+
+        <Button android:id="@+id/btnClear" style="@style/CalcKeyAccent" android:text="@string/calc_clear" />
+        <Button android:id="@+id/btnParenOpen" style="@style/CalcKeyMuted" android:text="(" />
+        <Button android:id="@+id/btnParenClose" style="@style/CalcKeyMuted" android:text=")" />
+        <Button android:id="@+id/btnDivide" style="@style/CalcKeyOperator" android:text="÷" />
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:layout_marginBottom="8dp">
+
+        <Button android:id="@+id/btn7" style="@style/CalcKey" android:text="7" />
+        <Button android:id="@+id/btn8" style="@style/CalcKey" android:text="8" />
+        <Button android:id="@+id/btn9" style="@style/CalcKey" android:text="9" />
+        <Button android:id="@+id/btnMultiply" style="@style/CalcKeyOperator" android:text="×" />
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:layout_marginBottom="8dp">
+
+        <Button android:id="@+id/btn4" style="@style/CalcKey" android:text="4" />
+        <Button android:id="@+id/btn5" style="@style/CalcKey" android:text="5" />
+        <Button android:id="@+id/btn6" style="@style/CalcKey" android:text="6" />
+        <Button android:id="@+id/btnMinus" style="@style/CalcKeyOperator" android:text="−" />
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:layout_marginBottom="8dp">
+
+        <Button android:id="@+id/btn1" style="@style/CalcKey" android:text="1" />
+        <Button android:id="@+id/btn2" style="@style/CalcKey" android:text="2" />
+        <Button android:id="@+id/btn3" style="@style/CalcKey" android:text="3" />
+        <Button android:id="@+id/btnPlus" style="@style/CalcKeyOperator" android:text="+" />
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal">
+
+        <Button android:id="@+id/btn0" style="@style/CalcKey" android:text="0" />
+        <Button android:id="@+id/btnDot" style="@style/CalcKey" android:text="." />
+        <Button android:id="@+id/btnBackspace" style="@style/CalcKeyMuted" android:text="⌫" />
+        <Button android:id="@+id/btnEquals" style="@style/CalcKeyEquals" android:text="=" />
+    </LinearLayout>
+
+</LinearLayout>

@@ -183,6 +183,7 @@ public class SmsImportBottomSheet extends BottomSheetDialogFragment {
                     }
                     binding.chipGroupCategory.removeAllViews();
                     for (DocumentSnapshot doc : queryDocumentSnapshots.getDocuments()) {
+                        if (Boolean.TRUE.equals(doc.getBoolean("archived"))) continue; // hidden from pickers
                         String catName = doc.getString("name");
                         if (catName != null) {
                             Chip chip = (Chip) LayoutInflater.from(getContext())

@@ -151,6 +151,54 @@
                 </RelativeLayout>
             </com.google.android.material.card.MaterialCardView>
 
+            <!-- Which 50/30/20 bucket this goal's deposits count toward -->
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Counts as"
+                android:textColor="@color/colorTextPrimary"
+                android:textSize="14sp"
+                android:textStyle="bold" />
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="2dp"
+                android:text="Deposits into this goal are logged under this bucket. An emergency fund is an investment; a holiday fund is a want."
+                android:textColor="@color/colorTextSecondary"
+                android:textSize="12sp" />
+
+            <com.google.android.material.chip.ChipGroup
+                android:id="@+id/chipGroupBucket"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:layout_marginBottom="24dp"
+                app:singleSelection="true">
+
+                <com.google.android.material.chip.Chip
+                    android:id="@+id/chipBucketInvestments"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:checkable="true"
+                    android:checked="true"
+                    android:text="Investments" />
+
+                <com.google.android.material.chip.Chip
+                    android:id="@+id/chipBucketNeeds"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:checkable="true"
+                    android:text="Needs" />
+
+                <com.google.android.material.chip.Chip
+                    android:id="@+id/chipBucketWants"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:checkable="true"
+                    android:text="Wants" />
+            </com.google.android.material.chip.ChipGroup>
+
         </LinearLayout>
     </androidx.core.widget.NestedScrollView>
 

@@ -14,6 +14,7 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.bachatkhata.databinding.ActivityAddSavingsGoalBinding;
 import com.example.bachatkhata.databinding.ItemCategoryGridCellBinding;
+import com.example.bachatkhata.domain.BucketType;
 import com.google.android.material.datepicker.MaterialDatePicker;
 import com.google.android.material.snackbar.Snackbar;
 import com.google.firebase.Timestamp;
@@ -151,6 +152,7 @@ public class AddSavingsGoalActivity extends BaseActivity {
                 deadlineTs,
                 Timestamp.now()
         );
+        goal.setBucket(selectedBucket().key());
 
         docRef.set(goal.toMap())
                 .addOnSuccessListener(aVoid -> {
@@ -163,6 +165,14 @@ public class AddSavingsGoalActivity extends BaseActivity {
                     showLoading(false);
                     showError("Failed to create goal: " + e.getMessage());
                 });
+    }
+
+    /** Defaults to Investments, matching how untagged goals have always been treated. */
+    private BucketType selectedBucket() {
+        int checkedId = binding.chipGroupBucket.getCheckedChipId();
+        if (checkedId == R.id.chipBucketNeeds) return BucketType.NEEDS;
+        if (checkedId == R.id.chipBucketWants) return BucketType.WANTS;
+        return BucketType.INVESTMENTS;
     }
 
     private void showLoading(boolean isLoading) {

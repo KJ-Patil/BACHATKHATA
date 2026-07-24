@@ -94,6 +94,44 @@
         <item name="cornerSize">19dp</item>
     </style>
 
+    <!-- ── Floating calculator keypad ──────────────────────────────────────
+         Keys share one base so the 4x5 grid stays even; variants only
+         re-tint. layout_weight=1 + width=0dp makes each row self-distribute. -->
+    <style name="CalcKey" parent="Widget.Material3.Button.TextButton">
+        <item name="android:layout_width">0dp</item>
+        <item name="android:layout_height">54dp</item>
+        <item name="android:layout_weight">1</item>
+        <item name="android:layout_marginHorizontal">4dp</item>
+        <item name="cornerRadius">@dimen/clay_input_radius</item>
+        <item name="backgroundTint">@color/colorSurface</item>
+        <item name="android:textColor">@color/colorTextPrimary</item>
+        <item name="android:textSize">19sp</item>
+        <item name="android:textStyle">bold</item>
+        <item name="android:insetTop">0dp</item>
+        <item name="android:insetBottom">0dp</item>
+        <item name="android:minWidth">0dp</item>
+    </style>
+
+    <style name="CalcKeyOperator" parent="CalcKey">
+        <item name="backgroundTint">@color/colorPrimaryLight</item>
+        <item name="android:textColor">@color/colorPrimary</item>
+    </style>
+
+    <style name="CalcKeyMuted" parent="CalcKey">
+        <item name="backgroundTint">@color/colorSurfaceVariant</item>
+        <item name="android:textColor">@color/colorTextSecondary</item>
+    </style>
+
+    <style name="CalcKeyAccent" parent="CalcKey">
+        <item name="backgroundTint">@color/colorSurfaceVariant</item>
+        <item name="android:textColor">@color/colorDanger</item>
+    </style>
+
+    <style name="CalcKeyEquals" parent="CalcKey">
+        <item name="backgroundTint">@color/colorPrimary</item>
+        <item name="android:textColor">@color/colorOnPrimary</item>
+    </style>
+
     <!-- Bottom navigation active indicator (soft primary pill) -->
     <style name="ShapeAppearance.BottomNavIndicator" parent="">
         <item name="cornerFamily">rounded</item>

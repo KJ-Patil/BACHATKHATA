@@ -144,6 +144,19 @@ public class TransactionDetailActivity extends BaseActivity {
         binding.txtDetailAccount.setText(transaction.getAccount());
         binding.txtDetailCurrency.setText(String.format("%s (%s)", transaction.getCurrency(), transaction.getCurrencySymbol()));
 
+        // Discount breakdown, when the row carries one. The saving stays visible
+        // long after the purchase — that is the point of storing it.
+        if (transaction.hasDiscount()) {
+            CurrencyManager currency = CurrencyManager.getInstance();
+            binding.txtDetailOriginalAmount.setText(
+                    currency.formatAmount(transaction.getOriginalAmount()));
+            binding.txtDetailDiscountAmount.setText(String.format("-%s",
+                    currency.formatAmount(transaction.getDiscountAmount())));
+            binding.layoutDiscountDetail.setVisibility(View.VISIBLE);
+        } else {
+            binding.layoutDiscountDetail.setVisibility(View.GONE);
+        }
+
         String note = transaction.getNote();
         if (note == null || note.trim().isEmpty()) {
             binding.txtDetailNote.setText("No note details.");
@@ -209,7 +222,11 @@ public class TransactionDetailActivity extends BaseActivity {
                     binding.loaderOverlay.setVisibility(View.GONE);
                     availableCategories.clear();
                     for (DocumentSnapshot doc : queryDocumentSnapshots.getDocuments()) {
-                        availableCategories.add(Category.fromDocument(doc));
+                        Category c = Category.fromDocument(doc);
+                        // Archived categories stay hidden, except the one this transaction
+                        // already uses — otherwise editing it would silently reclassify it.
+                        if (c.getArchived() && !c.getName().equals(transaction.getCategory())) continue;
+                        availableCategories.add(c);
                     }
                     categoryGridAdapter.setCategories(availableCategories);
                     categoryGridAdapter.setSelectedCategoryByName(transaction.getCategory());
@@ -249,6 +266,14 @@ public class TransactionDetailActivity extends BaseActivity {
         showLoading(true);
         String uid = mAuth.getCurrentUser().getUid();
 
+        // Editing the amount invalidates any stored discount breakdown: the old
+        // original price and saving no longer describe this number, and keeping
+        // them would render a "you saved" line that is simply untrue.
+        boolean discountDropped = transaction.hasDiscount() && amount != transaction.getAmount();
+        if (discountDropped) {
+            transaction.clearDiscount();
+        }
+
         transaction.setAmount(amount);
         if (selectedCategory != null) {
             transaction.setCategory(selectedCategory.getName());
@@ -261,7 +286,11 @@ public class TransactionDetailActivity extends BaseActivity {
                 aVoid -> {
                     showLoading(false);
                     exitEditMode();
-                    Snackbar.make(binding.getRoot(), "Changes saved!", Snackbar.LENGTH_SHORT).show();
+                    Snackbar.make(binding.getRoot(),
+                            discountDropped
+                                    ? getString(R.string.discount_cleared_on_edit)
+                                    : "Changes saved!",
+                            Snackbar.LENGTH_SHORT).show();
                 },
                 e -> {
                     showLoading(false);

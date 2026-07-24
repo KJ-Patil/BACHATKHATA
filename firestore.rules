@@ -1,0 +1,109 @@
+rules_version = '2';
+
+// Bachat Khata — Firestore security rules.
+//
+// Two access models only:
+//   1. users/{uid}/**  — strictly private to the owner. Everything the app stores
+//      per person lives here: transactions, budgets, savings_goals, categories,
+//      customers, customer_txns, emis, bills, subscriptions, assets, liabilities,
+//      net_worth_snapshots, mood_logs, notifications, backups.
+//   2. groups/{groupId} — the ONLY genuinely shared, multi-user surface
+//      (Family Wallet, Org Donations, Expense Claims, Event Funds, Bill Splitter).
+//      Authorization is always on `memberUids` (real Firebase UIDs), never on
+//      `members[].name` — display names are neither unique nor trustworthy.
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // ── 1. Per-user private data ────────────────────────────────────────────
+    match /users/{userId}/{document=**} {
+      allow read, write: if request.auth != null && request.auth.uid == userId;
+    }
+
+    // ── 2. Shared group wallets ─────────────────────────────────────────────
+
+    // Membership of the PARENT group doc, for use inside subcollections.
+    function isGroupMember(groupId) {
+      return request.auth != null
+          && request.auth.uid in
+             get(/databases/$(database)/documents/groups/$(groupId)).data.memberUids;
+    }
+
+    match /groups/{groupId} {
+
+      // Read a single group you belong to.
+      allow get: if request.auth != null
+                 && request.auth.uid in resource.data.memberUids;
+
+      // Queries. This permits exactly one shape:
+      //     collection("groups").whereArrayContains("memberUids", uid)
+      // which is what the Family Wallet dashboard issues. Any broader query —
+      // including an unfiltered fetch of the collection — is rejected, so the
+      // groups collection can never be enumerated by a stranger.
+      allow list: if request.auth != null
+                  && request.auth.uid in resource.data.memberUids;
+
+      // The creator must already be in memberUids on the document they write.
+      allow create: if request.auth != null
+                    && request.auth.uid in request.resource.data.memberUids;
+
+      // Either an existing member editing/leaving, or someone joining by adding
+      // themselves via arrayUnion.
+      allow update: if request.auth != null
+                    && (request.auth.uid in resource.data.memberUids
+                        || request.auth.uid in request.resource.data.memberUids);
+
+      allow delete: if request.auth != null
+                    && request.auth.uid in resource.data.memberUids;
+
+      // All shared subcollections inherit the parent's membership check:
+      // group_transactions, expense_claims, projects, donations,
+      // event_expenses, event_contributions, split_sessions.
+      match /{document=**} {
+        allow read, write: if isGroupMember(groupId);
+      }
+    }
+
+    // ── 3. Invite-code lookup ───────────────────────────────────────────────
+    //
+    // Joining needs to resolve a 6-digit code to a group WITHOUT being able to
+    // read or enumerate groups you're not in yet. A single-document lookup does
+    // that: `get` on a known code is allowed, `list` never is.
+    //
+    // Each doc is  inviteCodes/{code} -> { groupId: "<auto-id>" }
+    //
+    // Written by CreateGroupActivity.publishInviteCode, read by
+    // FamilyWalletFragment.joinGroupWithInviteCode.
+    match /inviteCodes/{code} {
+      allow get:    if request.auth != null;
+      allow list:   if false;
+      allow create: if request.auth != null
+                    && request.auth.uid in
+                       get(/databases/$(database)/documents/groups/$(request.resource.data.groupId)).data.memberUids;
+      allow update, delete: if request.auth != null
+                    && request.auth.uid in
+                       get(/databases/$(database)/documents/groups/$(resource.data.groupId)).data.memberUids;
+    }
+  }
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// DEPLOY ORDER — the backfill must run before these rules take effect.
+//
+// Joining used to be `collection("groups").whereEqualTo("inviteCode", code)`, a
+// LIST operation over groups the user does not belong to. `allow list` above
+// denies it: rules cannot inspect a query's filter value, so there is no way to
+// express "allow this query only if you already know the code" — the lookup has
+// to be a single-document read, which is what inviteCodes/ provides.
+//
+// The client side is done (CreateGroupActivity + FamilyWalletFragment). What
+// remains is data: groups created before this change have no inviteCodes/ doc,
+// so their codes resolve to nothing.
+//
+//   1. node scripts/backfill-invite-codes.js --dry-run   (review collisions)
+//   2. node scripts/backfill-invite-codes.js
+//   3. firebase deploy --only firestore:rules
+//   4. Ship the app update. Older installs still run the denied query, so
+//      joining fails there until users update — creating and using existing
+//      groups is unaffected.
+// ─────────────────────────────────────────────────────────────────────────────

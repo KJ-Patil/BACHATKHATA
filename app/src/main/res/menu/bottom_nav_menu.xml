@@ -6,9 +6,9 @@
         android:title="@string/title_home" />
 
     <item
-        android:id="@+id/navigation_transactions"
-        android:icon="@drawable/ic_list"
-        android:title="@string/title_transactions" />
+        android:id="@+id/navigation_data_tools"
+        android:icon="@drawable/ic_briefcase"
+        android:title="@string/home_data_tools" />
 
     <!-- Placeholder to let the FAB sit in the center -->
     <item
@@ -18,9 +18,9 @@
         android:enabled="false" />
 
     <item
-        android:id="@+id/navigation_data_tools"
-        android:icon="@drawable/ic_briefcase"
-        android:title="@string/home_data_tools" />
+        android:id="@+id/navigation_transactions"
+        android:icon="@drawable/ic_list"
+        android:title="@string/title_transactions" />
 
     <item
         android:id="@+id/navigation_customer_ledger"

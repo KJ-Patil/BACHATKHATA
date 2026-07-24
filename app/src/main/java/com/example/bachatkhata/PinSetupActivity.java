@@ -241,6 +241,47 @@ public class PinSetupActivity extends AppCompatActivity {
 
     /** Sign out of the current account and return to the login screen to switch users. */
     private void switchAccount() {
+        // Same durability guard as ProfileFragment's logout: a user who edited
+        // offline, backgrounded the app, and hit Switch Account on the lock screen
+        // would otherwise lose those writes on sign-out. Flush first, and warn if
+        // the flush can't complete (e.g. still offline) rather than discarding
+        // silently. The wait never resolves offline, so it needs its own timeout.
+        showLoading(true);
+        final boolean[] settled = {false};
+        final android.os.Handler handler = new android.os.Handler(getMainLooper());
+
+        Runnable onTimeout = () -> {
+            if (settled[0]) return;
+            settled[0] = true;
+            showLoading(false);
+            confirmSwitchWithUnsyncedWrites();
+        };
+        handler.postDelayed(onTimeout, 5000);
+
+        FirebaseFirestore.getInstance().waitForPendingWrites()
+                .addOnCompleteListener(task -> {
+                    if (settled[0]) return;
+                    settled[0] = true;
+                    handler.removeCallbacks(onTimeout);
+                    showLoading(false);
+                    if (task.isSuccessful()) {
+                        performSwitchAccount();
+                    } else {
+                        confirmSwitchWithUnsyncedWrites();
+                    }
+                });
+    }
+
+    private void confirmSwitchWithUnsyncedWrites() {
+        new AlertDialog.Builder(this)
+                .setTitle(R.string.logout_unsynced_title)
+                .setMessage(R.string.logout_unsynced_message)
+                .setPositiveButton(R.string.logout_unsynced_confirm, (d, which) -> performSwitchAccount())
+                .setNegativeButton(R.string.logout_unsynced_cancel, null)
+                .show();
+    }
+
+    private void performSwitchAccount() {
         mAuth.signOut();
         Intent intent = new Intent(PinSetupActivity.this, LoginActivity.class);
         intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);

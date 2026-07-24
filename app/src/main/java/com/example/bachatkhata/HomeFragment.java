@@ -21,9 +21,13 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 
 import com.bumptech.glide.Glide;
 import com.example.bachatkhata.databinding.FragmentHomeBinding;
+import com.example.bachatkhata.databinding.ItemMoneyRuleBarBinding;
+import com.example.bachatkhata.domain.BucketType;
+import com.example.bachatkhata.domain.MoneyRule;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.FirebaseFirestore;
 
+import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.List;
 import java.util.Locale;
@@ -40,6 +44,9 @@ public class HomeFragment extends Fragment {
     private double lastSpent = 0.0;
     private double lastSaved = 0.0;
     private int lastTxns = 0;
+
+    private final List<Transaction> ruleTransactions = new ArrayList<>();
+    private final List<Category> ruleCategories = new ArrayList<>();
 
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container,
@@ -70,6 +77,8 @@ public class HomeFragment extends Fragment {
             
             // Initial load of dashboard
             viewModel.loadDashboardData(uid, "Monthly");
+            viewModel.loadCategories(uid);
+            MoneyRuleSettings.loadFromFirestore(requireContext(), uid, this::renderMoneyRuleCard);
             
             // Set Greeting
             setGreetingText(uid);
@@ -90,6 +99,60 @@ public class HomeFragment extends Fragment {
         AnimationHelper.cardEntryAnimation(binding.cardKpiSpent, 100);
         AnimationHelper.cardEntryAnimation(binding.cardKpiSaved, 200);
         AnimationHelper.cardEntryAnimation(binding.cardKpiTxnCount, 300);
+    }
+
+    /**
+     * Home-screen summary of the Budgeting Rule: one bar per bucket for the current month.
+     * With no income set it shows a Set-income prompt instead of three empty bars, since a
+     * 0% bar would read as "you've spent nothing" rather than "nothing to compare against".
+     */
+    private void renderMoneyRuleCard() {
+        if (binding == null || !isAdded()) return;
+
+        double income = MoneyRuleSettings.getIncome(requireContext());
+        MoneyRule.Split split = MoneyRuleSettings.getSplit(requireContext());
+
+        binding.txtMoneyRuleSplit.setText(String.format(Locale.US, "%d / %d / %d",
+                split.needs, split.wants, split.investments));
+
+        boolean hasIncome = income > 0;
+        binding.containerMoneyRuleBars.setVisibility(hasIncome ? View.VISIBLE : View.GONE);
+        binding.layoutMoneyRuleEmpty.setVisibility(hasIncome ? View.GONE : View.VISIBLE);
+        if (!hasIncome) {
+            binding.containerMoneyRuleBars.removeAllViews();
+            return;
+        }
+
+        Calendar now = Calendar.getInstance();
+        MoneyRule.Result result = MoneyRule.compute(
+                income, ruleTransactions, now.get(Calendar.YEAR), now.get(Calendar.MONTH),
+                split, null, ruleCategories);
+
+        CurrencyManager cm = CurrencyManager.getInstance();
+        binding.containerMoneyRuleBars.removeAllViews();
+
+        for (BucketType bucket : BucketType.values()) {
+            MoneyRule.BucketSummary summary = result.get(bucket);
+            ItemMoneyRuleBarBinding bar = ItemMoneyRuleBarBinding.inflate(
+                    getLayoutInflater(), binding.containerMoneyRuleBars, false);
+
+            bar.txtBarBucket.setText(bucket.label());
+            bar.txtBarAmounts.setText(String.format(Locale.US, "%s / %s · %.0f%%",
+                    cm.formatAmount(summary.spent), cm.formatAmount(summary.budget), summary.usage));
+            bar.progressBar.setProgress((int) Math.min(summary.usage, 100));
+
+            int color;
+            if (MoneyRule.STATUS_OVER_BUDGET.equals(summary.status)) {
+                color = android.graphics.Color.parseColor("#E24B4A");
+            } else if (MoneyRule.STATUS_NEAR_LIMIT.equals(summary.status)) {
+                color = android.graphics.Color.parseColor("#EF9F27");
+            } else {
+                color = android.graphics.Color.parseColor("#3DAF85");
+            }
+            bar.progressBar.setIndicatorColor(color);
+
+            binding.containerMoneyRuleBars.addView(bar.getRoot());
+        }
     }
 
     private void setupRecyclerView() {
@@ -145,6 +208,12 @@ public class HomeFragment extends Fragment {
         binding.btnTopMenu.setOnClickListener(v ->
             Navigation.findNavController(v).navigate(R.id.navigation_profile)
         );
+
+        // Both the card and its Set-income action deep-link to Budgets, where the rule lives.
+        View.OnClickListener toBudgets = v ->
+                Navigation.findNavController(v).navigate(R.id.navigation_budget);
+        binding.cardMoneyRule.setOnClickListener(toBudgets);
+        binding.btnSetIncome.setOnClickListener(toBudgets);
 
         if (getActivity() != null) {
             View fab = getActivity().findViewById(R.id.fabAdd);
@@ -294,6 +363,18 @@ public class HomeFragment extends Fragment {
         viewModel.getTodaySpent().observe(getViewLifecycleOwner(), todaySpent -> {
             String val = CurrencyManager.getInstance().formatAmount(todaySpent);
             binding.txtTodaySummaryText.setText("Spent " + val + " today");
+        });
+
+        viewModel.getAllTransactions().observe(getViewLifecycleOwner(), list -> {
+            ruleTransactions.clear();
+            ruleTransactions.addAll(list);
+            renderMoneyRuleCard();
+        });
+
+        viewModel.getCategories().observe(getViewLifecycleOwner(), list -> {
+            ruleCategories.clear();
+            ruleCategories.addAll(list);
+            renderMoneyRuleCard();
         });
 
         viewModel.getSafeToSpend().observe(getViewLifecycleOwner(), result -> {

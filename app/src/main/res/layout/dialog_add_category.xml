@@ -72,4 +72,59 @@
             app:singleLine="true" />
     </HorizontalScrollView>
 
+    <!-- Bucket picker: expense categories only, hidden for income -->
+    <LinearLayout
+        android:id="@+id/layoutBucketPicker"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="16dp"
+        android:orientation="vertical">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Counts as"
+            android:textColor="@color/colorTextPrimary"
+            android:textSize="13sp"
+            android:textStyle="bold" />
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="2dp"
+            android:text="Which part of the 50/30/20 rule spending here belongs to."
+            android:textColor="@color/colorTextSecondary"
+            android:textSize="12sp" />
+
+        <com.google.android.material.chip.ChipGroup
+            android:id="@+id/chipGroupBucket"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            app:singleSelection="true">
+
+            <com.google.android.material.chip.Chip
+                android:id="@+id/chipBucketNeeds"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:checkable="true"
+                android:checked="true"
+                android:text="Needs" />
+
+            <com.google.android.material.chip.Chip
+                android:id="@+id/chipBucketWants"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:checkable="true"
+                android:text="Wants" />
+
+            <com.google.android.material.chip.Chip
+                android:id="@+id/chipBucketInvestments"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:checkable="true"
+                android:text="Investments" />
+        </com.google.android.material.chip.ChipGroup>
+    </LinearLayout>
+
 </LinearLayout>

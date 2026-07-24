@@ -180,6 +180,90 @@
                         android:text="Available balance: ₹0.00"
                         android:textColor="@color/colorTextSecondary"
                         android:textSize="12sp" />
+
+                    <!-- Discount (expenses only). Collapsed until asked for, so the
+                         common no-discount case stays a single amount field. -->
+                    <TextView
+                        android:id="@+id/btnToggleDiscount"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="12dp"
+                        android:paddingVertical="4dp"
+                        android:text="@string/discount_add"
+                        android:textColor="@color/colorPrimary"
+                        android:textSize="13sp"
+                        android:textStyle="bold"
+                        android:background="?attr/selectableItemBackground" />
+
+                    <LinearLayout
+                        android:id="@+id/layoutDiscount"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical"
+                        android:layout_marginTop="10dp"
+                        android:visibility="gone">
+
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:orientation="horizontal"
+                            android:gravity="center_vertical">
+
+                            <com.google.android.material.button.MaterialButtonToggleGroup
+                                android:id="@+id/toggleDiscountMode"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                app:singleSelection="true"
+                                app:selectionRequired="true">
+
+                                <com.google.android.material.button.MaterialButton
+                                    android:id="@+id/btnDiscountPercent"
+                                    style="?attr/materialButtonOutlinedStyle"
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="42dp"
+                                    android:minWidth="0dp"
+                                    android:paddingHorizontal="14dp"
+                                    android:insetTop="0dp"
+                                    android:insetBottom="0dp"
+                                    android:text="@string/discount_percent" />
+
+                                <com.google.android.material.button.MaterialButton
+                                    android:id="@+id/btnDiscountFlat"
+                                    style="?attr/materialButtonOutlinedStyle"
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="42dp"
+                                    android:minWidth="0dp"
+                                    android:paddingHorizontal="14dp"
+                                    android:insetTop="0dp"
+                                    android:insetBottom="0dp"
+                                    android:text="@string/discount_flat" />
+                            </com.google.android.material.button.MaterialButtonToggleGroup>
+
+                            <com.google.android.material.textfield.TextInputEditText
+                                android:id="@+id/etDiscount"
+                                android:layout_width="0dp"
+                                android:layout_height="wrap_content"
+                                android:layout_weight="1"
+                                android:layout_marginStart="12dp"
+                                android:background="@android:color/transparent"
+                                android:hint="@string/discount_hint"
+                                android:inputType="numberDecimal"
+                                android:textColor="@color/colorTextPrimary"
+                                android:textColorHint="@color/colorTextSecondary"
+                                android:textSize="18sp"
+                                android:textStyle="bold" />
+                        </LinearLayout>
+
+                        <TextView
+                            android:id="@+id/txtDiscountSummary"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="6dp"
+                            android:textColor="@color/colorSuccess"
+                            android:textSize="12sp"
+                            android:textStyle="bold"
+                            android:visibility="gone" />
+                    </LinearLayout>
                 </LinearLayout>
             </com.google.android.material.card.MaterialCardView>
 

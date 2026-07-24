@@ -129,21 +129,24 @@ public class FamilyWalletFragment extends Fragment {
 
                     final String finalJoinerName = joinerName;
 
-                    // 2. Query group matching code
-                    mFirestore.collection("groups")
-                            .whereEqualTo("inviteCode", inviteCode)
+                    // 2. Resolve the code through the single-document lookup. This used to
+                    //    be a whereEqualTo("inviteCode", ...) query over `groups`, which is
+                    //    a list operation the security rules deny — allowing it would let
+                    //    anyone enumerate every group in the app. A code you already know
+                    //    resolves in one read; the collection stays unwalkable.
+                    mFirestore.collection("inviteCodes").document(inviteCode)
                             .get()
-                            .addOnSuccessListener(queryDocumentSnapshots -> {
-                                if (queryDocumentSnapshots.isEmpty()) {
+                            .addOnSuccessListener(codeDoc -> {
+                                String groupId = codeDoc.exists() ? codeDoc.getString("groupId") : null;
+                                if (groupId == null || groupId.isEmpty()) {
                                     Toast.makeText(getContext(), "Invalid invite code. Group not found.", Toast.LENGTH_SHORT).show();
                                     return;
                                 }
 
-                                DocumentSnapshot groupDoc = queryDocumentSnapshots.getDocuments().get(0);
-                                String groupId = groupDoc.getString("id");
-                                List<String> memberUids = (List<String>) groupDoc.get("memberUids");
-
-                                if (memberUids != null && memberUids.contains(uid)) {
+                                // Membership is checked against the groups already streamed
+                                // into this screen — a non-member cannot read the group doc
+                                // under the new rules, and does not need to.
+                                if (isAlreadyMemberOf(groupId)) {
                                     Toast.makeText(getContext(), "You are already a member of this group!", Toast.LENGTH_SHORT).show();
                                     navigateToGroupDetail(groupId);
                                     return;
@@ -156,7 +159,9 @@ public class FamilyWalletFragment extends Fragment {
                                 memberMap.put("role", "member");
                                 memberMap.put("joinedAt", Timestamp.now());
 
-                                // 4. Perform atomic update
+                                // 4. Perform atomic update. arrayUnion is idempotent, and the
+                                //    post-write state puts this uid in memberUids, which is
+                                //    what the rule's self-join clause authorizes against.
                                 mFirestore.collection("groups").document(groupId)
                                         .update(
                                                 "members", FieldValue.arrayUnion(memberMap),
@@ -173,6 +178,14 @@ public class FamilyWalletFragment extends Fragment {
                             })
                             .addOnFailureListener(e -> Toast.makeText(getContext(), "Search failed: " + e.getLocalizedMessage(), Toast.LENGTH_SHORT).show());
                 });
+    }
+
+    /** True when the signed-in user already belongs to {@code groupId}. */
+    private boolean isAlreadyMemberOf(String groupId) {
+        for (DocumentSnapshot doc : groupsList) {
+            if (doc.getId().equals(groupId)) return true;
+        }
+        return false;
     }
 
     private void navigateToGroupDetail(String groupId) {

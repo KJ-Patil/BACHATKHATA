@@ -33,6 +33,15 @@ public class SharedPreferencesManager {
     public static final String KEY_THEME_MODE = "THEME_MODE";
     public static final String KEY_REMEMBER_ME = "REMEMBER_ME";
     public static final String KEY_REMEMBERED_EMAIL = "REMEMBERED_EMAIL";
+    // Budgeting Rule (50/30/20)
+    public static final String KEY_MONTHLY_INCOME = "MONTHLY_INCOME";
+    public static final String KEY_RULE_NEEDS = "RULE_NEEDS";
+    public static final String KEY_RULE_WANTS = "RULE_WANTS";
+    public static final String KEY_RULE_INVESTMENTS = "RULE_INVESTMENTS";
+    // SMS gateway (Fast2SMS). The API key is a credential — it lives here rather
+    // than in the plaintext store precisely because this one is AES-GCM encrypted.
+    public static final String KEY_SMS_GATEWAY_ENABLED = "SMS_GATEWAY_ENABLED";
+    public static final String KEY_SMS_GATEWAY_API_KEY = "SMS_GATEWAY_API_KEY";
 
     private SharedPreferencesManager(Context context) {
         Context appContext = context.getApplicationContext();
@@ -245,6 +254,60 @@ public class SharedPreferencesManager {
         } else {
             AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_FOLLOW_SYSTEM);
         }
+    }
+
+    // ── Budgeting Rule (50/30/20) ──
+    // Income is kept as a String so large values keep full precision (SharedPreferences
+    // has no double type, and float silently rounds past ~7 significant digits).
+    public void setMonthlyIncome(double income) {
+        editor.putString(KEY_MONTHLY_INCOME, String.valueOf(Math.max(0, income)));
+        editor.apply();
+    }
+
+    public double getMonthlyIncome() {
+        try {
+            return Double.parseDouble(sharedPreferences.getString(KEY_MONTHLY_INCOME, "0"));
+        } catch (NumberFormatException e) {
+            return 0;
+        }
+    }
+
+    public void setRuleSplit(int needs, int wants, int investments) {
+        editor.putInt(KEY_RULE_NEEDS, needs);
+        editor.putInt(KEY_RULE_WANTS, wants);
+        editor.putInt(KEY_RULE_INVESTMENTS, investments);
+        editor.apply();
+    }
+
+    public int getRuleNeeds() {
+        return sharedPreferences.getInt(KEY_RULE_NEEDS, 50);
+    }
+
+    public int getRuleWants() {
+        return sharedPreferences.getInt(KEY_RULE_WANTS, 30);
+    }
+
+    public int getRuleInvestments() {
+        return sharedPreferences.getInt(KEY_RULE_INVESTMENTS, 20);
+    }
+
+    // SMS gateway (Fast2SMS)
+    public void setSmsGatewayEnabled(boolean enabled) {
+        editor.putBoolean(KEY_SMS_GATEWAY_ENABLED, enabled);
+        editor.apply();
+    }
+
+    public boolean isSmsGatewayEnabled() {
+        return sharedPreferences.getBoolean(KEY_SMS_GATEWAY_ENABLED, false);
+    }
+
+    public void setSmsGatewayApiKey(String apiKey) {
+        editor.putString(KEY_SMS_GATEWAY_API_KEY, apiKey == null ? "" : apiKey);
+        editor.apply();
+    }
+
+    public String getSmsGatewayApiKey() {
+        return sharedPreferences.getString(KEY_SMS_GATEWAY_API_KEY, "");
     }
 
     // Clear settings

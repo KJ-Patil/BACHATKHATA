@@ -523,6 +523,90 @@
                         android:layout_height="1dp"
                         android:background="@color/colorCardBorder"/>
 
+                    <!-- SMS Gateway Row -->
+                    <RelativeLayout
+                        android:id="@+id/rowSmsGateway"
+                        android:layout_width="match_parent"
+                        android:layout_height="48dp"
+                        android:clickable="true"
+                        android:focusable="true"
+                        android:background="?attr/selectableItemBackground">
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_centerVertical="true"
+                            android:text="@string/profile_sms_gateway"
+                            android:textColor="@color/colorTextPrimary"
+                            android:textSize="14sp" />
+                        <ImageView
+                            android:layout_width="24dp"
+                            android:layout_height="24dp"
+                            android:layout_alignParentEnd="true"
+                            android:layout_centerVertical="true"
+                            android:src="@drawable/ic_chevron_right" />
+                    </RelativeLayout>
+
+                    <View
+                        android:layout_width="match_parent"
+                        android:layout_height="1dp"
+                        android:background="@color/colorCardBorder"/>
+
+                    <!-- Help & Support Row -->
+                    <RelativeLayout
+                        android:id="@+id/rowHelp"
+                        android:layout_width="match_parent"
+                        android:layout_height="48dp"
+                        android:clickable="true"
+                        android:focusable="true"
+                        android:background="?attr/selectableItemBackground">
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_centerVertical="true"
+                            android:text="@string/help_title"
+                            android:textColor="@color/colorTextPrimary"
+                            android:textSize="14sp" />
+                        <ImageView
+                            android:layout_width="24dp"
+                            android:layout_height="24dp"
+                            android:layout_alignParentEnd="true"
+                            android:layout_centerVertical="true"
+                            android:src="@drawable/ic_chevron_right" />
+                    </RelativeLayout>
+
+                    <View
+                        android:layout_width="match_parent"
+                        android:layout_height="1dp"
+                        android:background="@color/colorCardBorder"/>
+
+                    <!-- About Row -->
+                    <RelativeLayout
+                        android:id="@+id/rowAbout"
+                        android:layout_width="match_parent"
+                        android:layout_height="48dp"
+                        android:clickable="true"
+                        android:focusable="true"
+                        android:background="?attr/selectableItemBackground">
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_centerVertical="true"
+                            android:text="@string/about_title"
+                            android:textColor="@color/colorTextPrimary"
+                            android:textSize="14sp" />
+                        <ImageView
+                            android:layout_width="24dp"
+                            android:layout_height="24dp"
+                            android:layout_alignParentEnd="true"
+                            android:layout_centerVertical="true"
+                            android:src="@drawable/ic_chevron_right" />
+                    </RelativeLayout>
+
+                    <View
+                        android:layout_width="match_parent"
+                        android:layout_height="1dp"
+                        android:background="@color/colorCardBorder"/>
+
                     <!-- Clear all data Row -->
                     <RelativeLayout
                         android:id="@+id/rowClearData"

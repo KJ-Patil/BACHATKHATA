@@ -29,6 +29,7 @@ import com.google.firebase.firestore.Query;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.OutputStream;
+import java.nio.charset.StandardCharsets;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
@@ -251,23 +252,48 @@ public class ExportActivity extends BaseActivity {
 
     private byte[] generateCsv(List<Transaction> transactions) {
         StringBuilder csv = new StringBuilder();
-        csv.append("Date,Type,Category,Amount,Currency,Note,Account\n");
+        // Excel only detects UTF-8 in a .csv when the byte-order mark is present; without it
+        // rupee signs and Devanagari notes open as mojibake.
+        csv.append((char) 0xFEFF); // UTF-8 BOM
+        appendCsvRow(csv, "Date", "Type", "Category", "Amount", "Currency", "Note", "Account");
 
         SimpleDateFormat csvDateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.US);
         for (Transaction t : transactions) {
             String dateStr = t.getDate() != null ? csvDateFormat.format(t.getDate()) : "";
-            String note = t.getNote() != null ? t.getNote().replace(",", " ").replace("\n", " ") : "";
-            csv.append(String.format(Locale.US, "%s,%s,%s,%.2f,%s,%s,%s\n",
+            appendCsvRow(csv,
                     dateStr,
                     t.getType(),
                     t.getCategory(),
-                    t.getAmount(),
+                    String.format(Locale.US, "%.2f", t.getAmount()),
                     t.getCurrency(),
-                    note,
+                    t.getNote(),
                     t.getAccount()
-            ));
+            );
         }
-        return csv.toString().getBytes();
+        return csv.toString().getBytes(StandardCharsets.UTF_8);
+    }
+
+    /** Writes one RFC-4180 record, terminated by CRLF. */
+    private void appendCsvRow(StringBuilder out, String... fields) {
+        for (int i = 0; i < fields.length; i++) {
+            if (i > 0) out.append(',');
+            out.append(escapeCsvField(fields[i]));
+        }
+        out.append("\r\n");
+    }
+
+    /**
+     * RFC 4180 field escaping. Previously a note containing a comma shifted every column
+     * after it, so the export silently corrupted itself on ordinary input.
+     */
+    private String escapeCsvField(String value) {
+        if (value == null) return "";
+        boolean mustQuote = value.indexOf(',') >= 0
+                || value.indexOf('"') >= 0
+                || value.indexOf('\n') >= 0
+                || value.indexOf('\r') >= 0;
+        if (!mustQuote) return value;
+        return '"' + value.replace("\"", "\"\"") + '"';
     }
 
     private byte[] generateXlsx(List<Transaction> transactions) throws Exception {

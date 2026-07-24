@@ -113,6 +113,15 @@
             android:name=".CloudBackupActivity"
             android:exported="false" />
         <activity
+            android:name=".HelpActivity"
+            android:exported="false" />
+        <activity
+            android:name=".AboutActivity"
+            android:exported="false" />
+        <activity
+            android:name=".SmsGatewayActivity"
+            android:exported="false" />
+        <activity
             android:name=".PhoneLoginActivity"
             android:exported="false" />
 

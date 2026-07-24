@@ -27,6 +27,9 @@ import java.util.Random;
 
 public class CreateGroupActivity extends BaseActivity {
 
+    /** How many times to re-roll a 6-digit code before giving up on a free one. */
+    private static final int MAX_CODE_ATTEMPTS = 5;
+
     private ActivityCreateGroupBinding binding;
     private FirebaseFirestore mFirestore;
     private FirebaseAuth mAuth;
@@ -185,11 +188,9 @@ public class CreateGroupActivity extends BaseActivity {
         if (mAuth.getCurrentUser() == null) return;
         String uid = mAuth.getCurrentUser().getUid();
 
-        // 1. Generate 6-digit numeric invite code
-        String inviteCode = String.format(Locale.US, "%06d", new Random().nextInt(1000000));
-
-        // 2. Fetch current user's profile details to add as admin
-        mFirestore.collection("users").document(uid).get()
+        // 1. Claim a 6-digit invite code that nobody is using yet, then fetch the
+        //    current user's profile details to add them as admin.
+        claimInviteCode(0, inviteCode -> mFirestore.collection("users").document(uid).get()
                 .addOnSuccessListener(documentSnapshot -> {
                     String adminName = "Admin";
                     if (documentSnapshot.exists()) {
@@ -203,7 +204,39 @@ public class CreateGroupActivity extends BaseActivity {
                 })
                 .addOnFailureListener(e -> {
                     saveGroupDocument(uid, "Admin", groupName, inviteCode);
-                });
+                }));
+    }
+
+    /**
+     * Finds a 6-digit code with no {@code inviteCodes/{code}} document behind it.
+     * Codes are the lookup key joiners use, so two groups sharing one would send
+     * the second joiner to the wrong wallet. Retries a few times, then gives up
+     * rather than knowingly issuing a duplicate.
+     */
+    private void claimInviteCode(int attempt, @NonNull OnCodeClaimed callback) {
+        if (attempt >= MAX_CODE_ATTEMPTS) {
+            Toast.makeText(this, "Could not generate an invite code. Please try again.",
+                    Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        String candidate = String.format(Locale.US, "%06d", new Random().nextInt(1000000));
+        mFirestore.collection("inviteCodes").document(candidate).get()
+                .addOnSuccessListener(doc -> {
+                    if (doc.exists()) {
+                        claimInviteCode(attempt + 1, callback); // taken, roll again
+                    } else {
+                        callback.onClaimed(candidate);
+                    }
+                })
+                .addOnFailureListener(e ->
+                        // Lookup failed (offline, rules); use the candidate rather than
+                        // blocking group creation. A collision is unlikely and recoverable.
+                        callback.onClaimed(candidate));
+    }
+
+    private interface OnCodeClaimed {
+        void onClaimed(String inviteCode);
     }
 
     private void saveGroupDocument(String uid, String adminName, String groupName, String inviteCode) {
@@ -246,15 +279,40 @@ public class CreateGroupActivity extends BaseActivity {
 
         mFirestore.collection("groups").document(groupId)
                 .set(groupMap)
-                .addOnSuccessListener(aVoid -> {
-                    showSnackbar("Group Wallet Created!", "SUCCESS");
-                    Intent intent = new Intent(this, GroupDetailActivity.class);
-                    intent.putExtra("groupId", groupId);
-                    startActivity(intent);
-                    finish();
-                })
+                .addOnSuccessListener(aVoid -> publishInviteCode(groupId, inviteCode))
                 .addOnFailureListener(e -> {
                     Toast.makeText(this, "Failed to create group: " + e.getLocalizedMessage(), Toast.LENGTH_SHORT).show();
                 });
+    }
+
+    /**
+     * Publishes {@code inviteCodes/{code} -> groupId}, the single-document lookup a
+     * joiner reads. It has to be written <em>after</em> the group doc: the security
+     * rule authorizes this write by checking the caller is in the group's
+     * {@code memberUids}, which it cannot do until the group exists.
+     */
+    private void publishInviteCode(String groupId, String inviteCode) {
+        Map<String, Object> codeMap = new HashMap<>();
+        codeMap.put("groupId", groupId);
+        codeMap.put("createdAt", Timestamp.now());
+
+        mFirestore.collection("inviteCodes").document(inviteCode)
+                .set(codeMap)
+                .addOnSuccessListener(aVoid -> openCreatedGroup(groupId, true))
+                .addOnFailureListener(e ->
+                        // The wallet itself exists and works; only joining-by-code is
+                        // affected, so say that plainly instead of implying total failure.
+                        openCreatedGroup(groupId, false));
+    }
+
+    private void openCreatedGroup(String groupId, boolean codeUsable) {
+        showSnackbar(codeUsable
+                        ? "Group Wallet Created!"
+                        : "Group created, but the invite code isn't shareable yet. Reopen the group to retry.",
+                codeUsable ? "SUCCESS" : "ERROR");
+        Intent intent = new Intent(this, GroupDetailActivity.class);
+        intent.putExtra("groupId", groupId);
+        startActivity(intent);
+        finish();
     }
 }

@@ -16,6 +16,8 @@ import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.example.bachatkhata.domain.ReminderService;
+
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
@@ -442,29 +444,31 @@ public class BillSplitterActivity extends BaseActivity {
         }
     }
 
+    /**
+     * Split settlements use the SETTLEMENT relation — between equals sharing a
+     * bill, not a creditor chasing a debtor.
+     *
+     * <p>With no phone number on file the composer's send buttons have nowhere to
+     * go, so that case falls back to a generic share sheet instead.
+     */
     private void triggerWhatsAppReminder(String debtorName, String phone, double amount, String title) {
-        String message = String.format(Locale.US, "Hey %s, you owe me ₹%.2f for %s. Please transfer when convenient!", debtorName, amount, title);
-        
-        if (phone != null && !phone.isEmpty()) {
-            // Standardize Indian phone number format
-            String cleanPhone = phone.replaceAll("[^0-9]", "");
-            if (cleanPhone.length() == 10) {
-                cleanPhone = "91" + cleanPhone;
-            }
-            try {
-                Intent waIntent = new Intent(Intent.ACTION_VIEW, Uri.parse("https://wa.me/" + cleanPhone + "?text=" + Uri.encode(message)));
-                startActivity(waIntent);
-                return;
-            } catch (Exception e) {
-                // Fallback
-            }
+        String formattedAmount = CurrencyManager.getInstance().formatAmount(amount);
+
+        if (phone != null && !phone.trim().isEmpty()) {
+            FlashReminderBottomSheet.newInstance(debtorName, phone, formattedAmount,
+                            ReminderService.Relation.SETTLEMENT)
+                    .show(getSupportFragmentManager(), "FlashReminderBottomSheet");
+            return;
         }
 
-        // Generic Share Intent if phone is missing or WhatsApp failed
+        String message = ReminderService.generate(debtorName, formattedAmount,
+                ReminderService.Tone.FRIENDLY, ReminderService.Lang.EN,
+                ReminderService.Relation.SETTLEMENT);
+
         Intent shareIntent = new Intent(Intent.ACTION_SEND);
         shareIntent.setType("text/plain");
         shareIntent.putExtra(Intent.EXTRA_TEXT, message);
-        startActivity(Intent.createChooser(shareIntent, "Send Reminder"));
+        startActivity(Intent.createChooser(shareIntent, getString(R.string.reminder_title)));
     }
 
     private void saveSplitSessionToGroup(String groupId, String title, double totalAmount, List<DebtSimplifier.Settlement> settlements) {

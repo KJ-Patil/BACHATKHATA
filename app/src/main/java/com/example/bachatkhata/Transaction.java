@@ -24,6 +24,17 @@ public class Transaction implements Serializable {
     private String receiptUrl; // optional Storage path
     private Timestamp createdAt;
 
+    /**
+     * Pre-discount price, when a discount was applied. Null on every transaction
+     * without one — which is most of them, and all of them created before the
+     * feature existed. {@code amount} always holds the POST-discount value that
+     * hits the ledger, so nothing downstream needs to know about these two.
+     */
+    private Double originalAmount;
+
+    /** How much was knocked off. Already subtracted from {@code amount}. */
+    private Double discountAmount;
+
     public Transaction() {
         // Required empty public constructor for Firestore
     }
@@ -170,6 +181,42 @@ public class Transaction implements Serializable {
         this.createdAt = createdAt;
     }
 
+    @PropertyName("originalAmount")
+    public Double getOriginalAmount() {
+        return originalAmount;
+    }
+
+    @PropertyName("originalAmount")
+    public void setOriginalAmount(Double originalAmount) {
+        this.originalAmount = originalAmount;
+    }
+
+    @PropertyName("discountAmount")
+    public Double getDiscountAmount() {
+        return discountAmount;
+    }
+
+    @PropertyName("discountAmount")
+    public void setDiscountAmount(Double discountAmount) {
+        this.discountAmount = discountAmount;
+    }
+
+    /** True when this row carries a usable discount breakdown. */
+    public boolean hasDiscount() {
+        return discountAmount != null && discountAmount > 0
+                && originalAmount != null && originalAmount > 0;
+    }
+
+    /**
+     * Drops the discount breakdown. Call this whenever {@code amount} is edited
+     * directly: the stored original price and saving no longer describe the new
+     * number, and leaving them would render a false "you saved" line.
+     */
+    public void clearDiscount() {
+        this.originalAmount = null;
+        this.discountAmount = null;
+    }
+
     public Map<String, Object> toMap() {
         Map<String, Object> map = new HashMap<>();
         map.put("id", id);
@@ -184,6 +231,10 @@ public class Transaction implements Serializable {
         map.put("source", source);
         map.put("receiptUrl", receiptUrl);
         map.put("createdAt", createdAt);
+        // Written even when null so an edit that removes a discount actually
+        // clears the stored fields rather than leaving the old values behind.
+        map.put("originalAmount", originalAmount);
+        map.put("discountAmount", discountAmount);
         return map;
     }
 
@@ -208,6 +259,11 @@ public class Transaction implements Serializable {
         
         t.setReceiptUrl(doc.getString("receiptUrl"));
         t.setCreatedAt(doc.getTimestamp("createdAt"));
+
+        // Absent on pre-discount rows; getDouble returns null and that is the
+        // correct "no discount" state, so no defaulting here.
+        t.setOriginalAmount(doc.getDouble("originalAmount"));
+        t.setDiscountAmount(doc.getDouble("discountAmount"));
         return t;
     }
 }

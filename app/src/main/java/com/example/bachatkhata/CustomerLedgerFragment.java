@@ -10,6 +10,7 @@ import android.text.TextWatcher;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -20,11 +21,10 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.bachatkhata.databinding.FragmentCustomerLedgerBinding;
 import com.example.bachatkhata.databinding.ItemCustomerBinding;
+import com.example.bachatkhata.domain.ReminderService;
 import com.google.android.material.tabs.TabLayout;
 import com.google.firebase.auth.FirebaseAuth;
 
-import java.io.UnsupportedEncodingException;
-import java.net.URLEncoder;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
@@ -186,34 +186,30 @@ public class CustomerLedgerFragment extends Fragment {
         adapter.notifyDataSetChanged();
     }
 
+    /** Quick reminder trigger from a ledger row — opens the shared composer. */
     private void openWhatsApp(Customer customer) {
         String phone = customer.getPhone();
-        if (phone == null || phone.trim().isEmpty()) return;
-
-        String cleanPhone = phone.replaceAll("[^0-9]", "");
-        if (cleanPhone.length() == 10) cleanPhone = "91" + cleanPhone;
+        if (phone == null || phone.trim().isEmpty()) {
+            Toast.makeText(getContext(), R.string.reminder_no_phone, Toast.LENGTH_SHORT).show();
+            return;
+        }
 
         double balance = customer.getBalance();
-        String text;
-        if (balance > 0) {
-            text = String.format(Locale.US,
-                    "Hello %s, this is a reminder from BachatKhata that a pending balance of %s is owed to me. Please settle it when possible. Thank you!",
-                    customer.getName(), CurrencyManager.getInstance().formatAmount(balance));
-        } else if (balance < 0) {
-            text = String.format(Locale.US,
-                    "Hello %s, please share your details so I can settle the balance of %s that I owe you. Thank you!",
-                    customer.getName(), CurrencyManager.getInstance().formatAmount(Math.abs(balance)));
-        } else {
-            text = String.format(Locale.US,
-                    "Hello %s, just checking in regarding our accounts. Thank you!", customer.getName());
+        if (balance == 0) {
+            Toast.makeText(getContext(), R.string.reminder_balance_settled, Toast.LENGTH_SHORT).show();
+            return;
         }
 
-        try {
-            Uri uri = Uri.parse("https://wa.me/" + cleanPhone + "?text=" + URLEncoder.encode(text, "UTF-8"));
-            startActivity(new Intent(Intent.ACTION_VIEW, uri));
-        } catch (UnsupportedEncodingException e) {
-            e.printStackTrace();
-        }
+        ReminderService.Relation relation = balance > 0
+                ? ReminderService.Relation.CREDIT
+                : ReminderService.Relation.DEBIT;
+
+        FlashReminderBottomSheet.newInstance(
+                        customer.getName(),
+                        phone,
+                        CurrencyManager.getInstance().formatAmount(Math.abs(balance)),
+                        relation)
+                .show(getParentFragmentManager(), "FlashReminderBottomSheet");
     }
 
     static String formatLastActivity(com.google.firebase.Timestamp ts) {
