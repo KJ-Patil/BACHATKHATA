@@ -111,8 +111,11 @@ public class AddCustomerActivity extends BaseActivity {
             return;
         }
 
-        if (phone.isEmpty()) {
-            showError("Please enter phone number.");
+        // Reject a mistyped number here — a bad one saves fine but silently breaks
+        // the WhatsApp/SMS reminder links that depend on it later.
+        String phoneError = Country.validateLoosePhone(phone);
+        if (phoneError != null) {
+            showError(phoneError);
             return;
         }
 

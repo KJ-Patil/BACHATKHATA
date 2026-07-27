@@ -2,6 +2,8 @@ package com.example.bachatkhata;
 
 import androidx.annotation.NonNull;
 
+import com.google.android.gms.tasks.Task;
+import com.google.android.gms.tasks.Tasks;
 import com.google.firebase.Timestamp;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.CollectionReference;
@@ -17,19 +19,50 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * Creates and restores labeled snapshots of the user's transactions in Firestore under
- * {@code users/{uid}/backups/{backupId}}. Each snapshot embeds a copy of every transaction
- * so it can be restored later, listed, or deleted — independent of the live sync.
+ * Creates and restores labeled snapshots of the user's financial data under
+ * {@code users/{uid}/backups/{backupId}}.
+ *
+ * <p>A backup covers <b>every</b> financial collection, not just transactions:
+ * budgets, goals, categories, the ledger, loans, subscriptions and bills. Each
+ * collection is stored in its own child document
+ * {@code backups/{id}/data/{collection}} (as an {@code items} array), rather than
+ * all in one parent doc — that keeps each document well under Firestore's 1&nbsp;MiB
+ * cap and lets a restore touch collections independently.
+ *
+ * <p><b>Why the scope matters:</b> a restore replaces live data. When backups
+ * held only transactions, restoring an old one still deleted the live
+ * transactions while leaving budgets/goals stranded and unrecoverable. Backing up
+ * the full set keeps restore coherent.
  */
 public class CloudBackupManager {
 
-    // Firestore has a 500-operation cap per batch; stay comfortably under it.
+    // Firestore caps a batch at 500 operations; stay comfortably under.
     private static final int BATCH_LIMIT = 450;
+
+    /**
+     * Financial collections included in a backup. This must cover everything a
+     * restore or a Clear-All-Data could destroy — if a collection is wiped
+     * somewhere but never backed up here, that data is unrecoverable. It is a
+     * superset of the financial collections {@code ProfileFragment.clearAllUserData}
+     * clears (it also adds emis/bills/subscriptions); ephemeral, non-financial
+     * data like notifications is deliberately left out.
+     */
+    static final String[] BACKED_UP_COLLECTIONS = {
+            "transactions", "budgets", "savings_goals", "categories",
+            "customers", "customer_txns", "emis", "bills", "subscriptions"
+    };
+
+    // Money-rule config lives on the user doc, not in a collection, so it is
+    // carried in the backup's metadata and restored from there.
+    private static final String FIELD_MONTHLY_INCOME = "monthlyIncome";
+    private static final String FIELD_RULE_NEEDS = "ruleNeeds";
+    private static final String FIELD_RULE_WANTS = "ruleWants";
+    private static final String FIELD_RULE_INVESTMENTS = "ruleInvestments";
 
     public static class BackupInfo {
         public final String id;
         public final String label;
-        public final long count;
+        public final long count;   // total items across all collections
         public final Timestamp createdAt;
 
         BackupInfo(String id, String label, long count, Timestamp createdAt) {
@@ -57,39 +90,100 @@ public class CloudBackupManager {
                 ? FirebaseAuth.getInstance().getCurrentUser().getUid() : null;
     }
 
-    private CollectionReference transactionsRef(String uid) {
-        return db.collection("users").document(uid).collection("transactions");
-    }
-
     private CollectionReference backupsRef(String uid) {
         return db.collection("users").document(uid).collection("backups");
     }
 
-    /** Snapshot every current transaction into a new labeled backup document. */
+    // ── Create ──────────────────────────────────────────────────────────────
+
+    /** Snapshot every financial collection into a new labeled backup. */
     public void createBackup(String label, @NonNull Callback cb) {
         String uid = uid();
         if (uid == null) { cb.onError("Not signed in"); return; }
-
-        transactionsRef(uid).get().addOnSuccessListener(snap -> {
-            List<Map<String, Object>> txns = new ArrayList<>();
-            for (DocumentSnapshot doc : snap.getDocuments()) {
-                Map<String, Object> data = doc.getData();
-                if (data != null) txns.add(data);
-            }
-
-            Map<String, Object> backup = new HashMap<>();
-            backup.put("label", (label == null || label.trim().isEmpty()) ? "Backup" : label.trim());
-            backup.put("createdAt", Timestamp.now());
-            backup.put("count", txns.size());
-            backup.put("transactions", txns);
-
-            backupsRef(uid).add(backup)
-                    .addOnSuccessListener(ref -> cb.onSuccess())
-                    .addOnFailureListener(e -> cb.onError(e.getMessage()));
-        }).addOnFailureListener(e -> cb.onError(e.getMessage()));
+        createBackupInternal(uid, label, false, cb);
     }
 
-    /** List all backups, newest first. */
+    private void createBackupInternal(String uid, String label, boolean automatic, @NonNull Callback cb) {
+        DocumentReference userRef = db.collection("users").document(uid);
+
+        // Fetch every collection plus the user doc (for the money-rule config) in
+        // parallel, then assemble one backup from the results.
+        List<Task<?>> fetches = new ArrayList<>();
+        fetches.add(userRef.get());
+        for (String collection : BACKED_UP_COLLECTIONS) {
+            fetches.add(userRef.collection(collection).get());
+        }
+
+        Tasks.whenAllComplete(fetches).addOnCompleteListener(t -> {
+            try {
+                String backupId = backupsRef(uid).document().getId();
+                DocumentReference backupRef = backupsRef(uid).document(backupId);
+
+                // Index 0 is the user doc; the rest line up with BACKED_UP_COLLECTIONS.
+                DocumentSnapshot userDoc = (DocumentSnapshot) fetches.get(0).getResult();
+
+                WriteBatch batch = db.batch();
+                int ops = 0;
+                long total = 0;
+                List<Task<Void>> commits = new ArrayList<>();
+                Map<String, Object> countsByCollection = new HashMap<>();
+
+                for (int i = 0; i < BACKED_UP_COLLECTIONS.length; i++) {
+                    String collection = BACKED_UP_COLLECTIONS[i];
+                    com.google.firebase.firestore.QuerySnapshot snap =
+                            (com.google.firebase.firestore.QuerySnapshot) fetches.get(i + 1).getResult();
+
+                    List<Map<String, Object>> items = new ArrayList<>();
+                    if (snap != null) {
+                        for (DocumentSnapshot d : snap.getDocuments()) {
+                            Map<String, Object> data = d.getData();
+                            if (data != null) items.add(data);
+                        }
+                    }
+                    total += items.size();
+                    countsByCollection.put(collection, items.size());
+
+                    // One child doc per collection: backups/{id}/data/{collection}.
+                    Map<String, Object> payload = new HashMap<>();
+                    payload.put("items", items);
+                    batch.set(backupRef.collection("data").document(collection), payload);
+                    if (++ops >= BATCH_LIMIT) { commits.add(batch.commit()); batch = db.batch(); ops = 0; }
+                }
+
+                // Parent metadata doc, including the money-rule config.
+                Map<String, Object> meta = new HashMap<>();
+                meta.put("label", (label == null || label.trim().isEmpty())
+                        ? (automatic ? "Auto-backup (before restore)" : "Backup") : label.trim());
+                meta.put("createdAt", Timestamp.now());
+                meta.put("automatic", automatic);
+                meta.put("count", total);
+                meta.put("counts", countsByCollection);
+                meta.put("collections", new ArrayList<>(java.util.Arrays.asList(BACKED_UP_COLLECTIONS)));
+                if (userDoc != null && userDoc.exists()) {
+                    copyIfPresent(userDoc, meta, FIELD_MONTHLY_INCOME);
+                    copyIfPresent(userDoc, meta, FIELD_RULE_NEEDS);
+                    copyIfPresent(userDoc, meta, FIELD_RULE_WANTS);
+                    copyIfPresent(userDoc, meta, FIELD_RULE_INVESTMENTS);
+                }
+                batch.set(backupRef, meta);
+                commits.add(batch.commit());
+
+                Tasks.whenAll(commits)
+                        .addOnSuccessListener(v -> cb.onSuccess())
+                        .addOnFailureListener(e -> cb.onError(e.getMessage()));
+            } catch (RuntimeException e) {
+                cb.onError(e.getMessage());
+            }
+        });
+    }
+
+    private void copyIfPresent(DocumentSnapshot doc, Map<String, Object> into, String field) {
+        Object value = doc.get(field);
+        if (value != null) into.put(field, value);
+    }
+
+    // ── List ────────────────────────────────────────────────────────────────
+
     public void listBackups(@NonNull ListCallback cb) {
         String uid = uid();
         if (uid == null) { cb.onError("Not signed in"); return; }
@@ -111,67 +205,162 @@ public class CloudBackupManager {
                 .addOnFailureListener(e -> cb.onError(e.getMessage()));
     }
 
-    /** Delete a backup snapshot (does not touch live data). */
+    // ── Delete ──────────────────────────────────────────────────────────────
+
+    /** Deletes a backup and its per-collection child documents. */
     public void deleteBackup(String backupId, @NonNull Callback cb) {
         String uid = uid();
         if (uid == null) { cb.onError("Not signed in"); return; }
 
-        backupsRef(uid).document(backupId).delete()
-                .addOnSuccessListener(v -> cb.onSuccess())
-                .addOnFailureListener(e -> cb.onError(e.getMessage()));
+        DocumentReference backupRef = backupsRef(uid).document(backupId);
+        backupRef.collection("data").get().addOnSuccessListener(dataSnap -> {
+            WriteBatch batch = db.batch();
+            for (DocumentSnapshot d : dataSnap.getDocuments()) batch.delete(d.getReference());
+            batch.delete(backupRef);
+            batch.commit()
+                    .addOnSuccessListener(v -> cb.onSuccess())
+                    .addOnFailureListener(e -> cb.onError(e.getMessage()));
+        }).addOnFailureListener(e -> cb.onError(e.getMessage()));
     }
 
+    // ── Restore ─────────────────────────────────────────────────────────────
+
     /**
-     * Replace all live transactions with the snapshot's contents: existing transactions are
-     * deleted, then the backed-up transactions are written back under their original ids.
+     * Restores a backup, replacing the live financial data.
+     *
+     * <p>An automatic safety snapshot is taken first, so a failure partway through
+     * (or an unwanted restore) can be undone. A collection absent from the backup —
+     * because the backup predates that feature — is <b>skipped, not wiped</b>: the
+     * live data for it is left intact rather than cleared to match an empty backup.
      */
-    @SuppressWarnings("unchecked")
     public void restoreBackup(String backupId, @NonNull Callback cb) {
         String uid = uid();
         if (uid == null) { cb.onError("Not signed in"); return; }
 
-        backupsRef(uid).document(backupId).get().addOnSuccessListener(backupDoc -> {
-            if (!backupDoc.exists()) { cb.onError("Backup not found"); return; }
-            List<Map<String, Object>> txns = (List<Map<String, Object>>) backupDoc.get("transactions");
-            final List<Map<String, Object>> restoreList = txns != null ? txns : new ArrayList<>();
+        // Safety snapshot before we delete anything.
+        createBackupInternal(uid, "Auto-backup (before restore)", true, new Callback() {
+            @Override
+            public void onSuccess() {
+                doRestore(uid, backupId, cb);
+            }
 
-            // First remove all current transactions, then write the snapshot back.
-            transactionsRef(uid).get().addOnSuccessListener(currentSnap -> {
-                List<DocumentReference> toDelete = new ArrayList<>();
-                for (DocumentSnapshot d : currentSnap.getDocuments()) toDelete.add(d.getReference());
+            @Override
+            public void onError(String message) {
+                // If we can't secure a rollback point, don't proceed to delete data.
+                cb.onError("Couldn't create a safety backup, so restore was cancelled: " + message);
+            }
+        });
+    }
 
-                commitInChunks(toDelete, restoreList, uid, cb);
+    private void doRestore(String uid, String backupId, @NonNull Callback cb) {
+        DocumentReference userRef = db.collection("users").document(uid);
+        DocumentReference backupRef = backupsRef(uid).document(backupId);
+
+        backupRef.get().addOnSuccessListener(metaDoc -> {
+            if (!metaDoc.exists()) { cb.onError("Backup not found"); return; }
+
+            backupRef.collection("data").get().addOnSuccessListener(dataSnap -> {
+                // Map collection name -> its stored items.
+                Map<String, List<Map<String, Object>>> byCollection = new HashMap<>();
+                for (DocumentSnapshot d : dataSnap.getDocuments()) {
+                    Object raw = d.get("items");
+                    if (raw instanceof List) {
+                        //noinspection unchecked
+                        byCollection.put(d.getId(), (List<Map<String, Object>>) raw);
+                    }
+                }
+                restoreCollections(uid, userRef, metaDoc, byCollection, cb);
             }).addOnFailureListener(e -> cb.onError(e.getMessage()));
         }).addOnFailureListener(e -> cb.onError(e.getMessage()));
     }
 
-    private void commitInChunks(List<DocumentReference> toDelete,
-                                List<Map<String, Object>> toWrite,
-                                String uid, Callback cb) {
-        // Split delete + write operations into batches of <=BATCH_LIMIT.
-        CollectionReference txRef = transactionsRef(uid);
-
-        final List<WriteBatch> batches = new ArrayList<>();
-        WriteBatch current = db.batch();
-        int opCount = 0;
-
-        for (DocumentReference ref : toDelete) {
-            current.delete(ref);
-            if (++opCount >= BATCH_LIMIT) { batches.add(current); current = db.batch(); opCount = 0; }
+    private void restoreCollections(String uid, DocumentReference userRef, DocumentSnapshot metaDoc,
+                                    Map<String, List<Map<String, Object>>> byCollection,
+                                    @NonNull Callback cb) {
+        // Fetch current docs for each collection PRESENT in the backup, so we can
+        // delete-then-write. Collections missing from the backup are left alone.
+        List<String> collectionsToRestore = new ArrayList<>();
+        List<Task<?>> currentFetches = new ArrayList<>();
+        for (String collection : BACKED_UP_COLLECTIONS) {
+            if (!byCollection.containsKey(collection)) continue; // guard: absent = skip, don't wipe
+            collectionsToRestore.add(collection);
+            currentFetches.add(userRef.collection(collection).get());
         }
-        for (Map<String, Object> data : toWrite) {
-            Object id = data.get("id");
-            DocumentReference ref = (id instanceof String && !((String) id).isEmpty())
-                    ? txRef.document((String) id) : txRef.document();
-            current.set(ref, data);
-            if (++opCount >= BATCH_LIMIT) { batches.add(current); current = db.batch(); opCount = 0; }
+
+        Tasks.whenAllComplete(currentFetches).addOnCompleteListener(t -> {
+            try {
+                List<Object> deleteThenWrite = new ArrayList<>();
+                for (int i = 0; i < collectionsToRestore.size(); i++) {
+                    String collection = collectionsToRestore.get(i);
+                    com.google.firebase.firestore.QuerySnapshot current =
+                            (com.google.firebase.firestore.QuerySnapshot) currentFetches.get(i).getResult();
+
+                    // Delete every current doc, then write the backed-up ones.
+                    if (current != null) {
+                        for (DocumentSnapshot d : current.getDocuments()) {
+                            deleteThenWrite.add(d.getReference()); // marker: delete
+                        }
+                    }
+                    CollectionReference ref = userRef.collection(collection);
+                    for (Map<String, Object> item : byCollection.get(collection)) {
+                        Object id = item.get("id");
+                        DocumentReference target = (id instanceof String && !((String) id).isEmpty())
+                                ? ref.document((String) id) : ref.document();
+                        deleteThenWrite.add(new WriteOp(target, item)); // marker: set
+                    }
+                }
+
+                // Restore money-rule config from the backup metadata, when present.
+                Map<String, Object> ruleUpdate = new HashMap<>();
+                copyIfPresent(metaDoc, ruleUpdate, FIELD_MONTHLY_INCOME);
+                copyIfPresent(metaDoc, ruleUpdate, FIELD_RULE_NEEDS);
+                copyIfPresent(metaDoc, ruleUpdate, FIELD_RULE_WANTS);
+                copyIfPresent(metaDoc, ruleUpdate, FIELD_RULE_INVESTMENTS);
+
+                commitRestore(userRef, deleteThenWrite, ruleUpdate, cb);
+            } catch (RuntimeException e) {
+                cb.onError(e.getMessage());
+            }
+        });
+    }
+
+    /** A pending {@code set} operation for the restore batch. */
+    private static final class WriteOp {
+        final DocumentReference ref;
+        final Map<String, Object> data;
+
+        WriteOp(DocumentReference ref, Map<String, Object> data) {
+            this.ref = ref;
+            this.data = data;
         }
-        if (opCount > 0) batches.add(current);
+    }
+
+    private void commitRestore(DocumentReference userRef, List<Object> ops,
+                               Map<String, Object> ruleUpdate, @NonNull Callback cb) {
+        List<WriteBatch> batches = new ArrayList<>();
+        WriteBatch batch = db.batch();
+        int count = 0;
+
+        for (Object op : ops) {
+            if (op instanceof DocumentReference) {
+                batch.delete((DocumentReference) op);
+            } else if (op instanceof WriteOp) {
+                WriteOp write = (WriteOp) op;
+                batch.set(write.ref, write.data);
+            }
+            if (++count >= BATCH_LIMIT) { batches.add(batch); batch = db.batch(); count = 0; }
+        }
+
+        if (!ruleUpdate.isEmpty()) {
+            batch.set(userRef, ruleUpdate, com.google.firebase.firestore.SetOptions.merge());
+            count++;
+        }
+        if (count > 0) batches.add(batch);
 
         commitSequentially(batches, 0, cb);
     }
 
-    private void commitSequentially(List<WriteBatch> batches, int index, Callback cb) {
+    private void commitSequentially(List<WriteBatch> batches, int index, @NonNull Callback cb) {
         if (index >= batches.size()) { cb.onSuccess(); return; }
         batches.get(index).commit()
                 .addOnSuccessListener(v -> commitSequentially(batches, index + 1, cb))

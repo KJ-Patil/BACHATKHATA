@@ -59,5 +59,15 @@
             android:background="@drawable/bg_clay_button"
             android:backgroundTint="@color/colorAccent"
             android:visibility="gone" />
+
+        <!-- EMI / subscription due marker -->
+        <View
+            android:id="@+id/dotPurple"
+            android:layout_width="6dp"
+            android:layout_height="6dp"
+            android:layout_margin="1dp"
+            android:background="@drawable/bg_clay_button"
+            android:backgroundTint="@color/colorPrimary"
+            android:visibility="gone" />
     </LinearLayout>
 </LinearLayout>

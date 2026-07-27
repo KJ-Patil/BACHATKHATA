@@ -44,6 +44,13 @@ public class BillCalendarActivity extends BaseActivity {
     private final List<DocumentSnapshot> filteredBills = new ArrayList<>();
     private BillListAdapter billListAdapter;
 
+    // Financial-calendar overlay (§5.18): projected EMI/subscription obligations and
+    // a per-day spend heatmap, both keyed by "yyyy-MM-dd".
+    private java.util.Map<String, java.util.List<com.example.bachatkhata.domain.DueDates.DueItem>> dueByDay =
+            new HashMap<>();
+    private final java.util.Map<String, Double> spendByDayKey = new HashMap<>();
+    private double maxDaySpend = 0d;
+
     private Calendar currentCalendar;
     private int selectedDay = -1; // -1 means show all bills for this month
 
@@ -61,6 +68,123 @@ public class BillCalendarActivity extends BaseActivity {
 
         setupUI();
         observeBills();
+        loadObligationsAndSpend();
+    }
+
+    /**
+     * Loads the data the financial-calendar overlay needs — EMIs and subscriptions
+     * for the due-date projection, and this-and-adjacent-month transactions for the
+     * spend heatmap. Read once (not live) since the calendar is a glanceable view.
+     */
+    private void loadObligationsAndSpend() {
+        if (mAuth.getCurrentUser() == null) return;
+        String uid = mAuth.getCurrentUser().getUid();
+
+        com.google.android.gms.tasks.Task<com.google.firebase.firestore.QuerySnapshot> emisTask =
+                mFirestore.collection("users").document(uid).collection("emis").get();
+        com.google.android.gms.tasks.Task<com.google.firebase.firestore.QuerySnapshot> subsTask =
+                mFirestore.collection("users").document(uid).collection("subscriptions").get();
+        com.google.android.gms.tasks.Task<com.google.firebase.firestore.QuerySnapshot> txnsTask =
+                mFirestore.collection("users").document(uid).collection("transactions").get();
+
+        com.google.android.gms.tasks.Tasks.whenAllComplete(emisTask, subsTask, txnsTask)
+                .addOnCompleteListener(t -> {
+                    buildDueProjection(emisTask.getResult(), subsTask.getResult());
+                    buildSpendHeatmap(txnsTask.getResult());
+                    updateCalendar();
+                    updateBillsList();
+                });
+    }
+
+    private void buildDueProjection(com.google.firebase.firestore.QuerySnapshot emis,
+                                    com.google.firebase.firestore.QuerySnapshot subs) {
+        java.util.List<com.example.bachatkhata.domain.DueDates.LoanInput> loans = new ArrayList<>();
+        if (emis != null) {
+            for (DocumentSnapshot doc : emis.getDocuments()) {
+                java.time.LocalDate start = toLocalDate(doc.get("startDate"));
+                Long tenure = doc.getLong("tenureMonths");
+                Double emi = doc.getDouble("emiAmount");
+                if (start == null || tenure == null || emi == null) continue;
+                String name = doc.getString("loanName");
+                loans.add(new com.example.bachatkhata.domain.DueDates.LoanInput(
+                        name != null ? name : "EMI", emi, tenure.intValue(), start));
+            }
+        }
+
+        java.util.List<com.example.bachatkhata.domain.DueDates.SubscriptionInput> subscriptions = new ArrayList<>();
+        if (subs != null) {
+            for (DocumentSnapshot doc : subs.getDocuments()) {
+                Boolean active = doc.getBoolean("isActive");
+                if (active != null && !active) continue;
+                java.time.LocalDate next = toLocalDate(doc.get("nextRenewalDate"));
+                Double amount = doc.getDouble("amount");
+                if (next == null || amount == null) continue;
+                String name = doc.getString("name");
+                subscriptions.add(new com.example.bachatkhata.domain.DueDates.SubscriptionInput(
+                        name != null ? name : "Subscription", amount, next));
+            }
+        }
+
+        dueByDay = com.example.bachatkhata.domain.DueDates.compute(
+                loans, subscriptions, java.time.LocalDate.now());
+    }
+
+    private void buildSpendHeatmap(com.google.firebase.firestore.QuerySnapshot txns) {
+        spendByDayKey.clear();
+        maxDaySpend = 0d;
+        if (txns == null) return;
+
+        for (DocumentSnapshot doc : txns.getDocuments()) {
+            if (!"expense".equals(doc.getString("type"))) continue;
+            java.time.LocalDate date = toLocalDate(doc.get("date"));
+            Double amount = doc.getDouble("amount");
+            if (date == null || amount == null) continue;
+
+            String key = com.example.bachatkhata.domain.CalendarUtil.toDateKey(date);
+            double running = spendByDayKey.getOrDefault(key, 0d) + amount;
+            spendByDayKey.put(key, running);
+            if (running > maxDaySpend) maxDaySpend = running;
+        }
+    }
+
+    /** Converts a Firestore Timestamp / Date / epoch-millis into a local date. */
+    private java.time.LocalDate toLocalDate(Object value) {
+        Date date = null;
+        if (value instanceof Timestamp) {
+            date = ((Timestamp) value).toDate();
+        } else if (value instanceof Date) {
+            date = (Date) value;
+        } else if (value instanceof Long) {
+            date = new Date((Long) value);
+        }
+        if (date == null) return null;
+        return date.toInstant().atZone(java.time.ZoneId.systemDefault()).toLocalDate();
+    }
+
+    /**
+     * Tints a day cell red in proportion to that day's spending — the calendar
+     * heatmap. Alpha follows the web's formula: a small floor so any spend is
+     * visible, scaled up to a cap by the day's share of the month's peak spend.
+     */
+    private void applyHeatmapTint(View cell, String dayKey) {
+        double spend = spendByDayKey.getOrDefault(dayKey, 0d);
+        if (spend <= 0 || maxDaySpend <= 0) {
+            cell.setBackground(null);
+            return;
+        }
+        double intensity = 0.06 + (spend / maxDaySpend) * 0.22;
+        int alpha = (int) Math.round(Math.min(intensity, 0.28) * 255);
+        cell.setBackgroundResource(R.drawable.bg_clay_button);
+        // colorDanger (#DC2626) at the computed alpha.
+        cell.setBackgroundTintList(android.content.res.ColorStateList.valueOf(
+                Color.argb(alpha, 0xDC, 0x26, 0x26)));
+    }
+
+    /** The "yyyy-MM-dd" key for a day number in the currently viewed month. */
+    private String dayKeyFor(int day) {
+        return com.example.bachatkhata.domain.CalendarUtil.toDateKey(java.time.LocalDate.of(
+                currentCalendar.get(Calendar.YEAR),
+                currentCalendar.get(Calendar.MONTH) + 1, day));
     }
 
     private void setupUI() {
@@ -203,6 +327,52 @@ public class BillCalendarActivity extends BaseActivity {
             binding.rvBills.setVisibility(View.VISIBLE);
             binding.layoutEmptyState.setVisibility(View.GONE);
         }
+
+        renderDueItemsSummary();
+    }
+
+    /**
+     * Lists the projected EMI/subscription obligations for the selected day — or,
+     * with no day selected, for the whole viewed month — beneath the bills header.
+     */
+    private void renderDueItemsSummary() {
+        List<com.example.bachatkhata.domain.DueDates.DueItem> items = new ArrayList<>();
+
+        if (selectedDay > 0) {
+            List<com.example.bachatkhata.domain.DueDates.DueItem> forDay = dueByDay.get(dayKeyFor(selectedDay));
+            if (forDay != null) items.addAll(forDay);
+        } else {
+            int year = currentCalendar.get(Calendar.YEAR);
+            int month = currentCalendar.get(Calendar.MONTH) + 1;
+            for (java.util.Map.Entry<String, List<com.example.bachatkhata.domain.DueDates.DueItem>> e : dueByDay.entrySet()) {
+                java.time.LocalDate d = com.example.bachatkhata.domain.CalendarUtil.parseDateKey(e.getKey());
+                if (d != null && d.getYear() == year && d.getMonthValue() == month) {
+                    items.addAll(e.getValue());
+                }
+            }
+        }
+
+        if (items.isEmpty()) {
+            binding.txtDueItems.setVisibility(View.GONE);
+            return;
+        }
+
+        // Keep chronological order so a month view reads top-to-bottom by date.
+        Collections.sort(items, (a, b) -> a.date.compareTo(b.date));
+
+        StringBuilder sb = new StringBuilder();
+        java.text.SimpleDateFormat dayFmt = new java.text.SimpleDateFormat("d MMM", Locale.getDefault());
+        for (com.example.bachatkhata.domain.DueDates.DueItem item : items) {
+            String icon = com.example.bachatkhata.domain.DueDates.KIND_EMI.equals(item.kind) ? "🏦" : "🔁";
+            Date d = Date.from(item.date.atStartOfDay(java.time.ZoneId.systemDefault()).toInstant());
+            sb.append(icon).append("  ")
+                    .append(dayFmt.format(d)).append(" · ")
+                    .append(item.label).append(" — ")
+                    .append(CurrencyManager.getInstance().formatAmount(item.amount))
+                    .append('\n');
+        }
+        binding.txtDueItems.setText(sb.toString().trim());
+        binding.txtDueItems.setVisibility(View.VISIBLE);
     }
 
     private boolean isBillPaidThisMonth(DocumentSnapshot billDoc, int month, int year) {
@@ -354,24 +524,31 @@ public class BillCalendarActivity extends BaseActivity {
             View dotAmber = convertView.findViewById(R.id.dotAmber);
             View dotRed = convertView.findViewById(R.id.dotRed);
             View dotBlue = convertView.findViewById(R.id.dotBlue);
+            View dotPurple = convertView.findViewById(R.id.dotPurple);
 
             if (day == 0) {
                 txtDayNumber.setText("");
                 layoutDots.setVisibility(View.GONE);
                 convertView.setBackground(null);
+                dotPurple.setVisibility(View.GONE);
             } else {
                 txtDayNumber.setText(String.valueOf(day));
                 layoutDots.setVisibility(View.VISIBLE);
 
-                // Highlight selected day
+                String dayKey = dayKeyFor(day);
+
+                // Highlight selected day; otherwise tint by spend intensity (heatmap).
                 if (selectedDay == day) {
                     convertView.setBackgroundResource(R.drawable.bg_clay_button);
                     convertView.setBackgroundTintList(android.content.res.ColorStateList.valueOf(Color.parseColor("#337C6FE0"))); // 20% primary
                     txtDayNumber.setTextColor(Color.parseColor("#7C6FE0"));
                 } else {
-                    convertView.setBackground(null);
+                    applyHeatmapTint(convertView, dayKey);
                     txtDayNumber.setTextColor(Color.parseColor("#374151")); // textPrimary
                 }
+
+                // EMI / subscription due marker.
+                dotPurple.setVisibility(dueByDay.containsKey(dayKey) ? View.VISIBLE : View.GONE);
 
                 // Check bills due on this day
                 boolean hasPaid = false;

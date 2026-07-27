@@ -58,15 +58,20 @@
         </activity>
 
         <!-- Authentication & Onboarding -->
+        <!-- adjustResize keeps the keyboard from covering the lower form fields on
+             pre-Android-15 devices, where the window is still resized for the IME. -->
         <activity
             android:name=".LoginActivity"
-            android:exported="false" />
+            android:exported="false"
+            android:windowSoftInputMode="adjustResize" />
         <activity
             android:name=".RegisterActivity"
-            android:exported="false" />
+            android:exported="false"
+            android:windowSoftInputMode="adjustResize" />
         <activity
             android:name=".ForgotPasswordActivity"
-            android:exported="false" />
+            android:exported="false"
+            android:windowSoftInputMode="adjustResize" />
         <activity
             android:name=".OnboardingActivity"
             android:exported="false" />
@@ -75,7 +80,8 @@
         <activity
             android:name=".PinSetupActivity"
             android:exported="false"
-            android:noHistory="false" />
+            android:noHistory="false"
+            android:windowSoftInputMode="adjustResize" />
         <activity
             android:name=".BiometricSetupActivity"
             android:exported="false" />
@@ -123,7 +129,8 @@
             android:exported="false" />
         <activity
             android:name=".PhoneLoginActivity"
-            android:exported="false" />
+            android:exported="false"
+            android:windowSoftInputMode="adjustResize" />
 
         <!-- Customer Ledger -->
         <activity

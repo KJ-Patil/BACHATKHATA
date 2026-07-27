@@ -71,9 +71,16 @@ public class BaseActivity extends AppCompatActivity {
     }
 
     /**
-     * Pads {@code root} by the current system-bar insets (added on top of any
-     * padding the view already has). Safe to call from any Activity — used by
-     * the standalone AppCompatActivity screens that don't extend BaseActivity.
+     * Pads {@code root} by the current system-bar <em>and</em> keyboard (IME) insets, added on
+     * top of any padding the view already has. Safe to call from any Activity — used by the
+     * standalone AppCompatActivity screens that don't extend BaseActivity.
+     *
+     * <p>The IME inset matters because the app targets SDK 35, so Android 15 enforces
+     * edge-to-edge and no longer resizes the window for {@code adjustResize}. Padding by
+     * systemBars() alone left the keyboard floating over the bottom of every form — on the
+     * login screen it covered the password field, so the field could not be tapped or seen.
+     * Combining the two types yields the larger bottom inset of the two, which is the
+     * keyboard height while it is open and the navigation bar height otherwise.
      */
     public static void applyEdgeToEdgeInsets(final View root) {
         if (root == null) return;
@@ -82,7 +89,8 @@ public class BaseActivity extends AppCompatActivity {
         final int basePaddingRight = root.getPaddingRight();
         final int basePaddingBottom = root.getPaddingBottom();
         ViewCompat.setOnApplyWindowInsetsListener(root, (v, insets) -> {
-            Insets bars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
+            Insets bars = insets.getInsets(
+                    WindowInsetsCompat.Type.systemBars() | WindowInsetsCompat.Type.ime());
             v.setPadding(
                     basePaddingLeft + bars.left,
                     basePaddingTop + bars.top,

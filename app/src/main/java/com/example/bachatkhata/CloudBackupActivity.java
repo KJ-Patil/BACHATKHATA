@@ -162,7 +162,7 @@ public class CloudBackupActivity extends BaseActivity {
             CloudBackupManager.BackupInfo info = backups.get(position);
             holder.label.setText(info.label);
             String date = info.createdAt != null ? fmt.format(info.createdAt.toDate()) : "";
-            holder.meta.setText(info.count + " transactions • " + date);
+            holder.meta.setText(info.count + " items • " + date);
             holder.btnRestore.setOnClickListener(v -> confirmRestore(info));
             holder.btnDelete.setOnClickListener(v -> confirmDelete(info));
         }

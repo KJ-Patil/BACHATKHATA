@@ -391,4 +391,25 @@
     <string name="logout_unsynced_message">काही अलीकडील बदल अद्याप क्लाउडपर्यंत पोहोचले नाहीत. आता साइन आउट केल्यास ते कायमचे नष्ट होतील. पुन्हा जोडून प्रयत्न करा, किंवा तरीही साइन आउट करा?</string>
     <string name="logout_unsynced_confirm">तरीही साइन आउट करा</string>
     <string name="logout_unsynced_cancel">साइन इन राहा</string>
+
+    <!-- Previously untranslated: PIN lock + misc -->
+    <string name="back">मागे</string>
+    <string name="title_customer_ledger">ग्राहक वहीखाते</string>
+    <string name="profile_cloud_backup">क्लाउड बॅकअप</string>
+    <string name="pin_label">PIN</string>
+    <string name="pin_hint">तुमचा PIN टाका</string>
+    <string name="pin_continue">पुढे जा</string>
+    <string name="pin_unlock">अनलॉक करा</string>
+    <string name="pin_too_short">कृपया तुमचा 4-अंकी PIN टाका.</string>
+    <string name="pin_confirm_action">PIN ची खात्री करा</string>
+    <string name="pin_confirm_subtitle">खात्रीसाठी तुमचा PIN पुन्हा टाका.</string>
+    <string name="pin_create_subtitle">तुमचे खाते सुरक्षित करण्यासाठी 4-अंकी PIN निवडा.</string>
+    <string name="pin_verify_title">सुरक्षा PIN टाका</string>
+    <string name="pin_verify_subtitle">अनलॉक करण्यासाठी तुमची ओळख पटवा.</string>
+    <string name="pin_use_fingerprint">फिंगरप्रिंट वापरा</string>
+    <string name="pin_switch_account">खाते बदला</string>
+    <string name="pin_forgot">PIN विसरलात?</string>
+    <string name="pin_forgot_confirm">रीसेट करा व पडताळा</string>
+    <string name="pin_forgot_dialog_title">PIN रीसेट करायचा?</string>
+    <string name="pin_forgot_dialog_message">तुम्हाला साइन आउट केले जाईल आणि तुमचा फोन नंबर पडताळण्यास सांगितले जाईल. त्यानंतर तुम्ही नवा PIN सेट करू शकता.</string>
 </resources>

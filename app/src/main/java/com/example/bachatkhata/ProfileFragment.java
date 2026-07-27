@@ -38,6 +38,7 @@ import com.google.firebase.auth.AuthCredential;
 import com.google.firebase.auth.EmailAuthProvider;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.auth.GoogleAuthProvider;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FieldValue;
 import com.google.firebase.firestore.FirebaseFirestore;
@@ -65,6 +66,8 @@ public class ProfileFragment extends Fragment {
     private Uri cameraImageUri;
     private boolean hasProfilePhoto = false;
     private com.google.firebase.firestore.ListenerRegistration profileListener;
+
+    private ActivityResultLauncher<Intent> reauthGoogleLauncher;
 
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
@@ -98,6 +101,13 @@ public class ProfileFragment extends Fragment {
                     }
                 }
         );
+
+        // Google re-auth for the destructive Clear-All-Data flow: the account picker
+        // returns a fresh idToken, which we exchange for a credential to reauthenticate
+        // with before the wipe proceeds.
+        reauthGoogleLauncher = registerForActivityResult(
+                new ActivityResultContracts.StartActivityForResult(),
+                result -> handleGoogleReauthResult(result.getData()));
     }
 
     @Nullable
@@ -345,7 +355,15 @@ public class ProfileFragment extends Fragment {
         String uid = mAuth.getCurrentUser().getUid();
         StorageReference ref = FirebaseStorage.getInstance().getReference().child("users/" + uid + "/profile.jpg");
 
-        ref.putFile(uri)
+        // Downscale to a 256px square JPEG before upload. The raw pick can be
+        // several MB — re-downloaded in full on every profile render — while an
+        // avatar needs a fraction of that. If decoding fails, fall back to the
+        // original file rather than blocking the user's photo change.
+        byte[] avatarBytes = ImageDownscaler.toAvatarJpeg(getContext(), uri);
+        com.google.android.gms.tasks.Task<com.google.firebase.storage.UploadTask.TaskSnapshot> uploadTask =
+                avatarBytes != null ? ref.putBytes(avatarBytes) : ref.putFile(uri);
+
+        uploadTask
                 .addOnSuccessListener(taskSnapshot -> ref.getDownloadUrl().addOnSuccessListener(downloadUri -> {
                     String downloadUrl = downloadUri.toString();
                     mFirestore.collection("users").document(uid)
@@ -461,25 +479,37 @@ public class ProfileFragment extends Fragment {
                 return;
             }
 
-            activity.showLoadingDialog();
             FirebaseUser user = mAuth.getCurrentUser();
-            if (user != null && user.getEmail() != null) {
-                AuthCredential credential = EmailAuthProvider.getCredential(user.getEmail(), oldPass);
-                user.reauthenticate(credential)
-                        .addOnSuccessListener(aVoid -> user.updatePassword(newPass)
-                                .addOnSuccessListener(unused -> {
-                                    activity.hideLoadingDialog();
-                                    activity.showSnackbar("Password updated successfully!", "SUCCESS");
-                                })
-                                .addOnFailureListener(e -> {
-                                    activity.hideLoadingDialog();
-                                    activity.showSnackbar("Password update failed: " + e.getMessage(), "ERROR");
-                                }))
-                        .addOnFailureListener(e -> {
-                            activity.hideLoadingDialog();
-                            activity.showSnackbar("Reauthentication failed: " + e.getMessage(), "ERROR");
-                        });
+            // Checked before the loader goes up: an account with no email (phone-only
+            // sign-in) has no password to change, and showing the loader first left the
+            // dialog spinning forever with no error and no way out.
+            if (user == null) {
+                activity.showSnackbar("You're not signed in.", "ERROR");
+                return;
             }
+            if (user.getEmail() == null) {
+                activity.showSnackbar(
+                        "This account signs in by phone number, so it has no password to change.",
+                        "ERROR");
+                return;
+            }
+
+            activity.showLoadingDialog();
+            AuthCredential credential = EmailAuthProvider.getCredential(user.getEmail(), oldPass);
+            user.reauthenticate(credential)
+                    .addOnSuccessListener(aVoid -> user.updatePassword(newPass)
+                            .addOnSuccessListener(unused -> {
+                                activity.hideLoadingDialog();
+                                activity.showSnackbar("Password updated successfully!", "SUCCESS");
+                            })
+                            .addOnFailureListener(e -> {
+                                activity.hideLoadingDialog();
+                                activity.showSnackbar("Password update failed: " + e.getMessage(), "ERROR");
+                            }))
+                    .addOnFailureListener(e -> {
+                        activity.hideLoadingDialog();
+                        activity.showSnackbar("Reauthentication failed: " + e.getMessage(), "ERROR");
+                    });
         });
 
         builder.setNegativeButton("Cancel", null);
@@ -679,7 +709,7 @@ public class ProfileFragment extends Fragment {
                 .setTitle("Are you absolutely sure?")
                 .setMessage("This will completely wipe out your account history and start fresh. Proceed?")
                 .setView(confirmCheck)
-                .setPositiveButton("Yes, Clear Everything", (d, which) -> clearAllUserData())
+                .setPositiveButton("Yes, Clear Everything", (d, which) -> reauthenticateThenClear())
                 .setNegativeButton("Cancel", null)
                 .create();
 
@@ -689,6 +719,134 @@ public class ProfileFragment extends Fragment {
             confirmCheck.setOnCheckedChangeListener((buttonView, isChecked) -> deleteButton.setEnabled(isChecked));
         });
         dialog.show();
+    }
+
+    /**
+     * Gate on a <em>real</em> re-authentication before the irreversible wipe. An
+     * on-screen checkbox is no barrier to anyone holding an unlocked phone; a fresh
+     * credential proves it is really the account owner.
+     *
+     * <p>The path depends on how the account signs in:
+     * <ul>
+     *   <li>password → confirm the password, reauthenticate with it;</li>
+     *   <li>Google → re-run the account picker for a fresh idToken;</li>
+     *   <li>anything else (e.g. phone-only) → refuse rather than wave it through,
+     *       since we cannot re-verify it here.</li>
+     * </ul>
+     */
+    private void reauthenticateThenClear() {
+        FirebaseUser user = mAuth.getCurrentUser();
+        if (user == null || getContext() == null) return;
+
+        String providerId = primaryProviderId(user);
+        if (EmailAuthProvider.PROVIDER_ID.equals(providerId)) {
+            promptPasswordReauth(user);
+        } else if (GoogleAuthProvider.PROVIDER_ID.equals(providerId)) {
+            launchGoogleReauth();
+        } else {
+            new AlertDialog.Builder(getContext())
+                    .setTitle("Can't verify it's you")
+                    .setMessage("Clearing all data needs to re-confirm your identity, which isn't "
+                            + "supported for this sign-in method here. Please contact support if you "
+                            + "need to wipe your account.")
+                    .setPositiveButton("OK", null)
+                    .show();
+        }
+    }
+
+    /** The sign-in provider to re-verify against, skipping Firebase's internal one. */
+    private String primaryProviderId(FirebaseUser user) {
+        for (com.google.firebase.auth.UserInfo info : user.getProviderData()) {
+            String id = info.getProviderId();
+            if (EmailAuthProvider.PROVIDER_ID.equals(id) || GoogleAuthProvider.PROVIDER_ID.equals(id)) {
+                return id;
+            }
+        }
+        return null;
+    }
+
+    private void promptPasswordReauth(FirebaseUser user) {
+        if (getContext() == null || user.getEmail() == null) return;
+
+        TextInputLayout passwordLayout = new TextInputLayout(getContext());
+        passwordLayout.setHint("Password");
+        passwordLayout.setEndIconMode(TextInputLayout.END_ICON_PASSWORD_TOGGLE);
+        int pad = (int) (24 * getResources().getDisplayMetrics().density);
+        passwordLayout.setPadding(pad, pad / 2, pad, 0);
+        TextInputEditText passwordInput = new TextInputEditText(passwordLayout.getContext());
+        passwordInput.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_VARIATION_PASSWORD);
+        passwordLayout.addView(passwordInput);
+
+        new AlertDialog.Builder(getContext())
+                .setTitle("Confirm your password")
+                .setMessage("Enter your password to confirm it's you before clearing all data.")
+                .setView(passwordLayout)
+                .setPositiveButton("Confirm", (d, which) -> {
+                    String password = passwordInput.getText() == null
+                            ? "" : passwordInput.getText().toString();
+                    if (password.isEmpty()) {
+                        BaseActivity activity = (BaseActivity) getActivity();
+                        if (activity != null) activity.showSnackbar("Please enter your password", "ERROR");
+                        return;
+                    }
+                    AuthCredential credential = EmailAuthProvider.getCredential(user.getEmail(), password);
+                    performReauth(user, credential);
+                })
+                .setNegativeButton("Cancel", null)
+                .show();
+    }
+
+    private void launchGoogleReauth() {
+        GoogleSignInOptions gso = new GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
+                .requestIdToken(getString(R.string.default_web_client_id))
+                .requestEmail()
+                .build();
+        GoogleSignInClient client = GoogleSignIn.getClient(requireActivity(), gso);
+        // Sign out of the picker first so it always asks, rather than silently reusing
+        // a stale session — the point is a fresh proof of identity.
+        client.signOut().addOnCompleteListener(t -> reauthGoogleLauncher.launch(client.getSignInIntent()));
+    }
+
+    private void handleGoogleReauthResult(Intent data) {
+        FirebaseUser user = mAuth.getCurrentUser();
+        if (user == null) return;
+        try {
+            com.google.android.gms.auth.api.signin.GoogleSignInAccount account =
+                    com.google.android.gms.auth.api.signin.GoogleSignIn
+                            .getSignedInAccountFromIntent(data)
+                            .getResult(com.google.android.gms.common.api.ApiException.class);
+            if (account == null || account.getIdToken() == null) {
+                showReauthFailed();
+                return;
+            }
+            AuthCredential credential = GoogleAuthProvider.getCredential(account.getIdToken(), null);
+            performReauth(user, credential);
+        } catch (com.google.android.gms.common.api.ApiException e) {
+            // Includes the user cancelling the picker — no wipe happens.
+            showReauthFailed();
+        }
+    }
+
+    private void performReauth(FirebaseUser user, AuthCredential credential) {
+        BaseActivity activity = (BaseActivity) getActivity();
+        if (activity != null) activity.showLoadingDialog();
+
+        user.reauthenticate(credential)
+                .addOnSuccessListener(aVoid -> {
+                    if (activity != null) activity.hideLoadingDialog();
+                    clearAllUserData();
+                })
+                .addOnFailureListener(e -> {
+                    if (activity != null) activity.hideLoadingDialog();
+                    showReauthFailed();
+                });
+    }
+
+    private void showReauthFailed() {
+        BaseActivity activity = (BaseActivity) getActivity();
+        if (activity != null) {
+            activity.showSnackbar("Identity check failed — data was not cleared.", "ERROR");
+        }
     }
 
     private void clearAllUserData() {

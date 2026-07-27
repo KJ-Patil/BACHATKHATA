@@ -13,8 +13,12 @@ import androidx.appcompat.app.AppCompatActivity;
 import com.example.bachatkhata.databinding.ActivityRegisterBinding;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.material.snackbar.Snackbar;
+import com.google.firebase.FirebaseNetworkException;
 import com.google.firebase.Timestamp;
 import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseAuthException;
+import com.google.firebase.auth.FirebaseAuthUserCollisionException;
+import com.google.firebase.auth.FirebaseAuthWeakPasswordException;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.storage.FirebaseStorage;
@@ -132,6 +136,18 @@ public class RegisterActivity extends AppCompatActivity {
             binding.tilConfirmPassword.setError(null);
         }
 
+        // Phone is optional, but if given it must fit the selected country's format —
+        // otherwise a malformed number is saved and later WhatsApp/SMS links fail.
+        String phoneEntered = binding.etPhone.getText().toString().trim();
+        if (!phoneEntered.isEmpty()) {
+            String phoneError = selectedCountry.validatePhone(phoneEntered);
+            if (phoneError != null) {
+                binding.tilPhone.setError(phoneError);
+                return;
+            }
+        }
+        binding.tilPhone.setError(null);
+
         showLoading(true);
 
         mAuth.createUserWithEmailAndPassword(email, password)
@@ -139,12 +155,53 @@ public class RegisterActivity extends AppCompatActivity {
                     FirebaseUser user = authResult.getUser();
                     if (user != null) {
                         uploadPhotoAndSaveUser(user, name);
+                    } else {
+                        // Without this branch the full-screen loader scrim stays up and
+                        // swallows every touch, leaving the screen permanently frozen.
+                        showLoading(false);
+                        showError("Account created but no user session was returned. Please sign in.");
                     }
                 })
                 .addOnFailureListener(e -> {
                     showLoading(false);
-                    showError(e.getLocalizedMessage());
+                    showError(describeAuthError(e));
                 });
+    }
+
+    /**
+     * Turn a Firebase sign-up failure into a message that names the actual cause. The raw
+     * {@code getLocalizedMessage()} is often opaque ("An internal error has occurred"), which
+     * makes a disabled Email/Password provider indistinguishable from a bad password.
+     */
+    private String describeAuthError(Exception e) {
+        if (e instanceof FirebaseAuthUserCollisionException) {
+            return "That email already has an account. Try signing in instead, or use Forgot password.";
+        }
+        if (e instanceof FirebaseAuthWeakPasswordException) {
+            String reason = ((FirebaseAuthWeakPasswordException) e).getReason();
+            return "Password too weak: " + (reason == null ? "choose a longer one." : reason);
+        }
+        if (e instanceof FirebaseNetworkException) {
+            return "No internet connection. Connect and try again.";
+        }
+        if (e instanceof FirebaseAuthException) {
+            String code = ((FirebaseAuthException) e).getErrorCode();
+            if ("ERROR_OPERATION_NOT_ALLOWED".equals(code)) {
+                return "Email/password sign-up is disabled for this project. "
+                        + "Enable it in Firebase Console → Authentication → Sign-in method.";
+            }
+            if ("ERROR_INVALID_EMAIL".equals(code)) {
+                return getString(R.string.err_invalid_email);
+            }
+            return "Sign-up failed (" + code + "): " + e.getLocalizedMessage();
+        }
+        String message = e.getLocalizedMessage();
+        // A missing/mismatched google-services.json surfaces only in the message text.
+        if (message != null && message.contains("CONFIGURATION_NOT_FOUND")) {
+            return "Firebase project is not configured for this app. Check that Authentication is "
+                    + "enabled and google-services.json matches the package name.";
+        }
+        return message;
     }
 
     private void uploadPhotoAndSaveUser(FirebaseUser user, String name) {
@@ -170,7 +227,7 @@ public class RegisterActivity extends AppCompatActivity {
         // Optional phone number with its country dial code.
         String phoneNumber = binding.etPhone.getText().toString().trim();
         if (!phoneNumber.isEmpty()) {
-            userData.put("phone", selectedCountry.dialCode + " " + phoneNumber);
+            userData.put("phone", selectedCountry.dialCode + " " + Country.digitsOnly(phoneNumber));
             userData.put("dialCode", selectedCountry.dialCode);
             userData.put("countryCode", selectedCountry.isoCode);
         }

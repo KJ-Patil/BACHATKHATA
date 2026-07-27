@@ -57,7 +57,10 @@ public class PhoneLoginActivity extends AppCompatActivity {
 
     private void sendOtp() {
         String phone = binding.etPhone.getText().toString().trim();
-        if (!phone.startsWith("+") || phone.length() < 8) {
+        // Firebase requires a full E.164 number. Enforce the real shape
+        // (+, non-zero country digit, 7–15 total digits) rather than a loose
+        // length check, so an obviously malformed number never reaches the SMS send.
+        if (!phone.matches("^\\+[1-9]\\d{6,14}$")) {
             binding.tilPhone.setError(getString(R.string.phone_enter_valid));
             return;
         }

@@ -391,4 +391,25 @@
     <string name="logout_unsynced_message">कुछ हालिया बदलाव अभी तक क्लाउड तक नहीं पहुँचे हैं। अभी साइन आउट करने पर वे स्थायी रूप से खो जाएँगे। दोबारा जुड़कर प्रयास करें, या फिर भी साइन आउट करें?</string>
     <string name="logout_unsynced_confirm">फिर भी साइन आउट करें</string>
     <string name="logout_unsynced_cancel">साइन इन रहें</string>
+
+    <!-- Previously untranslated: PIN lock + misc -->
+    <string name="back">वापस</string>
+    <string name="title_customer_ledger">ग्राहक बही-खाता</string>
+    <string name="profile_cloud_backup">क्लाउड बैकअप</string>
+    <string name="pin_label">PIN</string>
+    <string name="pin_hint">अपना PIN दर्ज करें</string>
+    <string name="pin_continue">आगे बढ़ें</string>
+    <string name="pin_unlock">अनलॉक करें</string>
+    <string name="pin_too_short">कृपया अपना 4-अंकों का PIN दर्ज करें।</string>
+    <string name="pin_confirm_action">PIN की पुष्टि करें</string>
+    <string name="pin_confirm_subtitle">पुष्टि के लिए अपना PIN फिर से दर्ज करें।</string>
+    <string name="pin_create_subtitle">अपने खाते को सुरक्षित करने के लिए 4-अंकों का PIN चुनें।</string>
+    <string name="pin_verify_title">सुरक्षा PIN दर्ज करें</string>
+    <string name="pin_verify_subtitle">अनलॉक करने के लिए अपनी पहचान की पुष्टि करें।</string>
+    <string name="pin_use_fingerprint">फ़िंगरप्रिंट का उपयोग करें</string>
+    <string name="pin_switch_account">खाता बदलें</string>
+    <string name="pin_forgot">PIN भूल गए?</string>
+    <string name="pin_forgot_confirm">रीसेट करें और सत्यापित करें</string>
+    <string name="pin_forgot_dialog_title">PIN रीसेट करें?</string>
+    <string name="pin_forgot_dialog_message">आपको साइन आउट किया जाएगा और अपना फ़ोन नंबर सत्यापित करने को कहा जाएगा। उसके बाद आप नया PIN सेट कर सकते हैं।</string>
 </resources>
