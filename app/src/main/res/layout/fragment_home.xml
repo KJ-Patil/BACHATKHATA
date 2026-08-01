@@ -746,11 +746,19 @@
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:layout_marginBottom="8dp"
                         android:text="@string/home_by_category"
                         android:textColor="@color/colorTextPrimary"
                         android:textSize="16sp"
                         android:textStyle="bold"/>
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="2dp"
+                        android:layout_marginBottom="8dp"
+                        android:text="@string/chart_expand_hint"
+                        android:textColor="@color/colorTextSecondary"
+                        android:textSize="12sp"/>
                     <com.google.android.material.card.MaterialCardView
                         style="@style/ClayCard"
                         android:layout_width="match_parent"

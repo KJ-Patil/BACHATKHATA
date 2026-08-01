@@ -416,4 +416,11 @@
     <string name="logout_unsynced_message">Some recent changes haven\'t reached the cloud yet. Signing out now will discard them permanently. Reconnect and try again, or sign out anyway?</string>
     <string name="logout_unsynced_confirm">Sign Out Anyway</string>
     <string name="logout_unsynced_cancel">Stay Signed In</string>
+
+    <!-- Expanded chart popup -->
+    <string name="chart_swipe_hint">Swipe left or right to see every bar</string>
+    <string name="chart_expand_hint">Tap the chart to see all categories</string>
+    <string name="action_close">Close</string>
+    <string name="chart_search_categories">Search income &amp; expense</string>
+    <string name="chart_no_match">No matching category</string>
 </resources>

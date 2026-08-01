@@ -6,6 +6,8 @@ import android.content.pm.PackageManager;
 import android.graphics.Outline;
 import android.os.Build;
 import android.os.Bundle;
+import android.view.Menu;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewOutlineProvider;
 import android.view.animation.OvershootInterpolator;
@@ -17,6 +19,8 @@ import androidx.biometric.BiometricPrompt;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 import androidx.navigation.NavController;
+import androidx.navigation.NavDestination;
+import androidx.navigation.NavOptions;
 import androidx.navigation.fragment.NavHostFragment;
 import androidx.navigation.ui.NavigationUI;
 
@@ -66,7 +70,7 @@ public class MainActivity extends BaseActivity {
                 .findFragmentById(R.id.nav_host_fragment);
         if (navHostFragment != null) {
             navController = navHostFragment.getNavController();
-            NavigationUI.setupWithNavController(binding.bottomNavigationView, navController);
+            setupBottomNavigation();
         }
 
         // Disable the uniform icon tint so each menu icon shows its own colors
@@ -103,6 +107,57 @@ public class MainActivity extends BaseActivity {
 
         // 6. Handle deep links from intent (if launched from notification)
         handleIntent(getIntent());
+    }
+
+    /**
+     * Wires the bottom bar to the NavController by hand instead of using
+     * {@link NavigationUI#setupWithNavController}.
+     *
+     * <p>NavigationUI navigates each tab with {@code popUpTo(startDestination, saveState = true)}
+     * plus {@code restoreState = true}. Because a non-inclusive pop files the saved back stack
+     * under the id it popped up <em>to</em>, and our start destination IS the Home tab, tapping
+     * Home would pop the current tab, save it under {@code navigation_home}, and then immediately
+     * restore it — leaving the user on the screen they just tried to leave. The graph is flat
+     * (no nested per-tab graphs), so per-tab state saving buys us nothing; dropping
+     * saveState/restoreState removes the whole failure mode.
+     */
+    private void setupBottomNavigation() {
+        binding.bottomNavigationView.setOnItemSelectedListener(item -> {
+            int itemId = item.getItemId();
+            if (itemId == R.id.navigation_placeholder) return false;
+
+            NavDestination current = navController.getCurrentDestination();
+            if (current != null && current.getId() == itemId) return true;
+
+            NavOptions options = new NavOptions.Builder()
+                    .setLaunchSingleTop(true)
+                    .setPopUpTo(navController.getGraph().getStartDestinationId(), false)
+                    .setEnterAnim(androidx.navigation.ui.R.animator.nav_default_enter_anim)
+                    .setExitAnim(androidx.navigation.ui.R.animator.nav_default_exit_anim)
+                    .setPopEnterAnim(androidx.navigation.ui.R.animator.nav_default_pop_enter_anim)
+                    .setPopExitAnim(androidx.navigation.ui.R.animator.nav_default_pop_exit_anim)
+                    .build();
+            try {
+                navController.navigate(itemId, null, options);
+                return true;
+            } catch (IllegalArgumentException e) {
+                // Menu item without a matching graph destination — leave it unselected.
+                return false;
+            }
+        });
+
+        // Keep the highlighted tab in sync, including for destinations reached from
+        // inside a fragment (e.g. Home's "See All" -> Transactions).
+        navController.addOnDestinationChangedListener((controller, destination, arguments) -> {
+            Menu menu = binding.bottomNavigationView.getMenu();
+            for (int i = 0; i < menu.size(); i++) {
+                MenuItem menuItem = menu.getItem(i);
+                if (menuItem.getItemId() == destination.getId()) {
+                    menuItem.setChecked(true);
+                    break;
+                }
+            }
+        });
     }
 
     @Override

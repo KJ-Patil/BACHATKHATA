@@ -6,6 +6,7 @@ import android.os.Bundle;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.view.LayoutInflater;
+import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
@@ -70,6 +71,7 @@ public class HomeFragment extends Fragment {
         setupSearch();
         setupKpiPopups();
         setupChartToggle();
+        setupBarChartTap();
         observeViewModel();
 
         if (mAuth.getCurrentUser() != null) {
@@ -414,6 +416,44 @@ public class HomeFragment extends Fragment {
         if (income == null || incomeLabels == null || spent == null || spentLabels == null) return;
         ChartStyler.applyBarChartStyle(getContext(), binding.barChart, income, incomeLabels,
                 spent, spentLabels, viewModel.getChartMode().getValue());
+    }
+
+    /**
+     * The inline card squeezes every category into one screen, so a long list turns
+     * into unreadable slivers. A tap anywhere on the chart opens the expanded,
+     * side-scrollable version instead. The chart consumes touches itself, so the tap
+     * has to come from its gesture listener rather than a plain OnClickListener.
+     */
+    private void setupBarChartTap() {
+        binding.barChart.setOnChartGestureListener(new SimpleChartGestureListener() {
+            @Override
+            public void onChartSingleTapped(MotionEvent me) {
+                showExpandedBarChart();
+            }
+        });
+    }
+
+    private void showExpandedBarChart() {
+        if (binding == null || !isAdded()) return;
+
+        List<com.github.mikephil.charting.data.BarEntry> income = viewModel.getBarIncomeData().getValue();
+        List<String> incomeLabels = viewModel.getBarIncomeLabels().getValue();
+        List<com.github.mikephil.charting.data.BarEntry> spent = viewModel.getBarSpentData().getValue();
+        List<String> spentLabels = viewModel.getBarSpentLabels().getValue();
+        if (income == null || incomeLabels == null || spent == null || spentLabels == null) return;
+
+        // "Both" rather than the card's current toggle: the popup is the see-everything
+        // view, and its category search is meant to cover all income and expense at once.
+        // It also keeps every search result reachable — a row the chart had filtered out
+        // would have no bar to jump to.
+        ChartStyler.BarSeries series = ChartStyler.buildCategorySeries(income, incomeLabels,
+                spent, spentLabels, "Both");
+
+        // Nothing to expand while the chart is showing its empty-state placeholder bar.
+        if (series.size() == 1 && "None".equals(series.labels.get(0))) return;
+
+        BarChartDetailBottomSheet.newInstance(getString(R.string.home_by_category), series)
+                .show(getChildFragmentManager(), "bar_chart_detail");
     }
 
     private void setGreetingText(String uid) {

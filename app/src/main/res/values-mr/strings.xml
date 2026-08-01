@@ -412,4 +412,11 @@
     <string name="pin_forgot_confirm">रीसेट करा व पडताळा</string>
     <string name="pin_forgot_dialog_title">PIN रीसेट करायचा?</string>
     <string name="pin_forgot_dialog_message">तुम्हाला साइन आउट केले जाईल आणि तुमचा फोन नंबर पडताळण्यास सांगितले जाईल. त्यानंतर तुम्ही नवा PIN सेट करू शकता.</string>
+
+    <!-- Expanded chart popup -->
+    <string name="chart_swipe_hint">सर्व बार पाहण्यासाठी डावी-उजवीकडे स्वाइप करा</string>
+    <string name="chart_expand_hint">सर्व श्रेणी पाहण्यासाठी चार्टवर टॅप करा</string>
+    <string name="action_close">बंद करा</string>
+    <string name="chart_search_categories">उत्पन्न व खर्च शोधा</string>
+    <string name="chart_no_match">जुळणारी श्रेणी नाही</string>
 </resources>

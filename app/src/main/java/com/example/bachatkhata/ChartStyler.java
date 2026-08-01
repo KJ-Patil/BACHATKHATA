@@ -250,18 +250,28 @@ public class ChartStyler {
         return Color.argb(alpha, Color.red(color), Color.green(color), Color.blue(color));
     }
 
+    /** One resolved bar series: entry, label, color and type all share an index. */
+    public static class BarSeries {
+        public final List<BarEntry> entries = new ArrayList<>();
+        public final List<String> labels = new ArrayList<>();
+        public final List<Integer> colors = new ArrayList<>();
+        /** True where the bar at that index came from the income series, false for spending. */
+        public final List<Boolean> income = new ArrayList<>();
+
+        public int size() {
+            return entries.size();
+        }
+    }
+
     /**
-     * Multi-series bar chart for the Home "By Category" toggle.
+     * Resolves the Home "By Category" toggle into a single flat series.
      * "Income"/"Spent" show that type's categories; "Both" concatenates them,
-     * coloring income bars green and expense bars purple.
+     * coloring income bars green and expense bars red.
      */
-    public static void applyBarChartStyle(Context context, BarChart chart,
-                                          List<BarEntry> incomeEntries, List<String> incomeLabels,
-                                          List<BarEntry> spentEntries, List<String> spentLabels,
-                                          String mode) {
-        List<BarEntry> entries = new ArrayList<>();
-        List<String> labels = new ArrayList<>();
-        List<Integer> colors = new ArrayList<>();
+    public static BarSeries buildCategorySeries(List<BarEntry> incomeEntries, List<String> incomeLabels,
+                                                List<BarEntry> spentEntries, List<String> spentLabels,
+                                                String mode) {
+        BarSeries series = new BarSeries();
 
         boolean showIncome = !"Spent".equalsIgnoreCase(mode);
         boolean showSpent = !"Income".equalsIgnoreCase(mode);
@@ -269,28 +279,65 @@ public class ChartStyler {
         int index = 0;
         if (showIncome && !isPlaceholder(incomeLabels)) {
             for (int i = 0; i < incomeEntries.size(); i++) {
-                entries.add(new BarEntry(index++, incomeEntries.get(i).getY()));
-                labels.add(incomeLabels.get(i));
-                colors.add(INCOME_COLOR);
+                series.entries.add(new BarEntry(index++, incomeEntries.get(i).getY()));
+                series.labels.add(incomeLabels.get(i));
+                series.colors.add(INCOME_COLOR);
+                series.income.add(true);
             }
         }
         if (showSpent && !isPlaceholder(spentLabels)) {
             for (int i = 0; i < spentEntries.size(); i++) {
-                entries.add(new BarEntry(index++, spentEntries.get(i).getY()));
-                labels.add(spentLabels.get(i));
-                // Spent-only keeps the multicolor palette; in "Both" use one purple
+                series.entries.add(new BarEntry(index++, spentEntries.get(i).getY()));
+                series.labels.add(spentLabels.get(i));
+                // Spent-only keeps the multicolor palette; in "Both" use one red
                 // so it reads clearly against the green income bars.
-                colors.add(showIncome ? SPENT_COLOR : PALETTE[i % PALETTE.length]);
+                series.colors.add(showIncome ? SPENT_COLOR : PALETTE[i % PALETTE.length]);
+                series.income.add(false);
             }
         }
 
-        if (entries.isEmpty()) {
-            entries.add(new BarEntry(0, 0f));
-            labels.add("None");
-            colors.add(PALETTE[0]);
+        if (series.entries.isEmpty()) {
+            series.entries.add(new BarEntry(0, 0f));
+            series.labels.add("None");
+            series.colors.add(PALETTE[0]);
+            series.income.add(false);
         }
 
-        applyBarChartStyleInternal(context, chart, entries, labels, colors);
+        return series;
+    }
+
+    /**
+     * Multi-series bar chart for the Home "By Category" toggle.
+     */
+    public static void applyBarChartStyle(Context context, BarChart chart,
+                                          List<BarEntry> incomeEntries, List<String> incomeLabels,
+                                          List<BarEntry> spentEntries, List<String> spentLabels,
+                                          String mode) {
+        BarSeries series = buildCategorySeries(incomeEntries, incomeLabels, spentEntries, spentLabels, mode);
+        applyBarChartStyleInternal(context, chart, series.entries, series.labels, series.colors);
+    }
+
+    /**
+     * Same bars as {@link #applyBarChartStyle}, but the viewport is capped to
+     * {@code visibleBars} so a long category list stays legible and the user drags
+     * sideways to reach the rest. Used by the expanded chart popup.
+     */
+    public static void applyScrollableBarChartStyle(Context context, BarChart chart, BarSeries series,
+                                                    int visibleBars) {
+        applyBarChartStyleInternal(context, chart, series.entries, series.labels, series.colors);
+
+        chart.setDragEnabled(true);
+        chart.setScaleEnabled(false);
+        chart.setDoubleTapToZoomEnabled(false);
+        // Dragging should pan, not drag the selection across bars.
+        chart.setHighlightPerDragEnabled(false);
+
+        // setFitBars pads the axis by half a bar on each side; only zoom in when
+        // there is actually more data than fits, otherwise the bars stretch oddly.
+        if (series.size() > visibleBars) {
+            chart.setVisibleXRangeMaximum(visibleBars);
+            chart.moveViewToX(0f);
+        }
     }
 
     private static boolean isPlaceholder(List<String> labels) {
