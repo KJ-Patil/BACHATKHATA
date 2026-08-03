@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <application>
+        <!-- Debug-only harness for eyeballing the expanded bar chart without signing in. -->
+        <activity
+            android:name=".ChartPreviewActivity"
+            android:exported="true" />
+    </application>
+
+</manifest>

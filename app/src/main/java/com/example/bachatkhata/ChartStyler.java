@@ -332,12 +332,37 @@ public class ChartStyler {
         // Dragging should pan, not drag the selection across bars.
         chart.setHighlightPerDragEnabled(false);
 
+        // Category names are far wider than a bar, so drawn flat they collide with their
+        // neighbours and get clipped. Angling them gives each one the full bar pitch
+        // plus the chart's height to run into, and MPAndroidChart reserves the extra
+        // bottom margin for a rotated axis automatically.
+        XAxis xAxis = chart.getXAxis();
+        xAxis.setLabelRotationAngle(-45f);
+        xAxis.setValueFormatter(new IndexAxisValueFormatter(truncateForAxis(series.labels)));
+        // Extra bottom breathing room on top of the space the rotation already claims.
+        chart.setExtraOffsets(8f, 16f, 16f, 14f);
+
         // setFitBars pads the axis by half a bar on each side; only zoom in when
         // there is actually more data than fits, otherwise the bars stretch oddly.
         if (series.size() > visibleBars) {
             chart.setVisibleXRangeMaximum(visibleBars);
             chart.moveViewToX(0f);
         }
+    }
+
+    /**
+     * Caps axis labels so one long category name can't run halfway up the plot when
+     * rotated. The untruncated name is still available in the chart's search list.
+     */
+    private static List<String> truncateForAxis(List<String> labels) {
+        final int maxChars = 12;
+        List<String> out = new ArrayList<>(labels.size());
+        for (String label : labels) {
+            out.add(label != null && label.length() > maxChars
+                    ? label.substring(0, maxChars - 1).trim() + "…"
+                    : label);
+        }
+        return out;
     }
 
     private static boolean isPlaceholder(List<String> labels) {
