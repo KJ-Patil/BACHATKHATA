@@ -60,7 +60,24 @@ larger change), revisit encryption at rest at that boundary.
 
 ---
 
-## 2. Tech stack — Java + XML Views, not Kotlin + Compose
+## 2. Firestore disk cache stays ON (`ANDROID_FEATURES.md` §4.3)
+
+The spec asks for `MemoryCacheSettings`, so no plaintext copy of the financial data
+sits on disk. That instruction exists to back up §1's encryption-at-rest model —
+and since §1 is deliberately not implemented here (see above), pinning the cache
+to memory would buy nothing while **removing offline-first entirely**: this app is
+Firestore-direct with no Room mirror, so an in-memory cache means a blank app the
+moment the network drops.
+
+The data on disk is still covered by Android full-disk encryption and the app
+sandbox, which is the same protection §1 relies on. Turning the cache off would be
+a strict regression in exchange for no security gain.
+
+Revisit alongside §1 if the app ever moves onto a local Room store.
+
+---
+
+## 3. Tech stack — Java + XML Views, not Kotlin + Compose
 
 `ANDROID_FEATURES.md` §1–§2 map the web app to **Kotlin + Jetpack Compose + Room**.
 This project is instead **Java + XML Views + Firestore-direct**, following MVVM.

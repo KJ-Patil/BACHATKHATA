@@ -17,6 +17,7 @@ import com.google.firebase.Timestamp;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.WriteBatch;
 
 public class AddCustomerActivity extends BaseActivity {
 
@@ -39,6 +40,10 @@ public class AddCustomerActivity extends BaseActivity {
 
         setupToggleGroup();
         setupListeners();
+
+        // "They owe you" is the common case for a customer khata, so it is the
+        // pre-selected direction rather than leaving the pair unchecked.
+        binding.toggleOpeningDirection.check(R.id.btnOpeningTheyOwe);
     }
 
     private void setupToggleGroup() {
@@ -119,6 +124,24 @@ public class AddCustomerActivity extends BaseActivity {
             return;
         }
 
+        // A khata is usually opened because money is already owed. Parsing this
+        // before any write so a typo fails the form rather than half-creating
+        // a contact whose opening entry then never lands.
+        String openingText = binding.etOpeningBalance.getText().toString().trim();
+        double openingBalance = 0;
+        if (!openingText.isEmpty()) {
+            try {
+                openingBalance = Double.parseDouble(openingText);
+            } catch (NumberFormatException e) {
+                showError("Opening balance is not a valid amount.");
+                return;
+            }
+            if (openingBalance < 0) {
+                showError("Opening balance cannot be negative — use the toggle to pick the direction.");
+                return;
+            }
+        }
+
         if (mAuth.getCurrentUser() == null) return;
         showLoading(true);
 
@@ -126,9 +149,22 @@ public class AddCustomerActivity extends BaseActivity {
         DocumentReference docRef = mFirestore.collection("users").document(uid).collection("customers").document();
         String customerId = docRef.getId();
 
+        // The customer document always starts at zero; the opening balance arrives
+        // through the same entry path as every other one, so it is visible in the
+        // history and reversible, instead of an unexplained starting number.
         Customer customer = new Customer(customerId, name, phone, customerType, 0.0, Timestamp.now());
 
-        docRef.set(customer.toMap())
+        WriteBatch batch = mFirestore.batch();
+        batch.set(docRef, customer.toMap());
+
+        if (openingBalance > 0) {
+            boolean theyOweYou = binding.toggleOpeningDirection.getCheckedButtonId() != R.id.btnOpeningYouOwe;
+            LedgerMirror.queueEntry(mFirestore, batch, uid, customer, openingBalance,
+                    theyOweYou ? LedgerMirror.TYPE_GAVE : LedgerMirror.TYPE_GOT,
+                    getString(R.string.ledger_opening_balance_note), new java.util.Date());
+        }
+
+        batch.commit()
                 .addOnSuccessListener(aVoid -> {
                     showLoading(false);
                     showSuccess("Contact added to ledger!");

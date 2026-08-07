@@ -25,6 +25,7 @@ import com.example.bachatkhata.databinding.FragmentHomeBinding;
 import com.example.bachatkhata.databinding.ItemMoneyRuleBarBinding;
 import com.example.bachatkhata.domain.BucketType;
 import com.example.bachatkhata.domain.MoneyRule;
+import com.example.bachatkhata.domain.ProfileSanitizer;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.FirebaseFirestore;
 
@@ -473,26 +474,32 @@ public class HomeFragment extends Fragment {
         mFirestore.collection("users").document(uid).get()
                 .addOnSuccessListener(documentSnapshot -> {
                     if (documentSnapshot.exists() && binding != null && getContext() != null) {
-                        String name = documentSnapshot.getString("name");
-                        if (name != null && !name.trim().isEmpty()) {
+                        // The users/{uid} doc is user-writable, so re-validate the greeting
+                        // name and avatar on read as well as write (§5.24) — bidi overrides
+                        // in a name and a non-https avatar URL both land in a rendered view.
+                        String name = ProfileSanitizer.sanitizeDisplayName(
+                                documentSnapshot.getString("name"));
+                        if (!name.isEmpty()) {
                             binding.txtGreeting.setText(String.format("%s, %s", finalGreeting, name));
                         } else {
                             binding.txtGreeting.setText(String.format("%s, User", finalGreeting));
                         }
 
                         // Top-right avatar (Google-account style): initials fallback + photo overlay
-                        String letter = (name != null && !name.trim().isEmpty())
-                                ? name.trim().substring(0, 1).toUpperCase(Locale.US) : "U";
+                        String letter = !name.isEmpty()
+                                ? name.substring(0, 1).toUpperCase(Locale.US) : "U";
                         binding.txtTopAvatarLetter.setText(letter);
 
-                        String photoUrl = documentSnapshot.getString("photoUrl");
-                        if ((photoUrl == null || photoUrl.trim().isEmpty())
+                        String photoUrl = ProfileSanitizer.sanitizeAvatarUrl(
+                                documentSnapshot.getString("photoUrl"));
+                        if (photoUrl == null
                                 && mAuth.getCurrentUser() != null
                                 && mAuth.getCurrentUser().getPhotoUrl() != null) {
                             // Fall back to the Google sign-in photo, if any.
-                            photoUrl = mAuth.getCurrentUser().getPhotoUrl().toString();
+                            photoUrl = ProfileSanitizer.sanitizeAvatarUrl(
+                                    mAuth.getCurrentUser().getPhotoUrl().toString());
                         }
-                        if (photoUrl != null && !photoUrl.trim().isEmpty()) {
+                        if (photoUrl != null) {
                             binding.imgTopAvatar.setVisibility(View.VISIBLE);
                             Glide.with(this).load(photoUrl).circleCrop().into(binding.imgTopAvatar);
                         } else {

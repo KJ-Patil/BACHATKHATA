@@ -312,6 +312,10 @@ public class AddTransactionActivity extends BaseActivity {
         binding.btnBack.setOnClickListener(v -> finish());
         
         binding.btnMic.setOnClickListener(v -> checkVoicePermissionAndStart());
+        binding.btnMic.setOnLongClickListener(v -> {
+            showVoiceLanguagePicker();
+            return true;
+        });
 
         binding.btnScanReceipt.setOnClickListener(v -> {
             Intent intent = new Intent(this, ReceiptScannerActivity.class);
@@ -714,6 +718,27 @@ public class AddTransactionActivity extends BaseActivity {
         notification.put("createdAt", Timestamp.now());
 
         mFirestore.collection("users").document(uid).collection("notifications").add(notification);
+    }
+
+    /**
+     * Lets the user pick the dictation language. Long-press rather than a settings
+     * row because the choice is made in the moment — you notice the recogniser is
+     * on the wrong language exactly when you are about to speak.
+     */
+    private void showVoiceLanguagePicker() {
+        SharedPreferencesManager prefs = SharedPreferencesManager.getInstance(this);
+        int current = VoiceLanguages.indexOf(prefs.getVoiceLanguage());
+
+        new androidx.appcompat.app.AlertDialog.Builder(this)
+                .setTitle(R.string.voice_language_title)
+                .setSingleChoiceItems(VoiceLanguages.labels(), current, (dialog, which) -> {
+                    VoiceLanguages.Option picked = VoiceLanguages.all().get(which);
+                    prefs.setVoiceLanguage(picked.tag);
+                    dialog.dismiss();
+                    showInfo(getString(R.string.voice_language_set, picked.englishName));
+                })
+                .setNegativeButton(android.R.string.cancel, null)
+                .show();
     }
 
     private void checkVoicePermissionAndStart() {

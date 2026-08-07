@@ -252,26 +252,12 @@ public class CustomerDetailActivity extends BaseActivity {
 
         WriteBatch batch = mFirestore.batch();
 
-        DocumentReference txnRef = mFirestore.collection("users").document(uid)
-                .collection("customer_txns").document();
-
-        CustomerTransaction transaction = new CustomerTransaction(
-                txnRef.getId(),
-                customer.getId(),
-                amount,
-                note,
-                new Timestamp(selectedDate),
-                isGave ? "gave" : "got"
-        );
-
-        // Save transaction record
-        batch.set(txnRef, transaction.toMap());
-
-        // Increment customer balance atomically
-        double balanceChange = isGave ? amount : -amount;
-        DocumentReference customerRef = mFirestore.collection("users").document(uid)
-                .collection("customers").document(customer.getId());
-        batch.update(customerRef, "balance", FieldValue.increment(balanceChange));
+        // Writes the entry, its mirrored "Ledger" transaction and the running
+        // balance as one atomic batch — khata money is real money, so it has to
+        // reach the main ledger or every total on the app under-reports.
+        LedgerMirror.queueEntry(mFirestore, batch, uid, customer, amount,
+                isGave ? LedgerMirror.TYPE_GAVE : LedgerMirror.TYPE_GOT,
+                note, selectedDate);
 
         batch.commit()
                 .addOnSuccessListener(aVoid -> {
@@ -526,7 +512,64 @@ public class CustomerDetailActivity extends BaseActivity {
                     itemBinding.txtTxnTypeLabel.setText("You Got");
                     itemBinding.txtTxnTypeLabel.setTextColor(Color.parseColor("#E24B4A"));
                 }
+
+                itemBinding.getRoot().setOnLongClickListener(v -> {
+                    confirmDeleteEntry(txn);
+                    return true;
+                });
             }
         }
+    }
+
+    /**
+     * Deletes one khata entry: the entry, the balance it moved, and the
+     * transaction it was mirrored into. All three in one batch — a leftover
+     * mirrored transaction would keep inflating the user's totals with money
+     * that is no longer in the notebook, and nothing in the UI would explain it.
+     */
+    private void confirmDeleteEntry(CustomerTransaction entry) {
+        String label = "gave".equals(entry.getType()) ? "You Gave" : "You Got";
+        String amount = CurrencyManager.getInstance().formatAmount(entry.getAmount());
+
+        new android.app.AlertDialog.Builder(this)
+                .setTitle(R.string.ledger_delete_entry_title)
+                .setMessage(getString(R.string.ledger_delete_entry_message, label, amount))
+                .setNegativeButton(android.R.string.cancel, null)
+                .setPositiveButton(R.string.ledger_delete_entry_confirm, (d, w) -> deleteEntry(entry))
+                .show();
+    }
+
+    private void deleteEntry(CustomerTransaction entry) {
+        if (mAuth.getCurrentUser() == null) return;
+        String uid = mAuth.getCurrentUser().getUid();
+        showLoading(true);
+
+        WriteBatch batch = mFirestore.batch();
+
+        batch.delete(mFirestore.collection("users").document(uid)
+                .collection("customer_txns").document(entry.getId()));
+
+        // Entries written before mirroring existed have no txId — there is simply
+        // no transaction to remove for those.
+        if (entry.getTxId() != null && !entry.getTxId().isEmpty()) {
+            batch.delete(mFirestore.collection("users").document(uid)
+                    .collection("transactions").document(entry.getTxId()));
+        }
+
+        // Unwind the balance this entry moved.
+        double reversal = "gave".equals(entry.getType()) ? -entry.getAmount() : entry.getAmount();
+        batch.update(mFirestore.collection("users").document(uid)
+                .collection("customers").document(customer.getId()),
+                "balance", FieldValue.increment(reversal));
+
+        batch.commit()
+                .addOnSuccessListener(v -> {
+                    showLoading(false);
+                    showSuccess(getString(R.string.ledger_entry_deleted));
+                })
+                .addOnFailureListener(e -> {
+                    showLoading(false);
+                    showError("Failed to delete entry: " + e.getLocalizedMessage());
+                });
     }
 }

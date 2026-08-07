@@ -33,11 +33,16 @@ public class VoiceLoggingHelper {
             return;
         }
 
+        // Dictate in whichever language the user picked (long-press the mic).
+        // Hindi remains the default, but forcing it on a Tamil or Bengali speaker
+        // makes the recogniser return nonsense that the parser then can't read.
+        String languageTag = SharedPreferencesManager.getInstance(context).getVoiceLanguage();
+
         speechRecognizer = SpeechRecognizer.createSpeechRecognizer(context);
         Intent intent = new Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH);
         intent.putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL, RecognizerIntent.LANGUAGE_MODEL_FREE_FORM);
-        intent.putExtra(RecognizerIntent.EXTRA_LANGUAGE, "hi-IN"); // Hindi & Indian English support
-        intent.putExtra(RecognizerIntent.EXTRA_LANGUAGE_PREFERENCE, "hi-IN");
+        intent.putExtra(RecognizerIntent.EXTRA_LANGUAGE, languageTag);
+        intent.putExtra(RecognizerIntent.EXTRA_LANGUAGE_PREFERENCE, languageTag);
         intent.putExtra(RecognizerIntent.EXTRA_ONLY_RETURN_LANGUAGE_PREFERENCE, true);
 
         speechRecognizer.setRecognitionListener(new RecognitionListener() {

@@ -53,6 +53,7 @@
                 android:src="@drawable/ic_mic"
                 app:tint="@color/colorPrimary"
                 android:contentDescription="Voice input"
+                android:tooltipText="@string/voice_language_hint"
                 android:background="?attr/selectableItemBackgroundBorderless" />
 
             <ImageView

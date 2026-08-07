@@ -11,6 +11,7 @@ import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.example.bachatkhata.databinding.ActivityRegisterBinding;
+import com.example.bachatkhata.domain.ProfileSanitizer;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.material.snackbar.Snackbar;
 import com.google.firebase.FirebaseNetworkException;
@@ -97,7 +98,9 @@ public class RegisterActivity extends AppCompatActivity {
     }
 
     private void handleRegister() {
-        String name = binding.etFullName.getText().toString().trim();
+        // Sanitize before validating, so a name made only of zero-width or bidi
+        // characters is caught by the empty check rather than persisted (§5.24).
+        String name = ProfileSanitizer.sanitizeDisplayName(binding.etFullName.getText().toString());
         String email = binding.etEmail.getText().toString().trim();
         String password = binding.etPassword.getText().toString().trim();
         String confirmPassword = binding.etConfirmPassword.getText().toString().trim();
@@ -206,10 +209,27 @@ public class RegisterActivity extends AppCompatActivity {
 
     private void uploadPhotoAndSaveUser(FirebaseUser user, String name) {
         String uid = user.getUid();
+
+        // Carry the name onto the Auth profile too, so anything reading
+        // displayName (and the Google/phone sign-in paths) sees it (§6.3).
+        user.updateProfile(new com.google.firebase.auth.UserProfileChangeRequest.Builder()
+                .setDisplayName(name)
+                .build());
+
         if (profileImageUri != null) {
             StorageReference profileRef = mStorage.getReference().child("users/" + uid + "/profile.jpg");
-            profileRef.putFile(profileImageUri)
-                    .addOnSuccessListener(taskSnapshot -> profileRef.getDownloadUrl()
+
+            // Crop and shrink to a 256px JPEG first. A full-resolution phone photo is
+            // several megabytes, uploaded once and then re-downloaded on every profile
+            // render; the avatar never needs more than a couple hundred pixels (§6.6).
+            // Fall back to the raw file only if decoding fails, so a picture the
+            // decoder can't read still doesn't block sign-up.
+            byte[] avatarBytes = ImageDownscaler.toAvatarJpeg(this, profileImageUri);
+            com.google.firebase.storage.UploadTask upload = avatarBytes != null
+                    ? profileRef.putBytes(avatarBytes)
+                    : profileRef.putFile(profileImageUri);
+
+            upload.addOnSuccessListener(taskSnapshot -> profileRef.getDownloadUrl()
                             .addOnSuccessListener(uri -> saveUserToFirestore(uid, name, uri.toString()))
                             .addOnFailureListener(e -> saveUserToFirestore(uid, name, "")))
                     .addOnFailureListener(e -> saveUserToFirestore(uid, name, ""));
@@ -222,7 +242,10 @@ public class RegisterActivity extends AppCompatActivity {
         Map<String, Object> userData = new HashMap<>();
         userData.put("name", name);
         userData.put("email", mAuth.getCurrentUser().getEmail());
-        userData.put("photoUrl", photoUrl);
+        // Only an https download URL is ever legitimate here; anything else would
+        // put an attacker-chosen URL in front of the image loader on every read.
+        String safePhotoUrl = ProfileSanitizer.sanitizeAvatarUrl(photoUrl);
+        userData.put("photoUrl", safePhotoUrl == null ? "" : safePhotoUrl);
 
         // Optional phone number with its country dial code.
         String phoneNumber = binding.etPhone.getText().toString().trim();

@@ -419,4 +419,35 @@
     <string name="action_close">बंद करा</string>
     <string name="chart_search_categories">उत्पन्न व खर्च शोधा</string>
     <string name="chart_no_match">जुळणारी श्रेणी नाही</string>
+
+    <!-- गट सोडणे विरुद्ध हटवणे — दोन्ही वेगळे आहेत आणि संदेश ते स्पष्ट सांगतो -->
+    <string name="group_leave_action">गट सोडा</string>
+    <string name="group_leave_title">हा गट सोडायचा?</string>
+    <string name="group_leave_message">तुम्हाला \"%1$s\" मधून काढले जाईल आणि सामायिक खर्च दिसणे थांबेल. गट उरलेल्या %2$d सदस्यांसाठी चालू राहील, आणि तुम्ही आमंत्रण कोडने पुन्हा सामील होऊ शकता.</string>
+    <string name="group_leave_confirm">सोडा</string>
+    <string name="group_delete_title">हा गट हटवायचा?</string>
+    <string name="group_delete_message">तुम्ही \"%1$s\" चे शेवटचे सदस्य आहात. सोडल्यास गट आणि त्यातील सर्व सामायिक खर्च सर्वांसाठी कायमचे हटतील. हे परत आणता येणार नाही.</string>
+    <string name="group_delete_confirm">गट हटवा</string>
+    <string name="group_left_success">तुम्ही गट सोडला</string>
+    <string name="group_deleted_success">गट हटवला</string>
+    <string name="group_leave_failed">गट सोडता आला नाही: %1$s</string>
+
+    <!-- खातेवही -->
+    <string name="ledger_opening_balance">सुरुवातीची रक्कम (ऐच्छिक)</string>
+    <string name="ledger_they_owe_you">ते तुम्हाला देणे</string>
+    <string name="ledger_you_owe_them">तुम्ही त्यांना देणे</string>
+    <string name="ledger_opening_balance_hint">पहिली नोंद म्हणून नोंदवली जाईल, त्यामुळे ती तुमच्या व्यवहारांतही दिसेल.</string>
+    <string name="ledger_delete_entry_title">ही नोंद हटवायची?</string>
+    <string name="ledger_delete_entry_message">%2$s ची \"%1$s\" नोंद काढते, तिने बदललेली शिल्लक उलटवते, आणि जोडलेला व्यवहारही हटवते.</string>
+    <string name="ledger_delete_entry_confirm">हटवा</string>
+    <string name="ledger_entry_deleted">नोंद हटवली</string>
+    <string name="ledger_opening_balance_note">सुरुवातीची रक्कम</string>
+
+    <!-- सलग दिवस आणि उपलब्धी -->
+    <string name="streaks_active_days">%1$d सक्रिय दिवस · %3$d पैकी %2$d बॅज</string>
+
+    <!-- आवाजाने नोंद -->
+    <string name="voice_language_title">कोणत्या भाषेत बोलायचे</string>
+    <string name="voice_language_set">आवाज नोंद %1$s वर सेट झाली</string>
+    <string name="voice_language_hint">भाषा बदलण्यासाठी माइक दाबून धरा</string>
 </resources>

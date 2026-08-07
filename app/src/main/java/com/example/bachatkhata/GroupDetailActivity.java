@@ -22,6 +22,7 @@ import com.example.bachatkhata.databinding.ActivityGroupDetailBinding;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.DocumentSnapshot;
+import com.google.firebase.firestore.FieldValue;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.ListenerRegistration;
 import com.google.firebase.firestore.Query;
@@ -45,6 +46,11 @@ public class GroupDetailActivity extends BaseActivity {
     private String groupName = "Group Wallet";
     private String groupType = "Shared";
     private boolean isAdmin = false;
+
+    /** Live copy of the roster, kept so Leave can rewrite it without a re-read. */
+    private List<Map<String, Object>> currentMembers = new ArrayList<>();
+    private List<String> currentMemberUids = new ArrayList<>();
+    private String currentInviteCode;
 
     private TransactionAdapter transactionAdapter;
     private final List<Transaction> groupTransactionsList = new ArrayList<>();
@@ -122,6 +128,139 @@ public class GroupDetailActivity extends BaseActivity {
             intent.putExtra("groupId", groupId);
             startActivity(intent);
         });
+
+        binding.btnLeaveGroup.setOnClickListener(v -> confirmLeaveOrDelete());
+    }
+
+    // ── Leaving vs deleting (ANDROID_FEATURES.md §4.1) ───────────────────────
+    //
+    // These are not the same action and the confirm dialog has to say which one
+    // is about to happen. A member leaving just rewrites the roster. The LAST
+    // member leaving destroys the group and every shared expense in it, for
+    // everyone — so that path is worded as a delete, not as a leave.
+
+    private void confirmLeaveOrDelete() {
+        if (mAuth.getCurrentUser() == null) return;
+        String uid = mAuth.getCurrentUser().getUid();
+
+        if (!currentMemberUids.contains(uid)) {
+            showSnackbar("You are not a member of this group.", "ERROR");
+            return;
+        }
+
+        // Only signed-up members hold a uid; contacts invited by phone have a
+        // blank one and cannot keep the group alive on their own.
+        int remaining = currentMemberUids.size() - 1;
+        boolean isLastMember = remaining <= 0;
+
+        String title = getString(isLastMember ? R.string.group_delete_title : R.string.group_leave_title);
+        String message = isLastMember
+                ? getString(R.string.group_delete_message, groupName)
+                : getString(R.string.group_leave_message, groupName, remaining);
+        String confirm = getString(isLastMember ? R.string.group_delete_confirm : R.string.group_leave_confirm);
+
+        new AlertDialog.Builder(this)
+                .setTitle(title)
+                .setMessage(message)
+                .setNegativeButton(android.R.string.cancel, null)
+                .setPositiveButton(confirm, (d, w) -> {
+                    if (isLastMember) {
+                        deleteGroupEntirely();
+                    } else {
+                        leaveGroup(uid);
+                    }
+                })
+                .show();
+    }
+
+    /**
+     * Removes this user from the roster. {@code members} is an array of maps, so it
+     * has to be rewritten wholesale rather than with {@code arrayRemove} — the map
+     * would have to match field-for-field, and {@code joinedAt} timestamps make that
+     * unreliable. {@code memberUids} is what the security rules authorize against, so
+     * both are updated in one write.
+     */
+    private void leaveGroup(String uid) {
+        showLoadingDialog();
+
+        List<Map<String, Object>> remainingMembers = new ArrayList<>();
+        for (Map<String, Object> member : currentMembers) {
+            if (!uid.equals(member.get("uid"))) remainingMembers.add(member);
+        }
+
+        Map<String, Object> update = new HashMap<>();
+        update.put("members", remainingMembers);
+        update.put("memberUids", FieldValue.arrayRemove(uid));
+
+        mFirestore.collection("groups").document(groupId)
+                .update(update)
+                .addOnSuccessListener(v -> {
+                    hideLoadingDialog();
+                    Toast.makeText(this, R.string.group_left_success, Toast.LENGTH_SHORT).show();
+                    finish();
+                })
+                .addOnFailureListener(e -> {
+                    hideLoadingDialog();
+                    showSnackbar(getString(R.string.group_leave_failed, e.getMessage()), "ERROR");
+                });
+    }
+
+    /**
+     * Deletes every shared subcollection and then the group document itself.
+     *
+     * <p>Order matters: the subcollection rules authorize against the parent's
+     * {@code memberUids}, so once the group doc is gone the children become
+     * unreachable and would be orphaned forever. Children first, parent last.
+     * The invite code doc goes too, so the code stops resolving to a dead group.
+     */
+    private void deleteGroupEntirely() {
+        showLoadingDialog();
+
+        // Detach listeners first — the deletes below would otherwise fire the
+        // group snapshot listener mid-teardown against a half-deleted document.
+        removeListeners();
+
+        String[] subcollections = {
+                "group_transactions", "expense_claims", "projects",
+                "donations", "event_expenses", "event_contributions", "split_sessions"
+        };
+
+        DocumentReference groupRef = mFirestore.collection("groups").document(groupId);
+        List<com.google.android.gms.tasks.Task<?>> deletions = new ArrayList<>();
+
+        for (String coll : subcollections) {
+            deletions.add(groupRef.collection(coll).get().continueWithTask(task -> {
+                if (!task.isSuccessful() || task.getResult() == null) {
+                    // An empty or unreadable subcollection is not a reason to abort
+                    // the whole delete — the group doc still has to go.
+                    return com.google.android.gms.tasks.Tasks.forResult(null);
+                }
+                com.google.firebase.firestore.WriteBatch batch = mFirestore.batch();
+                for (DocumentSnapshot doc : task.getResult().getDocuments()) {
+                    batch.delete(doc.getReference());
+                }
+                return batch.commit();
+            }));
+        }
+
+        com.google.android.gms.tasks.Tasks.whenAllComplete(deletions)
+                .continueWithTask(t -> {
+                    if (currentInviteCode != null && !currentInviteCode.isEmpty()) {
+                        return mFirestore.collection("inviteCodes")
+                                .document(currentInviteCode).delete();
+                    }
+                    return com.google.android.gms.tasks.Tasks.forResult(null);
+                })
+                .continueWithTask(t -> groupRef.delete())
+                .addOnSuccessListener(v -> {
+                    hideLoadingDialog();
+                    Toast.makeText(this, R.string.group_deleted_success, Toast.LENGTH_SHORT).show();
+                    finish();
+                })
+                .addOnFailureListener(e -> {
+                    hideLoadingDialog();
+                    showSnackbar(getString(R.string.group_leave_failed, e.getMessage()), "ERROR");
+                });
     }
 
     private void observeGroupDetails() {
@@ -168,6 +307,12 @@ public class GroupDetailActivity extends BaseActivity {
                         List<Map<String, Object>> members = (List<Map<String, Object>>) doc.get("members");
                         Map<String, Object> memberLimits = (Map<String, Object>) doc.get("memberLimits");
                         if (memberLimits == null) memberLimits = new HashMap<>();
+
+                        // Keep the roster and code for the Leave/Delete action.
+                        currentMembers = members != null ? new ArrayList<>(members) : new ArrayList<>();
+                        List<String> uids = (List<String>) doc.get("memberUids");
+                        currentMemberUids = uids != null ? new ArrayList<>(uids) : new ArrayList<>();
+                        currentInviteCode = inviteCode;
 
                         populateMembersListUI(members, memberLimits);
                     }
@@ -335,11 +480,24 @@ public class GroupDetailActivity extends BaseActivity {
           .addOnFailureListener(e -> Toast.makeText(this, "Failed to remove limit: " + e.getLocalizedMessage(), Toast.LENGTH_SHORT).show());
     }
 
+    private void removeListeners() {
+        if (groupListener != null) {
+            groupListener.remove();
+            groupListener = null;
+        }
+        if (transactionsListener != null) {
+            transactionsListener.remove();
+            transactionsListener = null;
+        }
+        if (claimsListener != null) {
+            claimsListener.remove();
+            claimsListener = null;
+        }
+    }
+
     @Override
     protected void onDestroy() {
         super.onDestroy();
-        if (groupListener != null) groupListener.remove();
-        if (transactionsListener != null) transactionsListener.remove();
-        if (claimsListener != null) claimsListener.remove();
+        removeListeners();
     }
 }

@@ -118,6 +118,60 @@
                     android:textColor="@color/colorTextPrimary" />
             </com.google.android.material.textfield.TextInputLayout>
 
+            <!-- Opening balance. Most khatas do not start at zero — the contact is
+                 usually added because money is already owed. Without this the user
+                 has to add the contact and then immediately log a fake entry. -->
+            <com.google.android.material.textfield.TextInputLayout
+                android:id="@+id/tilOpeningBalance"
+                style="@style/ClayInput"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="8dp"
+                android:hint="@string/ledger_opening_balance">
+
+                <com.google.android.material.textfield.TextInputEditText
+                    android:id="@+id/etOpeningBalance"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:inputType="numberDecimal"
+                    android:textColor="@color/colorTextPrimary" />
+            </com.google.android.material.textfield.TextInputLayout>
+
+            <!-- Which way the opening balance runs. Defaults to "they owe you",
+                 the common case for a customer khata. -->
+            <com.google.android.material.button.MaterialButtonToggleGroup
+                android:id="@+id/toggleOpeningDirection"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="4dp"
+                app:selectionRequired="true"
+                app:singleSelection="true">
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btnOpeningTheyOwe"
+                    style="@style/Widget.Material3.Button.OutlinedButton"
+                    android:layout_width="0dp"
+                    android:layout_weight="1"
+                    android:layout_height="wrap_content"
+                    android:text="@string/ledger_they_owe_you" />
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btnOpeningYouOwe"
+                    style="@style/Widget.Material3.Button.OutlinedButton"
+                    android:layout_width="0dp"
+                    android:layout_weight="1"
+                    android:layout_height="wrap_content"
+                    android:text="@string/ledger_you_owe_them" />
+            </com.google.android.material.button.MaterialButtonToggleGroup>
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="16dp"
+                android:text="@string/ledger_opening_balance_hint"
+                android:textColor="@color/colorTextSecondary"
+                android:textSize="12sp" />
+
             <!-- Import from contacts Button -->
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/btnImportContact"

@@ -11,6 +11,7 @@ import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.example.bachatkhata.databinding.ActivityLoginBinding;
+import com.example.bachatkhata.domain.ProfileSanitizer;
 import com.google.android.gms.auth.api.signin.GoogleSignIn;
 import com.google.android.gms.auth.api.signin.GoogleSignInAccount;
 import com.google.android.gms.auth.api.signin.GoogleSignInClient;
@@ -161,9 +162,17 @@ public class LoginActivity extends AppCompatActivity {
                                     if (!documentSnapshot.exists()) {
                                         // Initialize new user document for Google users
                                         Map<String, Object> userData = new HashMap<>();
-                                        userData.put("name", user.getDisplayName() != null ? user.getDisplayName() : "Google User");
+                                        // The provider's name and photo only seed a brand-new
+                                        // account, and both still go through the §5.24 checks —
+                                        // they are third-party input that lands in rendered text
+                                        // and an image loader.
+                                        userData.put("name", ProfileSanitizer.sanitizeDisplayNameOrFallback(
+                                                user.getDisplayName(), "Google User"));
                                         userData.put("email", user.getEmail());
-                                        userData.put("photoUrl", user.getPhotoUrl() != null ? user.getPhotoUrl().toString() : "");
+                                        String googlePhoto = user.getPhotoUrl() != null
+                                                ? ProfileSanitizer.sanitizeAvatarUrl(user.getPhotoUrl().toString())
+                                                : null;
+                                        userData.put("photoUrl", googlePhoto == null ? "" : googlePhoto);
                                         userData.put("currency", "INR");
                                         userData.put("currencySymbol", "₹");
                                         userData.put("themeMode", "system");

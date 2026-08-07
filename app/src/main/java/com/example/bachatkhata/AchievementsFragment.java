@@ -17,13 +17,20 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.example.bachatkhata.databinding.FragmentAchievementsBinding;
 import com.example.bachatkhata.databinding.ItemBadgeBinding;
 import com.example.bachatkhata.databinding.ItemChallengeBinding;
+import com.example.bachatkhata.domain.Streaks;
+import com.google.firebase.Timestamp;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.QuerySnapshot;
+import java.time.LocalDate;
+import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.Calendar;
-import java.util.Date;
+import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class AchievementsFragment extends Fragment {
 
@@ -49,19 +56,8 @@ public class AchievementsFragment extends Fragment {
 
         binding.btnBack.setOnClickListener(v -> Navigation.findNavController(v).navigateUp());
 
-        setupBadgeList();
         setupRecyclerView();
         loadAchievements();
-    }
-
-    private void setupBadgeList() {
-        badgeList.clear();
-        badgeList.add(new BadgeItem("first_transaction", "First Steps", "Log your first transaction", R.drawable.ic_check));
-        badgeList.add(new BadgeItem("streak_7", "Disciplined", "Keep a 7-day logging streak", R.drawable.ic_calendar));
-        badgeList.add(new BadgeItem("streak_30", "Habitual Saver", "Keep a 30-day logging streak", R.drawable.ic_alert));
-        badgeList.add(new BadgeItem("saver_1000", "Centurion", "Save ₹1,000 in a single month", R.drawable.ic_money_saving));
-        badgeList.add(new BadgeItem("saver_10000", "Wealth Builder", "Save ₹10,000 in a single month", R.drawable.ic_piggy_bank));
-        badgeList.add(new BadgeItem("budget_champion", "Budget Master", "Stay within all category budgets for a month", R.drawable.ic_budget));
     }
 
     private void setupRecyclerView() {
@@ -70,96 +66,149 @@ public class AchievementsFragment extends Fragment {
         binding.rvBadges.setAdapter(badgeAdapter);
     }
 
+    /** Icon for a badge id. Falls back to a generic mark for anything unmapped. */
+    private static int iconFor(String badgeId) {
+        switch (badgeId) {
+            case "first_transaction": return R.drawable.ic_check;
+            case "streak_3":
+            case "streak_7": return R.drawable.ic_calendar;
+            case "streak_30": return R.drawable.ic_alert;
+            case "saver_20": return R.drawable.ic_money_saving;
+            case "saver_40": return R.drawable.ic_piggy_bank;
+            case "budget_champion": return R.drawable.ic_budget;
+            case "goal_crusher": return R.drawable.ic_piggy_bank;
+            case "well_rounded": return R.drawable.ic_budget;
+            case "centurion": return R.drawable.ic_money_saving;
+            default: return R.drawable.ic_check;
+        }
+    }
+
+    /**
+     * Loads everything the badge engine needs and recomputes from scratch.
+     *
+     * <p>Streaks and badges are derived, not read from stored flags. A stored award
+     * cannot show progress toward the badges still locked, and it drifts once
+     * transactions are edited or deleted — the number on screen would then disagree
+     * with the ledger it claims to describe.
+     */
     private void loadAchievements() {
         if (mAuth.getCurrentUser() == null) return;
         String uid = mAuth.getCurrentUser().getUid();
 
-        mFirestore.collection("users").document(uid)
-                .addSnapshotListener((documentSnapshot, error) -> {
-                    if (error != null || documentSnapshot == null || !documentSnapshot.exists() || getContext() == null) return;
+        com.google.firebase.firestore.CollectionReference userRoot =
+                mFirestore.collection("users").document(uid).collection("transactions");
 
-                    // Load Streak details
-                    long currentStreak = 0;
-                    if (documentSnapshot.contains("dailyStreak")) {
-                        Long val = documentSnapshot.getLong("dailyStreak");
-                        if (val != null) currentStreak = val;
-                    }
+        com.google.android.gms.tasks.Task<com.google.firebase.firestore.QuerySnapshot> txnTask =
+                userRoot.get();
+        com.google.android.gms.tasks.Task<com.google.firebase.firestore.QuerySnapshot> budgetTask =
+                mFirestore.collection("users").document(uid).collection("budgets").get();
+        com.google.android.gms.tasks.Task<com.google.firebase.firestore.QuerySnapshot> goalTask =
+                mFirestore.collection("users").document(uid).collection("savings_goals").get();
 
-                    long longestStreak = 0;
-                    if (documentSnapshot.contains("longestStreak")) {
-                        Long val = documentSnapshot.getLong("longestStreak");
-                        if (val != null) longestStreak = val;
-                    }
-
-                    binding.txtCurrentStreak.setText(currentStreak + " Day Streak");
-                    binding.txtLongestStreak.setText("Longest Streak: " + longestStreak + " Days");
-
-                    // Load awarded badges
-                    List<String> awardedBadges = (List<String>) documentSnapshot.get("awardedBadges");
-                    if (awardedBadges == null) awardedBadges = new ArrayList<>();
-
-                    badgeAdapter.setAwardedBadges(awardedBadges);
-
-                    // Load challenges
-                    loadChallenges(uid, currentStreak);
+        com.google.android.gms.tasks.Tasks.whenAllSuccess(txnTask, budgetTask, goalTask)
+                .addOnSuccessListener(results -> {
+                    if (getContext() == null || binding == null) return;
+                    render(Streaks.compute(
+                            toEntries(txnTask.getResult()),
+                            toBudgets(budgetTask.getResult()),
+                            toGoalProgress(goalTask.getResult()),
+                            LocalDate.now()));
+                })
+                .addOnFailureListener(e -> {
+                    if (getContext() == null || binding == null) return;
+                    Toast.makeText(getContext(),
+                            "Could not load achievements: " + e.getLocalizedMessage(),
+                            Toast.LENGTH_SHORT).show();
                 });
     }
 
-    private void loadChallenges(String uid, long currentStreak) {
-        // We will calculate monthly savings dynamically for challenges
-        Calendar cal = Calendar.getInstance();
-        int year = cal.get(Calendar.YEAR);
-        int month = cal.get(Calendar.MONTH);
+    private List<Streaks.Entry> toEntries(QuerySnapshot snapshot) {
+        List<Streaks.Entry> entries = new ArrayList<>();
+        if (snapshot == null) return entries;
 
-        Calendar startCal = Calendar.getInstance();
-        startCal.set(year, month, 1, 0, 0, 0);
-        Date startDate = startCal.getTime();
+        for (DocumentSnapshot doc : snapshot.getDocuments()) {
+            Double amount = doc.getDouble("amount");
+            String type = doc.getString("type");
+            Timestamp date = doc.getTimestamp("date");
+            if (amount == null || type == null || date == null) continue;
 
-        Calendar endCal = Calendar.getInstance();
-        endCal.set(year, month, endCal.getActualMaximum(Calendar.DAY_OF_MONTH), 23, 59, 59);
-        Date endDate = endCal.getTime();
+            LocalDate day = date.toDate().toInstant()
+                    .atZone(ZoneId.systemDefault()).toLocalDate();
+            entries.add(new Streaks.Entry(
+                    day, amount, "income".equals(type), doc.getString("category")));
+        }
+        return entries;
+    }
 
-        mFirestore.collection("users").document(uid).collection("transactions")
-                .whereGreaterThanOrEqualTo("date", startDate)
-                .whereLessThanOrEqualTo("date", endDate)
-                .get()
-                .addOnSuccessListener(querySnapshot -> {
-                    if (getContext() == null || binding == null) return;
+    private Map<String, Double> toBudgets(QuerySnapshot snapshot) {
+        Map<String, Double> budgets = new HashMap<>();
+        if (snapshot == null) return budgets;
 
-                    double totalIncome = 0;
-                    double totalExpense = 0;
+        // Budget Boss is a this-month claim, so only this month's limits count.
+        Calendar now = Calendar.getInstance();
+        int month = now.get(Calendar.MONTH);
+        int year = now.get(Calendar.YEAR);
 
-                    for (DocumentSnapshot doc : querySnapshot.getDocuments()) {
-                        Double amount = doc.getDouble("amount");
-                        String type = doc.getString("type");
-                        if (amount != null && type != null) {
-                            if ("income".equals(type)) {
-                                totalIncome += amount;
-                            } else if ("expense".equals(type)) {
-                                totalExpense += amount;
-                            }
-                        }
-                    }
+        for (DocumentSnapshot doc : snapshot.getDocuments()) {
+            String category = doc.getString("category");
+            Double limit = doc.getDouble("limitAmount");
+            Long docMonth = doc.getLong("month");
+            Long docYear = doc.getLong("year");
+            if (category == null || limit == null) continue;
+            if (docMonth != null && docMonth != month) continue;
+            if (docYear != null && docYear != year) continue;
+            budgets.put(category, limit);
+        }
+        return budgets;
+    }
 
-                    double savings = totalIncome - totalExpense;
+    private List<Double> toGoalProgress(QuerySnapshot snapshot) {
+        List<Double> progress = new ArrayList<>();
+        if (snapshot == null) return progress;
 
-                    binding.layoutChallenges.removeAllViews();
+        for (DocumentSnapshot doc : snapshot.getDocuments()) {
+            Double target = doc.getDouble("targetAmount");
+            Double saved = doc.getDouble("savedAmount");
+            if (target == null || target <= 0) continue;
+            progress.add((saved == null ? 0 : saved) / target);
+        }
+        return progress;
+    }
 
-                    // Challenge 1: 7-Day Streak
-                    addChallengeRow("Week of Discipline", 
-                            "Log transactions for 7 consecutive days.", 
-                            currentStreak, 7, "Days");
+    private void render(Streaks.Result result) {
+        binding.txtCurrentStreak.setText(result.currentStreak + " Day Streak");
+        binding.txtLongestStreak.setText("Longest Streak: " + result.longestStreak + " Days");
+        binding.txtActiveDays.setText(getString(R.string.streaks_active_days,
+                result.activeDays, result.earnedCount, result.badges.size()));
 
-                    // Challenge 2: Monthly Saver (₹1,000)
-                    addChallengeRow("Centurion Saver", 
-                            "Save at least ₹1,000 this calendar month.", 
-                            (long) Math.max(0, savings), 1000, "₹");
+        badgeList.clear();
+        List<String> earned = new ArrayList<>();
+        for (Streaks.Badge badge : result.badges) {
+            badgeList.add(new BadgeItem(badge.id, badge.name, badge.description, iconFor(badge.id)));
+            if (badge.earned) earned.add(badge.id);
+        }
+        badgeAdapter.setAwardedBadges(earned);
 
-                    // Challenge 3: Monthly Saver (₹10,000)
-                    addChallengeRow("Wealth Builder", 
-                            "Save at least ₹10,000 this calendar month.", 
-                            (long) Math.max(0, savings), 10000, "₹");
-                });
+        // Challenges: the three closest badges the user has not earned yet, so the
+        // list stays useful instead of showing goals already met.
+        binding.layoutChallenges.removeAllViews();
+        List<Streaks.Badge> pending = new ArrayList<>();
+        for (Streaks.Badge badge : result.badges) {
+            if (!badge.earned) pending.add(badge);
+        }
+        Collections.sort(pending, (a, b) -> Integer.compare(b.percent(), a.percent()));
+
+        if (pending.isEmpty()) {
+            addChallengeRow("All badges earned",
+                    "You have unlocked every achievement. Keep logging to hold your streak.",
+                    1, 1, "");
+        } else {
+            for (int i = 0; i < Math.min(3, pending.size()); i++) {
+                Streaks.Badge badge = pending.get(i);
+                addChallengeRow(badge.name, badge.description,
+                        badge.progress, badge.target, "");
+            }
+        }
     }
 
     private void addChallengeRow(String title, String description, long current, long target, String unit) {
@@ -169,7 +218,9 @@ public class AchievementsFragment extends Fragment {
         challengeBinding.txtChallengeTitle.setText(title);
         challengeBinding.txtChallengeDescription.setText(description);
 
-        if ("₹".equals(unit)) {
+        if (unit == null || unit.isEmpty()) {
+            challengeBinding.txtChallengeProgressText.setText(current + " / " + target);
+        } else if ("₹".equals(unit)) {
             challengeBinding.txtChallengeProgressText.setText("₹" + current + " / ₹" + target);
         } else {
             challengeBinding.txtChallengeProgressText.setText(current + " / " + target + " " + unit);

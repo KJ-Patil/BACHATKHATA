@@ -423,4 +423,36 @@
     <string name="action_close">Close</string>
     <string name="chart_search_categories">Search income &amp; expense</string>
     <string name="chart_no_match">No matching category</string>
+
+    <!-- Leaving vs deleting a shared group. These are different outcomes and the
+         copy has to say which one is happening — see ANDROID_FEATURES.md §4.1. -->
+    <string name="group_leave_action">Leave group</string>
+    <string name="group_leave_title">Leave this group?</string>
+    <string name="group_leave_message">You will be removed from \"%1$s\" and stop seeing its shared expenses. The group stays open for the other %2$d member(s), and you can rejoin with the invite code.</string>
+    <string name="group_leave_confirm">Leave</string>
+    <string name="group_delete_title">Delete this group?</string>
+    <string name="group_delete_message">You are the last member of \"%1$s\". Leaving deletes the group and every shared expense in it, permanently, for everyone. This cannot be undone.</string>
+    <string name="group_delete_confirm">Delete group</string>
+    <string name="group_left_success">You left the group</string>
+    <string name="group_deleted_success">Group deleted</string>
+    <string name="group_leave_failed">Could not leave the group: %1$s</string>
+
+    <!-- Ledger (khata) -->
+    <string name="ledger_opening_balance">Opening balance (optional)</string>
+    <string name="ledger_they_owe_you">They owe you</string>
+    <string name="ledger_you_owe_them">You owe them</string>
+    <string name="ledger_opening_balance_hint">Recorded as the first entry, so it shows in your transactions too.</string>
+    <string name="ledger_delete_entry_title">Delete this entry?</string>
+    <string name="ledger_delete_entry_message">Removes the %1$s entry of %2$s, reverses the balance it moved, and deletes the matching transaction.</string>
+    <string name="ledger_delete_entry_confirm">Delete</string>
+    <string name="ledger_entry_deleted">Entry deleted</string>
+    <string name="ledger_opening_balance_note">Opening balance</string>
+
+    <!-- Streaks &amp; achievements -->
+    <string name="streaks_active_days">%1$d active days · %2$d of %3$d badges</string>
+
+    <!-- Voice logging -->
+    <string name="voice_language_title">Speak in</string>
+    <string name="voice_language_set">Voice logging set to %1$s</string>
+    <string name="voice_language_hint">Long-press the mic to change the language</string>
 </resources>

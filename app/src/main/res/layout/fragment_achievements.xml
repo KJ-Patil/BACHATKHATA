@@ -99,6 +99,18 @@
                             android:text="Longest Streak: 0 Days"
                             android:textColor="@color/colorTextSecondary"
                             android:textSize="13sp" />
+
+                        <!-- Total days logged and badges earned: the two numbers that
+                             keep growing when a streak breaks, so the screen still
+                             shows progress on a bad week. -->
+                        <TextView
+                            android:id="@+id/txtActiveDays"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="2dp"
+                            android:text="0 active days · 0 of 10 badges"
+                            android:textColor="@color/colorTextSecondary"
+                            android:textSize="13sp" />
                     </LinearLayout>
                 </RelativeLayout>
             </com.google.android.material.card.MaterialCardView>

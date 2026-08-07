@@ -17,17 +17,32 @@ public class CustomerTransaction implements Serializable {
     private Timestamp date;
     private String type; // "gave" (you gave credit / cash to customer) or "got" (you got payment / cash from customer)
 
+    /**
+     * Id of the transaction this entry was mirrored into, under the {@code Ledger}
+     * category. Money moving through the khata is real money in and out, so it has
+     * to reach the main ledger — but the link has to be recorded, or deleting the
+     * entry would strand its transaction. Null on entries written before mirroring
+     * existed, which is why every consumer treats it as optional.
+     */
+    private String txId;
+
     public CustomerTransaction() {
         // Required for Firestore serialization
     }
 
     public CustomerTransaction(String id, String customerId, double amount, String note, Timestamp date, String type) {
+        this(id, customerId, amount, note, date, type, null);
+    }
+
+    public CustomerTransaction(String id, String customerId, double amount, String note, Timestamp date,
+                               String type, String txId) {
         this.id = id;
         this.customerId = customerId;
         this.amount = amount;
         this.note = note;
         this.date = date;
         this.type = type;
+        this.txId = txId;
     }
 
     @PropertyName("id")
@@ -90,6 +105,16 @@ public class CustomerTransaction implements Serializable {
         this.type = type;
     }
 
+    @PropertyName("txId")
+    public String getTxId() {
+        return txId;
+    }
+
+    @PropertyName("txId")
+    public void setTxId(String txId) {
+        this.txId = txId;
+    }
+
     public Map<String, Object> toMap() {
         Map<String, Object> map = new HashMap<>();
         map.put("id", id);
@@ -98,6 +123,7 @@ public class CustomerTransaction implements Serializable {
         map.put("note", note);
         map.put("date", date);
         map.put("type", type);
+        map.put("txId", txId);
         return map;
     }
 
@@ -110,6 +136,7 @@ public class CustomerTransaction implements Serializable {
         t.setNote(doc.getString("note"));
         t.setDate(doc.getTimestamp("date"));
         t.setType(doc.getString("type"));
+        t.setTxId(doc.getString("txId"));
         return t;
     }
 }

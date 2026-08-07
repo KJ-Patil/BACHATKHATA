@@ -27,6 +27,7 @@ import androidx.fragment.app.Fragment;
 
 import com.bumptech.glide.Glide;
 import com.example.bachatkhata.databinding.FragmentProfileBinding;
+import com.example.bachatkhata.domain.ProfileSanitizer;
 import com.google.android.material.textfield.TextInputEditText;
 import com.google.android.material.textfield.TextInputLayout;
 import com.google.android.gms.auth.api.signin.GoogleSignIn;
@@ -188,8 +189,13 @@ public class ProfileFragment extends Fragment {
                 String currencySymbol = documentSnapshot.getString("currencySymbol");
                 String themeMode = documentSnapshot.getString("themeMode");
 
+                // Re-validate on the way in: this document is user-writable, so what
+                // comes back out of it is untrusted even though this app wrote it.
+                name = ProfileSanitizer.sanitizeDisplayName(name);
+                photoUrl = ProfileSanitizer.sanitizeAvatarUrl(photoUrl);
+
                 if (binding != null) {
-                    if (name != null && !name.trim().isEmpty()) {
+                    if (!name.isEmpty()) {
                         binding.txtUserName.setText(name);
                         binding.txtAvatarLetter.setText(name.substring(0, 1).toUpperCase(Locale.US));
                     } else {
@@ -198,7 +204,7 @@ public class ProfileFragment extends Fragment {
                     }
 
                     // Load Profile Photo using Glide if available
-                    if (photoUrl != null && !photoUrl.trim().isEmpty()) {
+                    if (photoUrl != null) {
                         hasProfilePhoto = true;
                         binding.txtAvatarLetter.setVisibility(View.GONE);
                         binding.imgAvatar.setVisibility(View.VISIBLE);
@@ -404,14 +410,21 @@ public class ProfileFragment extends Fragment {
         EditText input = new EditText(getContext());
         input.setHint("Enter your name");
         input.setText(binding.txtUserName.getText().toString());
+        input.setFilters(new android.text.InputFilter[]{
+                new android.text.InputFilter.LengthFilter(ProfileSanitizer.MAX_NAME_CHARS)});
         input.setLayoutParams(params);
         container.addView(input);
         builder.setView(container);
 
         builder.setPositiveButton("Save", (dialog, which) -> {
-            String newName = input.getText().toString().trim();
+            // Strip the bidi/zero-width characters that let one name be rendered
+            // to look like another before anything is persisted (§5.24).
+            String newName = ProfileSanitizer.sanitizeDisplayName(input.getText().toString());
             if (!newName.isEmpty()) {
                 updateProfileName(newName);
+            } else {
+                BaseActivity a = (BaseActivity) getActivity();
+                if (a != null) a.showSnackbar("Please enter a name", "ERROR");
             }
         });
         builder.setNegativeButton("Cancel", null);
@@ -433,6 +446,16 @@ public class ProfileFragment extends Fragment {
                 .addOnFailureListener(e -> {
                     if (activity != null) activity.showSnackbar("Update failed: " + e.getMessage(), "ERROR");
                 });
+
+        // Best-effort mirror to the Auth profile so the name follows the account
+        // into anything reading displayName. The Firestore doc above is the
+        // durable copy, so a failure here is not worth surfacing.
+        FirebaseUser user = mAuth.getCurrentUser();
+        if (user != null) {
+            user.updateProfile(new com.google.firebase.auth.UserProfileChangeRequest.Builder()
+                    .setDisplayName(newName)
+                    .build());
+        }
     }
 
     private void showChangePasswordDialog() {

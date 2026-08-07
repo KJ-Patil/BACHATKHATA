@@ -419,4 +419,35 @@
     <string name="action_close">बंद करें</string>
     <string name="chart_search_categories">आय व व्यय खोजें</string>
     <string name="chart_no_match">कोई श्रेणी नहीं मिली</string>
+
+    <!-- समूह छोड़ना बनाम मिटाना — दोनों अलग हैं और संदेश यह साफ़ बताता है -->
+    <string name="group_leave_action">समूह छोड़ें</string>
+    <string name="group_leave_title">यह समूह छोड़ें?</string>
+    <string name="group_leave_message">आपको \"%1$s\" से हटा दिया जाएगा और साझा खर्च दिखना बंद हो जाएंगे। समूह बाकी %2$d सदस्य(ों) के लिए चालू रहेगा, और आप निमंत्रण कोड से दोबारा जुड़ सकते हैं।</string>
+    <string name="group_leave_confirm">छोड़ें</string>
+    <string name="group_delete_title">यह समूह मिटाएँ?</string>
+    <string name="group_delete_message">आप \"%1$s\" के अंतिम सदस्य हैं। छोड़ने पर समूह और उसके सभी साझा खर्च सबके लिए हमेशा के लिए मिट जाएंगे। इसे वापस नहीं लाया जा सकता।</string>
+    <string name="group_delete_confirm">समूह मिटाएँ</string>
+    <string name="group_left_success">आपने समूह छोड़ दिया</string>
+    <string name="group_deleted_success">समूह मिटा दिया गया</string>
+    <string name="group_leave_failed">समूह नहीं छोड़ा जा सका: %1$s</string>
+
+    <!-- बही-खाता -->
+    <string name="ledger_opening_balance">शुरुआती रकम (वैकल्पिक)</string>
+    <string name="ledger_they_owe_you">वे आपको देंगे</string>
+    <string name="ledger_you_owe_them">आप उन्हें देंगे</string>
+    <string name="ledger_opening_balance_hint">पहली प्रविष्टि के रूप में दर्ज होगी, इसलिए यह आपके लेन-देन में भी दिखेगी।</string>
+    <string name="ledger_delete_entry_title">यह प्रविष्टि मिटाएँ?</string>
+    <string name="ledger_delete_entry_message">%2$s की \"%1$s\" प्रविष्टि हटाता है, उससे बदला हुआ बकाया वापस करता है, और उससे जुड़ा लेन-देन भी मिटाता है।</string>
+    <string name="ledger_delete_entry_confirm">मिटाएँ</string>
+    <string name="ledger_entry_deleted">प्रविष्टि मिटा दी गई</string>
+    <string name="ledger_opening_balance_note">शुरुआती रकम</string>
+
+    <!-- लगातार दिन और उपलब्धियाँ -->
+    <string name="streaks_active_days">%1$d सक्रिय दिन · %3$d में से %2$d बैज</string>
+
+    <!-- आवाज़ से दर्ज करना -->
+    <string name="voice_language_title">किस भाषा में बोलें</string>
+    <string name="voice_language_set">आवाज़ लॉगिंग %1$s पर सेट हुई</string>
+    <string name="voice_language_hint">भाषा बदलने के लिए माइक को देर तक दबाएँ</string>
 </resources>

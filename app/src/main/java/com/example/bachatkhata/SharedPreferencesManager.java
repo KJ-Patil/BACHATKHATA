@@ -42,6 +42,9 @@ public class SharedPreferencesManager {
     // than in the plaintext store precisely because this one is AES-GCM encrypted.
     public static final String KEY_SMS_GATEWAY_ENABLED = "SMS_GATEWAY_ENABLED";
     public static final String KEY_SMS_GATEWAY_API_KEY = "SMS_GATEWAY_API_KEY";
+    // Dictation language for voice logging. Separate from the UI language — someone
+    // reading the app in English may still speak their transactions in Tamil.
+    public static final String KEY_VOICE_LANGUAGE = "VOICE_LANGUAGE";
 
     private SharedPreferencesManager(Context context) {
         Context appContext = context.getApplicationContext();
@@ -308,6 +311,16 @@ public class SharedPreferencesManager {
 
     public String getSmsGatewayApiKey() {
         return sharedPreferences.getString(KEY_SMS_GATEWAY_API_KEY, "");
+    }
+
+    // Voice logging dictation language (BCP-47, e.g. "hi-IN")
+    public void setVoiceLanguage(String tag) {
+        editor.putString(KEY_VOICE_LANGUAGE, tag);
+        editor.apply();
+    }
+
+    public String getVoiceLanguage() {
+        return sharedPreferences.getString(KEY_VOICE_LANGUAGE, VoiceLanguages.DEFAULT_TAG);
     }
 
     // Clear settings
