@@ -257,6 +257,13 @@ public class ExportActivity extends BaseActivity {
         csv.append((char) 0xFEFF); // UTF-8 BOM
         appendCsvRow(csv, "Date", "Type", "Category", "Amount", "Currency", "Note", "Account");
 
+        // Amounts are stored in the base currency, so every row is converted into the
+        // one currency the user is working in and the Currency column names THAT.
+        // Emitting a base-currency figure beside the per-row entry currency would
+        // label the number as something it is not.
+        CurrencyManager currency = CurrencyManager.getInstance();
+        String activeCode = currency.getCurrentCurrencyCode();
+
         SimpleDateFormat csvDateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.US);
         for (Transaction t : transactions) {
             String dateStr = t.getDate() != null ? csvDateFormat.format(t.getDate()) : "";
@@ -264,8 +271,8 @@ public class ExportActivity extends BaseActivity {
                     dateStr,
                     t.getType(),
                     t.getCategory(),
-                    String.format(Locale.US, "%.2f", t.getAmount()),
-                    t.getCurrency(),
+                    String.format(Locale.US, "%.2f", currency.fromBaseAmount(t.getAmount())),
+                    activeCode,
                     t.getNote(),
                     t.getAccount()
             );
@@ -300,6 +307,10 @@ public class ExportActivity extends BaseActivity {
         String[] headers = {"Date", "Type", "Category", "Amount", "Currency", "Note", "Account"};
         SimpleDateFormat xlsxDateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.US);
 
+        // Same rule as the CSV: one currency per workbook, the active one.
+        CurrencyManager currency = CurrencyManager.getInstance();
+        String activeCode = currency.getCurrentCurrencyCode();
+
         List<Object[]> rows = new ArrayList<>();
         for (Transaction t : transactions) {
             String dateStr = t.getDate() != null ? xlsxDateFormat.format(t.getDate()) : "";
@@ -307,8 +318,8 @@ public class ExportActivity extends BaseActivity {
                     dateStr,
                     t.getType(),
                     t.getCategory(),
-                    t.getAmount(),      // numeric cell
-                    t.getCurrency(),
+                    currency.fromBaseAmount(t.getAmount()),   // numeric cell
+                    activeCode,
                     t.getNote() != null ? t.getNote() : "",
                     t.getAccount()
             });

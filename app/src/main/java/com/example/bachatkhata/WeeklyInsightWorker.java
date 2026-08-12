@@ -24,6 +24,13 @@ import java.util.Map;
 
 public class WeeklyInsightWorker extends Worker {
 
+    /**
+     * What counts as a "micro-spend", in the base currency — the same unit every
+     * stored amount is in, so the comparison below needs no conversion. Only the
+     * message formats it into the user's display currency.
+     */
+    private static final double SMALL_PURCHASE_CEILING = 100.0;
+
     private final FirebaseFirestore mFirestore;
 
     public WeeklyInsightWorker(@NonNull Context context, @NonNull WorkerParameters workerParams) {
@@ -92,7 +99,7 @@ public class WeeklyInsightWorker extends Worker {
                     currentWeekSpent += amount;
                     currentWeekCategoryMap.put(category, currentWeekCategoryMap.getOrDefault(category, 0.0) + amount);
 
-                    if (amount < 100) {
+                    if (amount < SMALL_PURCHASE_CEILING) {
                         smallPurchasesCount++;
                         smallPurchasesSum += amount;
                     }
@@ -104,6 +111,7 @@ public class WeeklyInsightWorker extends Worker {
             }
 
             // 2. Compute Rule-Based Insights
+            CurrencyManager money = CurrencyManager.getInstance();
             String title = "Weekly Insight";
             String message = "";
 
@@ -111,8 +119,10 @@ public class WeeklyInsightWorker extends Worker {
             if (currentWeekSpent < previousWeekSpent && previousWeekSpent > 0) {
                 double diff = previousWeekSpent - currentWeekSpent;
                 double percentDecrease = (diff / previousWeekSpent) * 100;
-                message = String.format("Awesome! Your weekly spending decreased by %.1f%% compared to last week (₹%d vs ₹%d). Keep up the good work!",
-                        percentDecrease, (int)currentWeekSpent, (int)previousWeekSpent);
+                message = String.format("Awesome! Your weekly spending decreased by %.1f%% compared to last week (%s vs %s). Keep up the good work!",
+                        percentDecrease,
+                        money.formatAmount(currentWeekSpent),
+                        money.formatAmount(previousWeekSpent));
             } 
             
             // Check Rule 2: Category spike (>50% increase and spend > ₹200)
@@ -141,21 +151,25 @@ public class WeeklyInsightWorker extends Worker {
                 }
 
                 if (spikeCategory != null) {
-                    message = String.format("Careful! Your spending on %s shot up by %.1f%% this week (spent ₹%d vs ₹%d last week). Try to set a budget limit.",
-                            spikeCategory, maxSpikePercent, (int)currentSpikeAmount, (int)previousSpikeAmount);
+                    message = String.format("Careful! Your spending on %s shot up by %.1f%% this week (spent %s vs %s last week). Try to set a budget limit.",
+                            spikeCategory, maxSpikePercent,
+                            money.formatAmount(currentSpikeAmount),
+                            money.formatAmount(previousSpikeAmount));
                 }
             }
 
             // Check Rule 3: Small purchases aggregate (>4 micro-spends)
             if (message.isEmpty() && smallPurchasesCount >= 4) {
-                message = String.format("Budget Tip: You made %d small purchases under ₹100 this week, adding up to ₹%d. Watch out for these micro-spends!",
-                        smallPurchasesCount, (int)smallPurchasesSum);
+                message = String.format("Budget Tip: You made %d small purchases under %s this week, adding up to %s. Watch out for these micro-spends!",
+                        smallPurchasesCount,
+                        money.formatAmount(SMALL_PURCHASE_CEILING),
+                        money.formatAmount(smallPurchasesSum));
             }
 
             // Fallback Rule: Basic summary
             if (message.isEmpty()) {
-                message = String.format("You spent a total of ₹%d this past week. Keep tracking your expenses regularly to stay financially disciplined.",
-                        (int)currentWeekSpent);
+                message = "You spent a total of " + money.formatAmount(currentWeekSpent)
+                        + " this past week. Keep tracking your expenses regularly to stay financially disciplined.";
             }
 
             // Save insight message to the user document so it can be loaded on the Home dashboard

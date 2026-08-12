@@ -103,7 +103,12 @@ public class AddTransactionActivity extends BaseActivity {
                         long dateMs = data.getLongExtra("date", 0);
                         
                         if (amount > 0) {
-                            binding.etAmount.setText(String.format(Locale.US, "%.2f", amount));
+                            // The scanner only matches Rs./INR/₹ figures, so the value is
+                            // already base currency. The field is in the active currency,
+                            // and the save path converts it back — so it has to be shown
+                            // converted or a non-INR user's receipt is inflated by the rate.
+                            binding.etAmount.setText(String.format(Locale.US, "%.2f",
+                                    CurrencyManager.getInstance().fromBaseAmount(amount)));
                         }
                         if (merchant != null && !merchant.trim().isEmpty()) {
                             binding.etNote.setText(merchant);
@@ -239,9 +244,12 @@ public class AddTransactionActivity extends BaseActivity {
             return;
         }
 
+        // Derived from the price as typed, which is already in the display currency —
+        // converting again would apply the rate twice.
         CurrencyManager currency = CurrencyManager.getInstance();
         binding.txtDiscountSummary.setText(getString(R.string.discount_summary,
-                currency.formatAmount(result.discount), currency.formatAmount(result.net)));
+                currency.formatAmount(result.discount, false),
+                currency.formatAmount(result.net, false)));
         binding.txtDiscountSummary.setVisibility(View.VISIBLE);
     }
 
@@ -416,8 +424,15 @@ public class AddTransactionActivity extends BaseActivity {
         // With a discount applied, the figure typed is the PRE-discount price and
         // the net is what hits the ledger. Everything downstream — budgets, the
         // 50/30/20 rollups, analytics — reads `amount`, so it must be the net.
+        //
+        // The discount is computed on the figures AS TYPED (so the live "you saved"
+        // line matches what the user sees), then all three amounts are converted to
+        // the base currency together — storing a mix of units would make the
+        // breakdown disagree with the amount it describes.
         final Discounts.Result discount = currentDiscount();
-        final double amount = discount != null ? discount.net : typedAmount;
+        final CurrencyManager currency = CurrencyManager.getInstance();
+        final double amount = currency.toBaseAmount(
+                discount != null ? discount.net : typedAmount);
 
         String note = binding.etNote.getText().toString().trim();
 
@@ -441,8 +456,8 @@ public class AddTransactionActivity extends BaseActivity {
         );
 
         if (discount != null) {
-            transaction.setOriginalAmount(discount.gross);
-            transaction.setDiscountAmount(discount.discount);
+            transaction.setOriginalAmount(currency.toBaseAmount(discount.gross));
+            transaction.setDiscountAmount(currency.toBaseAmount(discount.discount));
         }
 
         if (groupId != null && "expense".equals(transactionType)) {

@@ -173,7 +173,7 @@ public class SubscriptionTrackerFragment extends Fragment {
             Date nextRenewal = getDateFromObject(dateObj);
 
             holder.binding.txtSubscriptionName.setText(name != null ? name : "Subscription");
-            holder.binding.txtSubscriptionAmount.setText(amount != null ? CurrencyManager.getInstance().formatAmount(amount) : "₹0.00");
+            holder.binding.txtSubscriptionAmount.setText(amount != null ? CurrencyManager.getInstance().formatAmount(amount) : CurrencyManager.getInstance().formatAmount(0));
 
             if (nextRenewal != null) {
                 holder.binding.txtRenewalInfo.setText("Renews on " + dateFormat.format(nextRenewal));

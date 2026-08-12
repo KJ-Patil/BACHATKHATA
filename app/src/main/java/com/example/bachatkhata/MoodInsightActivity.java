@@ -320,8 +320,10 @@ public class MoodInsightActivity extends BaseActivity {
 
             if (avgStressed > avgNormal) {
                 double diff = avgStressed - avgNormal;
-                binding.txtCorrelationResult.setText(String.format(Locale.US,
-                        "When you feel stressed, you spend an average of ₹%.2f more than usual.", diff));
+                binding.txtCorrelationResult.setText(
+                        "When you feel stressed, you spend an average of "
+                                + CurrencyManager.getInstance().formatAmount(diff)
+                                + " more than usual.");
             } else {
                 binding.txtCorrelationResult.setText("No significant increase in spending detected during stressed weeks. Good job maintaining control!");
             }

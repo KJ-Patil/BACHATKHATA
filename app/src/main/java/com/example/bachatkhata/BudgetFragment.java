@@ -373,11 +373,17 @@ public class BudgetFragment extends Fragment {
     }
 
     private void showEditIncomeDialog() {
+        CurrencyManager currency = CurrencyManager.getInstance();
+
         EditText input = new EditText(requireContext());
         input.setInputType(InputType.TYPE_CLASS_NUMBER | InputType.TYPE_NUMBER_FLAG_DECIMAL);
         input.setHint("e.g. 50000");
+        // Income is stored in the base currency like every other amount, so the field
+        // shows it converted into whatever the user is currently working in.
         double current = MoneyRuleSettings.getIncome(requireContext());
-        if (current > 0) input.setText(String.format(Locale.US, "%.0f", current));
+        if (current > 0) {
+            input.setText(String.format(Locale.US, "%.0f", currency.fromBaseAmount(current)));
+        }
 
         int pad = (int) (20 * getResources().getDisplayMetrics().density);
         FrameLayout container = new FrameLayout(requireContext());
@@ -398,7 +404,7 @@ public class BudgetFragment extends Fragment {
                         return;
                     }
                     String uid = mAuth.getCurrentUser() != null ? mAuth.getCurrentUser().getUid() : null;
-                    MoneyRuleSettings.setIncome(requireContext(), uid, value);
+                    MoneyRuleSettings.setIncome(requireContext(), uid, currency.toBaseAmount(value));
                     renderRuleTab();
                 })
                 .setNegativeButton("Cancel", null)
@@ -486,7 +492,8 @@ public class BudgetFragment extends Fragment {
                 CurrencyManager.getInstance().formatAmount(totalLimit)));
 
         if (totalLimit <= 0) {
-            binding.txtTotalBudgetSpent.setText("Spent: ₹0.00 (0%)");
+            binding.txtTotalBudgetSpent.setText("Spent: "
+                    + CurrencyManager.getInstance().formatAmount(0) + " (0%)");
             binding.progressBudgetSummary.setProgress(0);
             binding.txtBudgetHealthBadge.setText("No Limits Set");
             binding.txtBudgetHealthBadge.setBackgroundTintList(ColorStateList.valueOf(Color.parseColor("#6B6B8A")));

@@ -160,6 +160,10 @@ public class AddLoanDialog extends DialogFragment {
 
         if (monthsPaid > tenure) monthsPaid = tenure;
 
+        // Principal is typed in the active currency, so it and the EMI derived from
+        // it are both converted before they are stored. The rate and tenure are not
+        // amounts and never convert.
+        principal = CurrencyManager.getInstance().toBaseAmount(principal);
         double emi = EmiCalculator.calculateEmi(principal, annualRate, tenure);
         String lender = getSelectedLender();
 

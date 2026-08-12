@@ -86,7 +86,10 @@ public class EventFundActivity extends BaseActivity {
             if (budgetStr.isEmpty()) return;
 
             try {
-                double newBudget = Double.parseDouble(budgetStr);
+                // Converted once, before both the write and the in-memory copy — the
+                // latter is compared against contributions already held in base.
+                double newBudget = CurrencyManager.getInstance()
+                        .toBaseAmount(Double.parseDouble(budgetStr));
                 mFirestore.collection("groups").document(groupId)
                         .update("eventTargetBudget", newBudget)
                         .addOnSuccessListener(aVoid -> {
@@ -106,7 +109,7 @@ public class EventFundActivity extends BaseActivity {
             if (contStr.isEmpty()) return;
 
             try {
-                double amt = Double.parseDouble(contStr);
+                double amt = CurrencyManager.getInstance().toBaseAmount(Double.parseDouble(contStr));
                 addContribution(amt);
             } catch (NumberFormatException e) {
                 Toast.makeText(this, "Invalid amount", Toast.LENGTH_SHORT).show();
@@ -130,7 +133,8 @@ public class EventFundActivity extends BaseActivity {
                         if (budget != null) {
                             targetBudget = budget;
                         }
-                        binding.inputTargetBudget.setText(String.format(Locale.US, "%.2f", targetBudget));
+                        binding.inputTargetBudget.setText(String.format(Locale.US, "%.2f",
+                                CurrencyManager.getInstance().fromBaseAmount(targetBudget)));
 
                         // Store group members
                         groupMembers.clear();
@@ -234,7 +238,8 @@ public class EventFundActivity extends BaseActivity {
         layout.setPadding(24, 16, 24, 16);
 
         final EditText inputAmt = new EditText(this);
-        inputAmt.setHint("Amount (₹)");
+        inputAmt.setHint("Amount ("
+                + CurrencyManager.getInstance().getCurrentCurrencySymbol() + ")");
         inputAmt.setInputType(android.text.InputType.TYPE_CLASS_NUMBER | android.text.InputType.TYPE_NUMBER_FLAG_DECIMAL);
         layout.addView(inputAmt);
 
@@ -283,7 +288,7 @@ public class EventFundActivity extends BaseActivity {
             }
 
             try {
-                double amt = Double.parseDouble(amtStr);
+                double amt = CurrencyManager.getInstance().toBaseAmount(Double.parseDouble(amtStr));
                 Map<String, Object> member = groupMembers.get(selectedMemIndex);
                 String payUid = (String) member.get("uid");
                 String payName = (String) member.get("name");
@@ -356,7 +361,9 @@ public class EventFundActivity extends BaseActivity {
             binding.layoutContributionsList.addView(row);
         }
 
-        binding.txtPoolProgress.setText(String.format(Locale.US, "₹%.2f / ₹%.2f", sum, targetBudget));
+        CurrencyManager currency = CurrencyManager.getInstance();
+        binding.txtPoolProgress.setText(
+                currency.formatAmount(sum) + " / " + currency.formatAmount(targetBudget));
         if (targetBudget > 0) {
             int pct = (int) ((sum * 100) / targetBudget);
             binding.txtPoolProgressPercent.setText(pct + "%");
@@ -540,7 +547,9 @@ public class EventFundActivity extends BaseActivity {
             final String finalPhone = debtorPhone;
             final String eventName = binding.txtEventName.getText().toString();
             btnWhatsApp.setOnClickListener(v -> {
-                String message = String.format(Locale.US, "Hey %s, you owe me ₹%.2f for the event '%s'. Please transfer when convenient!", s.from, s.amount, eventName);
+                String message = String.format(Locale.US,
+                        "Hey %s, you owe me %s for the event '%s'. Please transfer when convenient!",
+                        s.from, CurrencyManager.getInstance().formatAmount(s.amount), eventName);
                 if (finalPhone != null && !finalPhone.isEmpty()) {
                     String cleanPhone = finalPhone.replaceAll("[^0-9]", "");
                     if (cleanPhone.length() == 10) {

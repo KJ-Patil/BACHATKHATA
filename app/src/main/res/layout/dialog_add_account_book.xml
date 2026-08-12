@@ -54,32 +54,34 @@
         android:paddingHorizontal="20dp"
         android:paddingTop="16dp">
 
-        <!-- Type toggle -->
+        <!-- Direction of the OPENING BALANCE, not a permanent label on the contact.
+             It sets the sign below and then stops mattering — the balance itself
+             says which way the book runs from then on. -->
         <com.google.android.material.button.MaterialButtonToggleGroup
-            android:id="@+id/toggleType"
+            android:id="@+id/toggleOpeningDirection"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginBottom="20dp"
-            app:checkedButton="@+id/btnTypeCustomer"
+            app:checkedButton="@+id/btnOpeningTheyOwe"
             app:singleSelection="true">
 
             <com.google.android.material.button.MaterialButton
-                android:id="@+id/btnTypeCustomer"
+                android:id="@+id/btnOpeningTheyOwe"
                 style="@style/Widget.Material3.Button.OutlinedButton"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
-                android:text="↗ Customer (Owes me)"
+                android:text="↗ You will get"
                 android:textSize="11sp"
                 app:cornerRadius="10dp" />
 
             <com.google.android.material.button.MaterialButton
-                android:id="@+id/btnTypeSupplier"
+                android:id="@+id/btnOpeningYouOwe"
                 style="@style/Widget.Material3.Button.OutlinedButton"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
-                android:text="↙ Supplier (I owe)"
+                android:text="↙ You will give"
                 android:textSize="11sp"
                 app:cornerRadius="10dp" />
         </com.google.android.material.button.MaterialButtonToggleGroup>

@@ -18,6 +18,13 @@ public final class DueDates {
     /** How far ahead to project, in months. */
     private static final int HORIZON_MONTHS = 12;
 
+    /**
+     * Safety bound on the walk from a subscription's anchor. Dates increase
+     * monotonically, so the horizon check normally ends the loop long before this;
+     * the cap only matters for an anchor left decades in the past.
+     */
+    private static final int MAX_OCCURRENCES = 600;
+
     private DueDates() {
     }
 
@@ -111,18 +118,19 @@ public final class DueDates {
                                             Map<String, List<DueItem>> byDay) {
         if (sub == null || sub.nextRenewal == null) return;
 
-        // Walk monthly from the next renewal. If that date is already in the past
-        // (a lapsed anchor), fast-forward to the first occurrence >= today so we
-        // don't emit a wall of historical charges.
-        LocalDate due = sub.nextRenewal;
-        int guard = 0;
-        while (due.isBefore(today) && guard < 600) {
-            due = addMonthsClamped(due, 1);
-            guard++;
-        }
-        while (!due.isAfter(horizon)) {
+        // Every occurrence is measured from the ORIGINAL anchor, never rolled off the
+        // previous one. Stepping occurrence-to-occurrence lets a single short month
+        // drag the whole rest of the series with it: a 31st anchor clamps to 28 Feb,
+        // and stepping from there produces the 28th forever after. Re-deriving from
+        // the anchor clamps once, in the short month only.
+        LocalDate anchor = sub.nextRenewal;
+
+        for (int i = 0; i < MAX_OCCURRENCES; i++) {
+            LocalDate due = addMonthsClamped(anchor, i);
+            if (due.isAfter(horizon)) break;
+            // A lapsed anchor would otherwise emit a wall of historical charges.
+            if (due.isBefore(today)) continue;
             add(byDay, new DueItem(KIND_SUBSCRIPTION, sub.name, sub.amount, due));
-            due = addMonthsClamped(due, 1);
         }
     }
 

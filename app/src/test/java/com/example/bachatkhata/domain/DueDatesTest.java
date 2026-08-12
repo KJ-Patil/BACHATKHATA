@@ -103,4 +103,23 @@ public class DueDatesTest {
 
         assertTrue(due.containsKey("2026-08-31")); // 31-day month keeps the 31st
     }
+
+    @Test
+    public void keepsMonthEndSubscriptionAnchorFromDrifting() {
+        // Same rule for subscriptions. Stepping occurrence-to-occurrence would clamp
+        // the 31st to 28 Feb and then keep the 28th for good; re-deriving from the
+        // anchor clamps only in the short month.
+        DueDates.SubscriptionInput sub = new DueDates.SubscriptionInput(
+                "EOM Sub", 499, LocalDate.of(2026, 8, 31));
+
+        Map<String, List<DueDates.DueItem>> due = DueDates.compute(
+                Collections.emptyList(), Collections.singletonList(sub), TODAY);
+
+        assertTrue("August charge missing", due.containsKey("2026-08-31"));
+        assertTrue("short month must clamp", due.containsKey("2026-09-30"));
+        assertTrue("October must return to the 31st", due.containsKey("2026-10-31"));
+        assertTrue("February clamps to the 28th", due.containsKey("2027-02-28"));
+        assertTrue("March must return to the 31st, not stay on the 28th",
+                due.containsKey("2027-03-31"));
+    }
 }

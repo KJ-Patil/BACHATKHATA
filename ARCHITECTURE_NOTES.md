@@ -87,3 +87,36 @@ The spec's §5 business logic is still ported faithfully as pure Java in
 `domain/` — only the platform layer (UI, storage, DI) differs. Related to §1 above:
 the absence of Room is exactly why the spec's Room-based encryption model doesn't
 apply.
+
+---
+
+## 4. Base-currency storage — migration assumption (`ANDROID_FEATURES.md` §5.11)
+
+The spec's invariant is now implemented: **every persisted amount is INR**, with
+`CurrencyManager.toBaseAmount` on every input edge, `fromBaseAmount` on every
+editable field, and `formatAmount` converting on the way out (with a
+`formatAmount(value, false)` overload for figures derived from a value *as typed* —
+the Add-Loan preview, the What-If projection, the Bill Splitter, the gold
+valuation).
+
+**Before this change the app stored amounts as typed and displayed them with the
+active symbol**, so switching INR → USD relabelled ₹5,000 as `$5,000.00` without
+converting. That is now fixed, but it leaves one question the spec does not answer:
+what to do with rows written under the old behaviour.
+
+**The assumption taken: all existing stored amounts are treated as INR.**
+
+- For **INR users this is exactly right and a no-op** — the rate is 1.0, so nothing
+  moves. That covers the overwhelming majority of installs.
+- For a user who entered amounts while a non-INR currency was active, those rows
+  were never really INR, and they will now read as though they were. There is no
+  way to recover the truth: the per-row `currency` field records what was *active*,
+  not a reliable unit, and nothing recorded the rate at entry time.
+
+A per-row backfill using the stored `currency` field is possible if the need
+arises, but it would need a rate as of each transaction's date, which was never
+captured. Flag the reinterpretation in release notes rather than guessing.
+
+Related: the CSV and XLSX exports now emit **one** currency — the active one — and
+their `Currency` column names it, instead of pairing a base-currency figure with
+the per-row entry currency.

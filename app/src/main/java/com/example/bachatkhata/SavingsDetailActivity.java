@@ -134,7 +134,9 @@ public class SavingsDetailActivity extends BaseActivity {
 
             // Populates fields
             binding.etEditGoalName.setText(goal.getName());
-            binding.etEditTargetAmount.setText(String.valueOf(goal.getTargetAmount()));
+            // Stored base → a bare number in the active currency for the editable field.
+            binding.etEditTargetAmount.setText(String.format(java.util.Locale.US, "%.2f",
+                    CurrencyManager.getInstance().fromBaseAmount(goal.getTargetAmount())));
             if (selectedDeadline != null) {
                 binding.txtEditDeadlineDate.setText(displayDateFormat.format(selectedDeadline));
             } else {
@@ -270,7 +272,9 @@ public class SavingsDetailActivity extends BaseActivity {
             try {
                 double amount = Double.parseDouble(amountStr);
                 if (amount > 0) {
-                    addFundsToGoal(amount);
+                    // Typed in the active currency; the goal's saved total and the
+                    // mirrored deposit transaction are both stored in base currency.
+                    addFundsToGoal(CurrencyManager.getInstance().toBaseAmount(amount));
                 }
             } catch (Exception ignored) {}
         });
@@ -376,6 +380,9 @@ public class SavingsDetailActivity extends BaseActivity {
             return;
         }
 
+        // Back to base currency, the inverse of the fromBaseAmount that filled the field.
+        final double targetInBase = CurrencyManager.getInstance().toBaseAmount(targetAmount);
+
         if (mAuth.getCurrentUser() == null) return;
         showLoading(true);
         String uid = mAuth.getCurrentUser().getUid();
@@ -384,7 +391,7 @@ public class SavingsDetailActivity extends BaseActivity {
 
         Map<String, Object> updates = new HashMap<>();
         updates.put("name", name);
-        updates.put("targetAmount", targetAmount);
+        updates.put("targetAmount", targetInBase);
         updates.put("icon", selectedEmoji);
         updates.put("deadline", deadlineTs);
 
@@ -393,7 +400,7 @@ public class SavingsDetailActivity extends BaseActivity {
                 .update(updates)
                 .addOnSuccessListener(aVoid -> {
                     goal.setName(name);
-                    goal.setTargetAmount(targetAmount);
+                    goal.setTargetAmount(targetInBase);
                     goal.setIcon(selectedEmoji);
                     goal.setDeadline(deadlineTs);
 

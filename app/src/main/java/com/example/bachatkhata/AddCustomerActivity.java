@@ -27,8 +27,6 @@ public class AddCustomerActivity extends BaseActivity {
     private FirebaseAuth mAuth;
     private FirebaseFirestore mFirestore;
 
-    private String customerType = "customer"; // default: customer
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -38,37 +36,11 @@ public class AddCustomerActivity extends BaseActivity {
         mAuth = FirebaseAuth.getInstance();
         mFirestore = FirebaseFirestore.getInstance();
 
-        setupToggleGroup();
         setupListeners();
 
         // "They owe you" is the common case for a customer khata, so it is the
         // pre-selected direction rather than leaving the pair unchecked.
         binding.toggleOpeningDirection.check(R.id.btnOpeningTheyOwe);
-    }
-
-    private void setupToggleGroup() {
-        // Default color for Customer
-        binding.btnTypeCustomer.setBackgroundColor(Color.parseColor("#7C6FE0")); // colorPrimary
-        binding.btnTypeCustomer.setTextColor(Color.WHITE);
-        binding.btnTypeSupplier.setBackgroundColor(Color.TRANSPARENT);
-        binding.btnTypeSupplier.setTextColor(Color.parseColor("#7C6FE0"));
-
-        binding.toggleCustomerType.addOnButtonCheckedListener((group, checkedId, isChecked) -> {
-            if (!isChecked) return;
-            if (checkedId == R.id.btnTypeCustomer) {
-                customerType = "customer";
-                binding.btnTypeCustomer.setBackgroundColor(Color.parseColor("#7C6FE0"));
-                binding.btnTypeCustomer.setTextColor(Color.WHITE);
-                binding.btnTypeSupplier.setBackgroundColor(Color.TRANSPARENT);
-                binding.btnTypeSupplier.setTextColor(Color.parseColor("#7C6FE0"));
-            } else {
-                customerType = "supplier";
-                binding.btnTypeSupplier.setBackgroundColor(Color.parseColor("#7C6FE0"));
-                binding.btnTypeSupplier.setTextColor(Color.WHITE);
-                binding.btnTypeCustomer.setBackgroundColor(Color.TRANSPARENT);
-                binding.btnTypeCustomer.setTextColor(Color.parseColor("#7C6FE0"));
-            }
-        });
     }
 
     private void setupListeners() {
@@ -152,13 +124,14 @@ public class AddCustomerActivity extends BaseActivity {
         // The customer document always starts at zero; the opening balance arrives
         // through the same entry path as every other one, so it is visible in the
         // history and reversible, instead of an unexplained starting number.
-        Customer customer = new Customer(customerId, name, phone, customerType, 0.0, Timestamp.now());
+        Customer customer = new Customer(customerId, name, phone, 0.0, Timestamp.now());
 
         WriteBatch batch = mFirestore.batch();
         batch.set(docRef, customer.toMap());
 
         if (openingBalance > 0) {
             boolean theyOweYou = binding.toggleOpeningDirection.getCheckedButtonId() != R.id.btnOpeningYouOwe;
+            openingBalance = CurrencyManager.getInstance().toBaseAmount(openingBalance);
             LedgerMirror.queueEntry(mFirestore, batch, uid, customer, openingBalance,
                     theyOweYou ? LedgerMirror.TYPE_GAVE : LedgerMirror.TYPE_GOT,
                     getString(R.string.ledger_opening_balance_note), new java.util.Date());

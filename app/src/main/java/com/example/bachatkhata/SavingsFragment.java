@@ -92,7 +92,7 @@ public class SavingsFragment extends Fragment {
             if (list.isEmpty()) {
                 binding.layoutEmptyState.setVisibility(View.VISIBLE);
                 binding.rvSavingsGoals.setVisibility(View.GONE);
-                binding.txtTotalSavedAmount.setText("₹0.00");
+                binding.txtTotalSavedAmount.setText(CurrencyManager.getInstance().formatAmount(0));
                 binding.txtTotalSavedSubtitle.setText("Across 0 active goals");
             } else {
                 binding.layoutEmptyState.setVisibility(View.GONE);
@@ -137,7 +137,8 @@ public class SavingsFragment extends Fragment {
             try {
                 double amount = Double.parseDouble(amountStr);
                 if (amount > 0) {
-                    addFundsToGoal(goal, amount);
+                    // Typed in the active currency; stored amounts are base currency.
+                    addFundsToGoal(goal, CurrencyManager.getInstance().toBaseAmount(amount));
                 }
             } catch (Exception ignored) {}
         });

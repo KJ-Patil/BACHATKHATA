@@ -88,28 +88,14 @@
                 android:textSize="10sp" />
         </LinearLayout>
 
-        <!-- Right side: type badge, balance, direction -->
+        <!-- Right side: balance and direction. No customer/supplier badge — the
+             balance sign already says which way the book runs. -->
         <LinearLayout
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:orientation="vertical"
             android:gravity="end"
             android:layout_marginEnd="10dp">
-
-            <!-- Type badge pill -->
-            <TextView
-                android:id="@+id/txtTypeBadge"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_gravity="end"
-                android:layout_marginBottom="5dp"
-                android:paddingStart="8dp"
-                android:paddingEnd="8dp"
-                android:paddingTop="2dp"
-                android:paddingBottom="2dp"
-                android:text="CUSTOMER"
-                android:textSize="9sp"
-                android:textStyle="bold" />
 
             <!-- Balance amount -->
             <TextView

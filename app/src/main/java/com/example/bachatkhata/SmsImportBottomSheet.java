@@ -93,7 +93,11 @@ public class SmsImportBottomSheet extends BottomSheetDialogFragment {
         transactionType = parsedTxn.type != null ? parsedTxn.type : "expense";
 
         // Pre-fill inputs
-        binding.etAmount.setText(String.format(Locale.US, "%.2f", parsedTxn.amount));
+        // Bank SMS quote INR, so the parsed figure is already base currency. The field
+        // the user can correct is in the active currency and its value is converted
+        // back on save, so it is shown converted here.
+        binding.etAmount.setText(String.format(Locale.US, "%.2f",
+                CurrencyManager.getInstance().fromBaseAmount(parsedTxn.amount)));
         binding.etNote.setText(parsedTxn.merchant);
         binding.txtDate.setText(dateFormat.format(selectedDate));
         
@@ -239,7 +243,7 @@ public class SmsImportBottomSheet extends BottomSheetDialogFragment {
 
         Transaction transaction = new Transaction(
                 "",
-                amount,
+                CurrencyManager.getInstance().toBaseAmount(amount),
                 transactionType,
                 categoryName,
                 note,

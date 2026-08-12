@@ -104,7 +104,7 @@
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Outstanding Principal"
+                    android:text="Settle-today balance"
                     android:textColor="@color/colorTextSecondary"
                     android:textSize="11sp" />
 
@@ -154,6 +154,18 @@
             android:progress="0"
             android:progressTint="@color/colorPrimary"
             android:progressBackgroundTint="@color/colorCardBorder" />
+
+        <!-- Sum of the instalments still due (principal + all future interest).
+             Deliberately shown next to the settle-today balance above so the two
+             figures can't be mistaken for one another. -->
+        <TextView
+            android:id="@+id/txtLeftToPay"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="6dp"
+            android:text="₹0.00 left to pay"
+            android:textColor="@color/colorTextSecondary"
+            android:textSize="12sp" />
 
         <View
             android:layout_width="match_parent"

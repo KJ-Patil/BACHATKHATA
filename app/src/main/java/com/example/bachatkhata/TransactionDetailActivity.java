@@ -173,7 +173,10 @@ public class TransactionDetailActivity extends BaseActivity {
         binding.layoutEditMode.setVisibility(View.VISIBLE);
 
         // Populate Edit fields
-        binding.etEditAmount.setText(String.valueOf(transaction.getAmount()));
+        // Stored base → a bare number in the active currency, matching the label the
+        // field is shown under.
+        binding.etEditAmount.setText(String.format(Locale.US, "%.2f",
+                CurrencyManager.getInstance().fromBaseAmount(transaction.getAmount())));
         binding.etEditNote.setText(transaction.getNote());
         binding.txtEditDate.setText(dateFormat.format(selectedDate));
         binding.txtEditAccount.setText(selectedAccount);
@@ -255,6 +258,9 @@ public class TransactionDetailActivity extends BaseActivity {
             Snackbar.make(binding.getRoot(), "Amount must be greater than zero.", Snackbar.LENGTH_SHORT).show();
             return;
         }
+
+        // Inverse of the fromBaseAmount that filled the field.
+        amount = CurrencyManager.getInstance().toBaseAmount(amount);
 
         Category cat = categoryGridAdapter.getSelectedCategory();
         if (cat != null) {

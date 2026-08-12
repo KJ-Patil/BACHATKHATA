@@ -205,7 +205,7 @@ public class SubmitClaimBottomSheet extends BottomSheetDialogFragment {
         claimMap.put("id", claimId);
         claimMap.put("submitterUid", uid);
         claimMap.put("submitterName", name);
-        claimMap.put("amount", amount);
+        claimMap.put("amount", CurrencyManager.getInstance().toBaseAmount(amount));
         claimMap.put("category", category);
         claimMap.put("note", note);
         claimMap.put("receiptUrl", receiptUrl);

@@ -11,6 +11,7 @@ import androidx.work.OneTimeWorkRequest;
 import androidx.work.WorkManager;
 
 import com.example.bachatkhata.databinding.ActivityAddEmiBinding;
+import com.example.bachatkhata.domain.LoanMath;
 import com.google.android.material.datepicker.MaterialDatePicker;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.FirebaseFirestore;
@@ -145,9 +146,18 @@ public class AddEmiActivity extends BaseActivity {
         double rate = Double.parseDouble(binding.etRate.getText().toString().trim());
         int tenure = Integer.parseInt(binding.etTenure.getText().toString().trim());
 
-        calculatedEmi = EmiCalculator.calculateEmi(principal, rate, tenure);
+        // A brand-new loan has no instalments paid yet, so the preview is the full
+        // original schedule.
+        LoanMath.Amortization schedule =
+                LoanMath.amortize(new LoanMath.LoanTerms(principal, rate, tenure, 0));
+        calculatedEmi = schedule.emi;
 
-        binding.txtResultEmi.setText(CurrencyManager.getInstance().formatAmount(calculatedEmi));
+        // The preview is derived from the principal AS TYPED, which is already in the
+        // display currency — formatting it normally would convert a second time.
+        CurrencyManager currency = CurrencyManager.getInstance();
+        binding.txtResultEmi.setText(currency.formatAmount(calculatedEmi, false));
+        binding.txtResultTotalPayable.setText(currency.formatAmount(schedule.totalPayable, false));
+        binding.txtResultTotalInterest.setText(currency.formatAmount(schedule.totalInterest, false));
         binding.cardResult.setVisibility(View.VISIBLE);
         AnimationHelper.buttonPressAnimation(binding.cardResult);
     }
@@ -155,20 +165,18 @@ public class AddEmiActivity extends BaseActivity {
     private void saveLoan() {
         if (!validateInputs()) return;
 
-        if (calculatedEmi <= 0) {
-            // Force calculation
-            double principal = Double.parseDouble(binding.etPrincipal.getText().toString().trim());
-            double rate = Double.parseDouble(binding.etRate.getText().toString().trim());
-            int tenure = Integer.parseInt(binding.etTenure.getText().toString().trim());
-            calculatedEmi = EmiCalculator.calculateEmi(principal, rate, tenure);
-        }
-
         showLoadingDialog();
 
         String name = binding.etLoanName.getText().toString().trim();
-        double principal = Double.parseDouble(binding.etPrincipal.getText().toString().trim());
         double rate = Double.parseDouble(binding.etRate.getText().toString().trim());
         int tenure = Integer.parseInt(binding.etTenure.getText().toString().trim());
+
+        // The preview held the EMI in the typed currency. Everything persisted is base
+        // currency, so the principal converts here and the EMI is recomputed from the
+        // converted figure rather than carried over from the preview.
+        double principal = CurrencyManager.getInstance().toBaseAmount(
+                Double.parseDouble(binding.etPrincipal.getText().toString().trim()));
+        calculatedEmi = EmiCalculator.calculateEmi(principal, rate, tenure);
 
         String uid = mAuth.getCurrentUser().getUid();
         String id = mFirestore.collection("users").document(uid).collection("emis").document().getId();

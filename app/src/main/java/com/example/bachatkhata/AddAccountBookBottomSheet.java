@@ -21,7 +21,8 @@ import com.google.firebase.firestore.FirebaseFirestore;
 public class AddAccountBookBottomSheet extends BottomSheetDialogFragment {
 
     private DialogAddAccountBookBinding binding;
-    private String accountType = "customer";
+    /** Direction of the opening balance only — "they owe you" is the common case. */
+    private boolean theyOweUs = true;
 
     @Nullable
     @Override
@@ -44,31 +45,26 @@ public class AddAccountBookBottomSheet extends BottomSheetDialogFragment {
     }
 
     private void setupToggle() {
-        applyToggleState("customer");
+        applyToggleState(true);
 
-        binding.toggleType.addOnButtonCheckedListener((group, checkedId, isChecked) -> {
+        binding.toggleOpeningDirection.addOnButtonCheckedListener((group, checkedId, isChecked) -> {
             if (!isChecked) return;
-            if (checkedId == R.id.btnTypeCustomer) {
-                accountType = "customer";
-                applyToggleState("customer");
-            } else {
-                accountType = "supplier";
-                applyToggleState("supplier");
-            }
+            theyOweUs = checkedId == R.id.btnOpeningTheyOwe;
+            applyToggleState(theyOweUs);
         });
     }
 
-    private void applyToggleState(String type) {
-        if ("customer".equals(type)) {
-            binding.btnTypeCustomer.setBackgroundColor(Color.parseColor("#7C6FE0"));
-            binding.btnTypeCustomer.setTextColor(Color.WHITE);
-            binding.btnTypeSupplier.setBackgroundColor(Color.TRANSPARENT);
-            binding.btnTypeSupplier.setTextColor(Color.parseColor("#7C6FE0"));
+    private void applyToggleState(boolean theyOwe) {
+        if (theyOwe) {
+            binding.btnOpeningTheyOwe.setBackgroundColor(Color.parseColor("#7C6FE0"));
+            binding.btnOpeningTheyOwe.setTextColor(Color.WHITE);
+            binding.btnOpeningYouOwe.setBackgroundColor(Color.TRANSPARENT);
+            binding.btnOpeningYouOwe.setTextColor(Color.parseColor("#7C6FE0"));
         } else {
-            binding.btnTypeSupplier.setBackgroundColor(Color.parseColor("#7C6FE0"));
-            binding.btnTypeSupplier.setTextColor(Color.WHITE);
-            binding.btnTypeCustomer.setBackgroundColor(Color.TRANSPARENT);
-            binding.btnTypeCustomer.setTextColor(Color.parseColor("#7C6FE0"));
+            binding.btnOpeningYouOwe.setBackgroundColor(Color.parseColor("#7C6FE0"));
+            binding.btnOpeningYouOwe.setTextColor(Color.WHITE);
+            binding.btnOpeningTheyOwe.setBackgroundColor(Color.TRANSPARENT);
+            binding.btnOpeningTheyOwe.setTextColor(Color.parseColor("#7C6FE0"));
         }
     }
 
@@ -109,9 +105,10 @@ public class AddAccountBookBottomSheet extends BottomSheetDialogFragment {
             openingBalance = Double.parseDouble(balanceStr.isEmpty() ? "0" : balanceStr);
         } catch (NumberFormatException ignored) {}
 
-        if ("supplier".equals(accountType)) {
-            openingBalance = -Math.abs(openingBalance);
-        }
+        // The toggle only decides the sign of this opening figure. It is typed in the
+        // active currency and stored, like every amount, in the base currency.
+        openingBalance = CurrencyManager.getInstance().toBaseAmount(
+                theyOweUs ? Math.abs(openingBalance) : -Math.abs(openingBalance));
 
         FirebaseAuth auth = FirebaseAuth.getInstance();
         if (auth.getCurrentUser() == null) {
@@ -127,7 +124,7 @@ public class AddAccountBookBottomSheet extends BottomSheetDialogFragment {
                 .collection("customers").document();
         String customerId = docRef.getId();
 
-        Customer customer = new Customer(customerId, name, phone, accountType,
+        Customer customer = new Customer(customerId, name, phone,
                 openingBalance, Timestamp.now());
 
         docRef.set(customer.toMap())

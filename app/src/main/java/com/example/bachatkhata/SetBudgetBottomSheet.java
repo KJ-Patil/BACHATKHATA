@@ -23,6 +23,7 @@ import com.google.firebase.firestore.FirebaseFirestore;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 
 public class SetBudgetBottomSheet extends BottomSheetDialogFragment {
@@ -69,9 +70,19 @@ public class SetBudgetBottomSheet extends BottomSheetDialogFragment {
 
         setupRecyclerView();
 
+        // The field is in the ACTIVE currency in both directions: the stored base
+        // limit comes out through fromBaseAmount here and goes back in through
+        // toBaseAmount on save. The hint names the currency so it is never mistaken
+        // for a fixed ₹ field.
+        CurrencyManager currency = CurrencyManager.getInstance();
+        binding.tilLimitAmount.setHint(
+                "Limit Amount (" + currency.getCurrentCurrencyCode() + ")");
+        binding.tilLimitAmount.setPrefixText(currency.getCurrentCurrencySymbol() + " ");
+
         if (editBudget != null) {
             binding.txtSheetTitle.setText("Edit Budget");
-            binding.etLimitAmount.setText(String.valueOf(editBudget.getLimitAmount()));
+            binding.etLimitAmount.setText(String.format(Locale.US, "%.2f",
+                    currency.fromBaseAmount(editBudget.getLimitAmount())));
         } else {
             binding.txtSheetTitle.setText("Set Budget");
         }
@@ -152,7 +163,7 @@ public class SetBudgetBottomSheet extends BottomSheetDialogFragment {
         Map<String, Object> data = new HashMap<>();
         data.put("id", budgetId);
         data.put("category", categoryName);
-        data.put("limitAmount", limit);
+        data.put("limitAmount", CurrencyManager.getInstance().toBaseAmount(limit));
         data.put("period", "monthly");
         data.put("month", targetMonth);
         data.put("year", targetYear);

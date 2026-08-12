@@ -6,12 +6,16 @@ import android.content.Context;
 import android.os.Build;
 import android.util.Log;
 import androidx.core.app.NotificationCompat;
+import com.example.bachatkhata.domain.AnomalyRadar;
 import com.google.firebase.Timestamp;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
+import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 
 public class AnomalyDetector {
@@ -37,57 +41,55 @@ public class AnomalyDetector {
         if (uid == null || newTxn == null || !"expense".equals(newTxn.getType())) return;
 
         Calendar cal = Calendar.getInstance();
-        cal.add(Calendar.DAY_OF_YEAR, -30);
-        Date thirtyDaysAgo = cal.getTime();
+        cal.add(Calendar.DAY_OF_YEAR, -AnomalyRadar.BASELINE_WINDOW_DAYS);
+        Date windowStart = cal.getTime();
 
         mFirestore.collection("users").document(uid).collection("transactions")
                 .whereEqualTo("category", newTxn.getCategory())
                 .whereEqualTo("type", "expense")
-                .whereGreaterThanOrEqualTo("date", thirtyDaysAgo)
+                .whereGreaterThanOrEqualTo("date", windowStart)
                 .get()
                 .addOnSuccessListener(querySnapshot -> {
-                    double totalAmount = 0;
-                    int count = 0;
+                    List<AnomalyRadar.Sample> samples = new ArrayList<>();
 
                     for (DocumentSnapshot doc : querySnapshot.getDocuments()) {
-                        // Skip the current new transaction if it has been written to DB
-                        if (newTxn.getId().equals(doc.getId())) continue;
+                        // The spend being checked must not sit in its own baseline —
+                        // it would drag the median toward itself and mask the outlier.
+                        if (newTxn.getId() != null && newTxn.getId().equals(doc.getId())) continue;
 
                         Double amt = doc.getDouble("amount");
-                        if (amt != null) {
-                            totalAmount += amt;
-                            count++;
+                        Date when = doc.getDate("date");
+                        if (amt != null && when != null) {
+                            samples.add(new AnomalyRadar.Sample(amt, when));
                         }
                     }
 
-                    if (count < 3) {
-                        // Not enough data to determine a trend
-                        Log.d(TAG, "Not enough data for anomaly detection. Count: " + count);
-                        return;
-                    }
+                    AnomalyRadar.Result result =
+                            AnomalyRadar.check(newTxn.getAmount(), samples, new Date());
 
-                    double average = totalAmount / count;
-                    double threshold = average * 2.5;
+                    Log.d(TAG, String.format(Locale.US,
+                            "Category: %s, Median: %.2f, New Txn: %.2f, Threshold: %.2f, Samples: %d",
+                            newTxn.getCategory(), result.baseline, newTxn.getAmount(),
+                            result.threshold, samples.size()));
 
-                    Log.d(TAG, String.format("Category: %s, Average: %.2f, New Txn: %.2f, Threshold: %.2f", 
-                            newTxn.getCategory(), average, newTxn.getAmount(), threshold));
-
-                    if (newTxn.getAmount() > threshold) {
-                        triggerAnomalyAlert(context, uid, newTxn, average);
+                    if (result.anomalous) {
+                        triggerAnomalyAlert(context, uid, newTxn, result.baseline);
                     }
                 })
                 .addOnFailureListener(e -> Log.e(TAG, "Error checking anomalies", e));
     }
 
-    private void triggerAnomalyAlert(Context context, String uid, Transaction txn, double average) {
+    private void triggerAnomalyAlert(Context context, String uid, Transaction txn, double baseline) {
         // Respect the "Enable Notifications" master switch.
         if (!NotificationSettings.isEnabled(context)) {
             return;
         }
 
         String title = "Unusual Spend Alert";
-        String message = String.format("You spent %s%s on %s, which is 2.5x higher than your usual 30-day average of %s%.2f.",
-                txn.getCurrencySymbol(), (int)txn.getAmount(), txn.getCategory(), txn.getCurrencySymbol(), average);
+        String message = String.format(Locale.US,
+                "You spent %s%d on %s, more than %.1fx your usual %s%.2f for that category.",
+                txn.getCurrencySymbol(), (int) txn.getAmount(), txn.getCategory(),
+                AnomalyRadar.THRESHOLD_MULTIPLIER, txn.getCurrencySymbol(), baseline);
 
         Log.d(TAG, "Anomaly detected! Posting notification: " + message);
 

@@ -18,6 +18,7 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.bachatkhata.databinding.FragmentEmiTrackerBinding;
+import com.example.bachatkhata.domain.LoanMath;
 import com.example.bachatkhata.databinding.ItemEmiBinding;
 import com.google.firebase.Timestamp;
 import com.google.firebase.auth.FirebaseAuth;
@@ -97,6 +98,7 @@ public class EmiTrackerFragment extends Fragment {
 
                     emiList.clear();
                     double totalMonthlyBurden = 0.0;
+                    double totalOutstanding = 0.0;
 
                     if (value != null) {
                         for (DocumentSnapshot doc : value.getDocuments()) {
@@ -105,6 +107,9 @@ public class EmiTrackerFragment extends Fragment {
                             if (emiVal != null) {
                                 totalMonthlyBurden += emiVal;
                             }
+                            // Derived from each loan's schedule, so the total falls as
+                            // instalments are paid and reaches 0 when a loan closes.
+                            totalOutstanding += LoanMath.outstandingPrincipal(termsFrom(doc));
                         }
                     }
 
@@ -118,7 +123,10 @@ public class EmiTrackerFragment extends Fragment {
 
                     binding.txtEmiSummaryTitle.setText("Total Monthly EMI Burden: " + 
                             CurrencyManager.getInstance().formatAmount(totalMonthlyBurden));
-                    binding.txtEmiCountSubtitle.setText(String.format(Locale.US, "Active across %d loans", emiList.size()));
+                    binding.txtEmiCountSubtitle.setText(String.format(Locale.US,
+                            "Active across %d loans · %s outstanding",
+                            emiList.size(),
+                            CurrencyManager.getInstance().formatAmount(totalOutstanding)));
                     adapter.notifyDataSetChanged();
 
                     if (emiList.isEmpty()) {
@@ -129,6 +137,48 @@ public class EmiTrackerFragment extends Fragment {
                         binding.rvEmis.setVisibility(View.VISIBLE);
                     }
                 });
+    }
+
+    /**
+     * Reads one loan document into the shape {@link LoanMath} works on. The summary
+     * card and the list rows both go through this so they can never disagree about
+     * how many instalments have been paid.
+     */
+    private LoanMath.LoanTerms termsFrom(DocumentSnapshot doc) {
+        Double principal = doc.getDouble("principal");
+        Double rate = doc.getDouble("interestRate");
+        Long tenureVal = doc.getLong("tenureMonths");
+        int tenure = tenureVal != null ? tenureVal.intValue() : 0;
+
+        return new LoanMath.LoanTerms(
+                principal != null ? principal : 0.0,
+                rate != null ? rate : 0.0,
+                tenure,
+                resolveMonthsPaid(doc, tenure));
+    }
+
+    /**
+     * Prefers the stored {@code monthsPaid}; falls back to elapsed months since the
+     * start date for loans saved before that field existed.
+     */
+    private int resolveMonthsPaid(DocumentSnapshot doc, int tenure) {
+        Long stored = doc.getLong("monthsPaid");
+        int paid;
+        if (stored != null) {
+            paid = stored.intValue();
+        } else {
+            Date startDate = getDateFromObject(doc.get("startDate"));
+            if (startDate == null) return 0;
+
+            Calendar start = Calendar.getInstance();
+            start.setTime(startDate);
+            Calendar now = Calendar.getInstance();
+            paid = (now.get(Calendar.YEAR) - start.get(Calendar.YEAR)) * 12
+                    + (now.get(Calendar.MONTH) - start.get(Calendar.MONTH));
+        }
+        if (paid < 0) paid = 0;
+        if (paid > tenure) paid = tenure;
+        return paid;
     }
 
     private Date getDateFromObject(Object obj) {
@@ -191,36 +241,23 @@ public class EmiTrackerFragment extends Fragment {
             holder.binding.txtInterestInfo.setText(String.format(Locale.US, "%.1f%% p.a.", r));
             holder.binding.txtEmiAmount.setText(CurrencyManager.getInstance().formatAmount(emi));
 
-            // Use stored monthsPaid when available; fall back to date-based calculation
-            int paidMonths = 0;
-            Long storedMonthsPaid = doc.getLong("monthsPaid");
-            if (storedMonthsPaid != null) {
-                paidMonths = storedMonthsPaid.intValue();
-                if (paidMonths < 0) paidMonths = 0;
-                if (paidMonths > tenure) paidMonths = tenure;
-            } else if (startDate != null) {
-                Calendar start = Calendar.getInstance();
-                start.setTime(startDate);
-                Calendar now = Calendar.getInstance();
-
-                int diffYear = now.get(Calendar.YEAR) - start.get(Calendar.YEAR);
-                int diffMonth = now.get(Calendar.MONTH) - start.get(Calendar.MONTH);
-                paidMonths = diffYear * 12 + diffMonth;
-
-                if (paidMonths < 0) paidMonths = 0;
-                if (paidMonths > tenure) paidMonths = tenure;
-            }
+            int paidMonths = resolveMonthsPaid(doc, tenure);
 
             holder.binding.txtTenureProgress.setText(String.format(Locale.US, "%d / %d months paid", paidMonths, tenure));
-            
-            // Calculate progress percentage
-            int progress = tenure > 0 ? (paidMonths * 100) / tenure : 0;
-            holder.binding.progressTenure.setProgress(progress);
 
-            // Calculate outstanding principal balance
-            double outstanding = p - (emi * paidMonths);
-            if (outstanding < 0) outstanding = 0.0;
-            holder.binding.txtOutstanding.setText(CurrencyManager.getInstance().formatAmount(outstanding));
+            // Both debt figures come from the shared schedule. They are different
+            // numbers and both are shown: settling today costs the present value of
+            // the instalments left, which is less than their sum by the interest the
+            // early payoff avoids.
+            LoanMath.Amortization schedule =
+                    LoanMath.amortize(new LoanMath.LoanTerms(p, r, tenure, paidMonths));
+
+            holder.binding.progressTenure.setProgress((int) Math.round(schedule.progressPct));
+            holder.binding.txtOutstanding.setText(
+                    CurrencyManager.getInstance().formatAmount(schedule.outstandingBalance));
+            holder.binding.txtLeftToPay.setText(
+                    CurrencyManager.getInstance().formatAmount(schedule.remainingPayments)
+                            + " left to pay");
 
             // Set Next Due Date and remaining days badge
             Date nextDue = calculateNextDueDate(startDate);

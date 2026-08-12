@@ -240,6 +240,11 @@ public class CustomerDetailActivity extends BaseActivity {
             return;
         }
 
+        // Converted once, here — the same figure drives the running balance AND the
+        // mirrored "Ledger" transaction, so converting at only one of them would put
+        // the khata and the main ledger into different units.
+        amount = CurrencyManager.getInstance().toBaseAmount(amount);
+
         String note = binding.etEntryNote.getText().toString().trim();
         if (note.isEmpty()) {
             note = isGave ? "You Gave" : "You Got";
@@ -338,7 +343,8 @@ public class CustomerDetailActivity extends BaseActivity {
             canvas.drawText("Net Balance: You owe them " + CurrencyManager.getInstance().formatAmount(Math.abs(balance)), 40, 140, paint);
         } else {
             paint.setColor(Color.GRAY);
-            canvas.drawText("Net Balance: Settled (₹0.00)", 40, 140, paint);
+            canvas.drawText("Net Balance: Settled ("
+                    + CurrencyManager.getInstance().formatAmount(0) + ")", 40, 140, paint);
         }
 
         paint.setColor(Color.BLACK);

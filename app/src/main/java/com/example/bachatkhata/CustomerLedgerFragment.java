@@ -287,20 +287,9 @@ public class CustomerLedgerFragment extends Fragment {
                     b.txtAvatarLetter.setText("?");
                 }
 
-                // Type badge
-                boolean isCustomer = "customer".equals(customer.getType());
-                int badgeColor = isCustomer
-                        ? Color.parseColor("#3DAF85")
-                        : Color.parseColor("#EF9F27");
-                float r = 20f * itemView.getContext().getResources().getDisplayMetrics().density;
-                GradientDrawable badgeBg = new GradientDrawable();
-                badgeBg.setShape(GradientDrawable.RECTANGLE);
-                badgeBg.setCornerRadius(r);
-                badgeBg.setColor(Color.argb(40,
-                        Color.red(badgeColor), Color.green(badgeColor), Color.blue(badgeColor)));
-                b.txtTypeBadge.setBackground(badgeBg);
-                b.txtTypeBadge.setText(isCustomer ? "CUSTOMER" : "SUPPLIER");
-                b.txtTypeBadge.setTextColor(badgeColor);
+                // No customer/supplier badge: the balance below is the truth about
+                // which way this book runs, and a fixed label contradicted it as soon
+                // as the balance crossed zero.
 
                 // Balance
                 double balance = customer.getBalance();

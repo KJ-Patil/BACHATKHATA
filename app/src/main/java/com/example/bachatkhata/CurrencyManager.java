@@ -173,6 +173,34 @@ public class CurrencyManager {
         return amountInInr * getExchangeRate(currentCurrencyCode);
     }
 
+    // ── Base-currency invariant ─────────────────────────────────────────────
+    //
+    // EVERY PERSISTED AMOUNT IS INR. The active currency is a display setting, so
+    // the input and output edges have to be exact inverses of each other or values
+    // corrode: a user with USD active types 100 into a field labelled "$", 100 is
+    // stored as ₹100, and it reads back as $1.20 — shrinking again on every
+    // currency change. toBaseAmount goes on the way in, fromBaseAmount fills any
+    // editable field, and formatAmount converts on the way out.
+
+    /**
+     * An amount the user typed in the active currency → the INR value to store.
+     * Call this on every amount before it is written.
+     */
+    public double toBaseAmount(double typedAmount) {
+        double rate = getExchangeRate(currentCurrencyCode);
+        if (rate <= 0) return typedAmount;
+        return typedAmount / rate;
+    }
+
+    /**
+     * A stored INR amount → a bare number in the active currency, for pre-filling an
+     * editable field. Same conversion {@link #formatAmount} applies, without the
+     * symbol and grouping.
+     */
+    public double fromBaseAmount(double storedAmount) {
+        return storedAmount * getExchangeRate(currentCurrencyCode);
+    }
+
     /** True once at least one live/cached rate is available. */
     public boolean hasRates() {
         synchronized (exchangeRates) {
@@ -238,13 +266,31 @@ public class CurrencyManager {
                 });
     }
 
-    // Indian number format for INR (e.g. 1,23,456.00), standard for others
+    /**
+     * Formats a <b>stored</b> (INR) amount for display, converting it into the active
+     * currency. Indian lakh/crore grouping for INR, standard grouping otherwise.
+     */
     public String formatAmount(double amount) {
-        if ("INR".equals(currentCurrencyCode)) {
-            return currentCurrencySymbol + formatIndian(amount);
-        } else {
-            return currentCurrencySymbol + String.format(Locale.US, "%,.2f", amount);
+        return formatAmount(amount, true);
+    }
+
+    /**
+     * @param convert {@code false} for a figure derived from a value <em>as the user
+     *                typed it</em> — the Add-Loan preview computes EMI and interest
+     *                from the principal just entered, which is already in the display
+     *                currency, so converting again would apply the rate twice. Stored
+     *                amounts always use the converting default.
+     */
+    public String formatAmount(double amount, boolean convert) {
+        double display = convert ? convertFromBase(amount) : amount;
+
+        if (Double.isNaN(display) || Double.isInfinite(display)) {
+            return "—";
         }
+        if ("INR".equals(currentCurrencyCode)) {
+            return currentCurrencySymbol + formatIndian(display);
+        }
+        return currentCurrencySymbol + String.format(Locale.US, "%,.2f", display);
     }
 
     private String formatIndian(double amount) {

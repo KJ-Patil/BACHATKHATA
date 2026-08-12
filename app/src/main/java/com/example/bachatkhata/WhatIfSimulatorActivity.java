@@ -85,10 +85,13 @@ public class WhatIfSimulatorActivity extends BaseActivity {
 
         WhatIfSimulator.Result result = WhatIfSimulator.simulate(monthly, lumpSum, years, rate);
 
+        // Nothing here is persisted: the projection is derived entirely from the two
+        // figures just typed, which are already in the display currency. Converting
+        // them would apply the rate a second time.
         CurrencyManager cm = CurrencyManager.getInstance();
-        binding.txtFutureValue.setText(cm.formatAmount(result.futureValue));
-        binding.txtTotalInvested.setText(cm.formatAmount(result.totalInvested));
-        binding.txtTotalReturns.setText(cm.formatAmount(result.totalReturns));
+        binding.txtFutureValue.setText(cm.formatAmount(result.futureValue, false));
+        binding.txtTotalInvested.setText(cm.formatAmount(result.totalInvested, false));
+        binding.txtTotalReturns.setText(cm.formatAmount(result.totalReturns, false));
 
         renderChart(result.yearlyValues);
     }

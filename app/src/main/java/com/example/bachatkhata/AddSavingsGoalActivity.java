@@ -146,7 +146,8 @@ public class AddSavingsGoalActivity extends BaseActivity {
                 id,
                 name,
                 selectedEmoji,
-                targetAmount,
+                // Typed in the active currency; every stored amount is base currency.
+                CurrencyManager.getInstance().toBaseAmount(targetAmount),
                 0.0, // starts with zero saved
                 currencyCode,
                 deadlineTs,

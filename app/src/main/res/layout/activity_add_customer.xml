@@ -47,42 +47,9 @@
             android:orientation="vertical"
             android:padding="20dp">
 
-            <!-- Customer / Supplier toggle group -->
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginBottom="8dp"
-                android:text="Contact Type"
-                android:textColor="@color/colorTextPrimary"
-                android:textSize="14sp"
-                android:textStyle="bold" />
-
-            <com.google.android.material.button.MaterialButtonToggleGroup
-                android:id="@+id/toggleCustomerType"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginBottom="24dp"
-                app:checkedButton="@+id/btnTypeCustomer"
-                app:singleSelection="true">
-
-                <com.google.android.material.button.MaterialButton
-                    android:id="@+id/btnTypeCustomer"
-                    style="@style/Widget.Material3.Button.OutlinedButton"
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:text="Customer (Get Money)"
-                    app:cornerRadius="20dp" />
-
-                <com.google.android.material.button.MaterialButton
-                    android:id="@+id/btnTypeSupplier"
-                    style="@style/Widget.Material3.Button.OutlinedButton"
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:text="Supplier (Pay Money)"
-                    app:cornerRadius="20dp" />
-            </com.google.android.material.button.MaterialButtonToggleGroup>
+            <!-- No contact-type toggle. The opening-balance direction toggle further
+                 down is what decides which way this book runs, and it stays true as
+                 the balance moves. -->
 
             <!-- Name Input Field -->
             <com.google.android.material.textfield.TextInputLayout

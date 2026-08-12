@@ -109,7 +109,7 @@ public class AddSubscriptionBottomSheet extends BottomSheetDialogFragment {
         Map<String, Object> sub = new HashMap<>();
         sub.put("id", id);
         sub.put("name", name);
-        sub.put("amount", amount);
+        sub.put("amount", CurrencyManager.getInstance().toBaseAmount(amount));
         sub.put("frequency", "Monthly");
         sub.put("nextRenewalDate", selectedDate);
         sub.put("isActive", true);

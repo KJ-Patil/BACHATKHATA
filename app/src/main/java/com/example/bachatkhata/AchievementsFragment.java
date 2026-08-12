@@ -221,7 +221,12 @@ public class AchievementsFragment extends Fragment {
         if (unit == null || unit.isEmpty()) {
             challengeBinding.txtChallengeProgressText.setText(current + " / " + target);
         } else if ("₹".equals(unit)) {
-            challengeBinding.txtChallengeProgressText.setText("₹" + current + " / ₹" + target);
+            // A money-denominated challenge. Both figures are rolled up from stored
+            // transactions, so they format through the active currency rather than a
+            // fixed rupee sign.
+            CurrencyManager currency = CurrencyManager.getInstance();
+            challengeBinding.txtChallengeProgressText.setText(
+                    currency.formatAmount(current) + " / " + currency.formatAmount(target));
         } else {
             challengeBinding.txtChallengeProgressText.setText(current + " / " + target + " " + unit);
         }

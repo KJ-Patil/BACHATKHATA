@@ -421,7 +421,10 @@ public class GroupDetailActivity extends BaseActivity {
         final EditText input = new EditText(this);
         input.setInputType(InputType.TYPE_CLASS_NUMBER | InputType.TYPE_NUMBER_FLAG_DECIMAL);
         if (currentLimit != null) {
-            input.setText(String.format(Locale.US, "%.2f", currentLimit));
+            // The limit is compared against a pool balance held in the base currency,
+            // so it is stored there too and shown converted here.
+            input.setText(String.format(Locale.US, "%.2f",
+                    CurrencyManager.getInstance().fromBaseAmount(currentLimit)));
         }
         input.setHint("Enter amount (e.g. 5000)");
 
@@ -440,7 +443,7 @@ public class GroupDetailActivity extends BaseActivity {
 
             try {
                 double limit = Double.parseDouble(valueStr);
-                saveMemberLimit(memberUid, limit);
+                saveMemberLimit(memberUid, CurrencyManager.getInstance().toBaseAmount(limit));
             } catch (NumberFormatException e) {
                 Toast.makeText(this, "Invalid limit amount", Toast.LENGTH_SHORT).show();
             }

@@ -448,7 +448,8 @@ public class OrgDonationTrackerActivity extends BaseActivity {
             double spent = categorySpentMap.getOrDefault(name, 0.0);
             double remaining = budget != null ? budget - spent : 0.0;
 
-            String budgetStr = budget != null ? CurrencyManager.getInstance().formatAmount(budget) : "₹0.00";
+            String budgetStr = budget != null ? CurrencyManager.getInstance().formatAmount(budget)
+                    : CurrencyManager.getInstance().formatAmount(0);
             String spentStr = CurrencyManager.getInstance().formatAmount(spent);
             String remStr = CurrencyManager.getInstance().formatAmount(remaining);
 

@@ -101,13 +101,19 @@ public class AddAssetBottomSheet extends BottomSheetDialogFragment {
                 double rate = Double.parseDouble(rateStr);
                 double valuation = weight * rate;
                 
-                binding.txtGoldValuationResult.setText(String.format(Locale.US, "Calculated value: ₹%.2f", valuation));
+                // Weight × rate, both as typed, so this figure is already in the
+                // display currency and must not be converted again. It also feeds the
+                // amount field, which the save path converts.
+                binding.txtGoldValuationResult.setText("Calculated value: "
+                        + CurrencyManager.getInstance().formatAmount(valuation, false));
                 binding.etAssetAmount.setText(String.format(Locale.US, "%.2f", valuation));
             } catch (NumberFormatException e) {
-                binding.txtGoldValuationResult.setText("Calculated value: ₹0.00");
+                binding.txtGoldValuationResult.setText("Calculated value: "
+                        + CurrencyManager.getInstance().formatAmount(0, false));
             }
         } else {
-            binding.txtGoldValuationResult.setText("Calculated value: ₹0.00");
+            binding.txtGoldValuationResult.setText("Calculated value: "
+                    + CurrencyManager.getInstance().formatAmount(0, false));
         }
     }
 
@@ -154,7 +160,7 @@ public class AddAssetBottomSheet extends BottomSheetDialogFragment {
         asset.put("id", assetId);
         asset.put("name", name);
         asset.put("type", type);
-        asset.put("amount", amount);
+        asset.put("amount", CurrencyManager.getInstance().toBaseAmount(amount));
         asset.put("notes", notes);
         asset.put("createdAt", Timestamp.now());
 

@@ -130,7 +130,7 @@ public class AddBillBottomSheet extends BottomSheetDialogFragment {
         Map<String, Object> billMap = new HashMap<>();
         billMap.put("id", id);
         billMap.put("name", name);
-        billMap.put("amount", amount);
+        billMap.put("amount", CurrencyManager.getInstance().toBaseAmount(amount));
         billMap.put("dueDay", dueDay);
         billMap.put("category", category);
         billMap.put("isRecurring", true);

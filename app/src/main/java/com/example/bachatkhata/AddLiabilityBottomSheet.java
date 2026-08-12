@@ -90,7 +90,7 @@ public class AddLiabilityBottomSheet extends BottomSheetDialogFragment {
         liability.put("id", liabilityId);
         liability.put("name", name);
         liability.put("type", type);
-        liability.put("amount", amount);
+        liability.put("amount", CurrencyManager.getInstance().toBaseAmount(amount));
         liability.put("notes", notes);
         liability.put("createdAt", Timestamp.now());
 

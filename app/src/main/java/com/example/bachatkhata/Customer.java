@@ -8,24 +8,35 @@ import java.io.Serializable;
 import java.util.HashMap;
 import java.util.Map;
 
+/**
+ * One account book in the Notebook Ledger.
+ *
+ * <p>There is deliberately <b>no</b> "customer" / "supplier" field. The sign of the
+ * balance already says which way the book runs, and a fixed label went stale the
+ * moment a customer's balance crossed zero — a contact tagged "customer" while
+ * showing "YOU WILL GIVE" is worse than no label. The add-account form asks for the
+ * <em>direction</em> of the opening balance instead and folds it into the sign.
+ *
+ * <p>Documents written by older builds may still carry a {@code type} field; it is
+ * simply ignored, and their balances are already correct as stored.
+ */
 public class Customer implements Serializable {
 
     private String id;
     private String name;
     private String phone;
-    private String type; // "customer" (you will receive / you gave) or "supplier" (you will pay / you got)
-    private double balance; // positive = owed to you, negative = you owe them
+    /** Positive: they owe us (credit) · negative: we owe them (debit). */
+    private double balance;
     private Timestamp createdAt;
 
     public Customer() {
         // Required for Firestore serialization
     }
 
-    public Customer(String id, String name, String phone, String type, double balance, Timestamp createdAt) {
+    public Customer(String id, String name, String phone, double balance, Timestamp createdAt) {
         this.id = id;
         this.name = name;
         this.phone = phone;
-        this.type = type;
         this.balance = balance;
         this.createdAt = createdAt;
     }
@@ -60,16 +71,6 @@ public class Customer implements Serializable {
         this.phone = phone;
     }
 
-    @PropertyName("type")
-    public String getType() {
-        return type;
-    }
-
-    @PropertyName("type")
-    public void setType(String type) {
-        this.type = type;
-    }
-
     @PropertyName("balance")
     public double getBalance() {
         return balance;
@@ -95,7 +96,6 @@ public class Customer implements Serializable {
         map.put("id", id);
         map.put("name", name);
         map.put("phone", phone);
-        map.put("type", type);
         map.put("balance", balance);
         map.put("createdAt", createdAt);
         return map;
@@ -106,7 +106,6 @@ public class Customer implements Serializable {
         c.setId(doc.getString("id"));
         c.setName(doc.getString("name"));
         c.setPhone(doc.getString("phone"));
-        c.setType(doc.getString("type"));
         Double bal = doc.getDouble("balance");
         c.setBalance(bal != null ? bal : 0.0);
         c.setCreatedAt(doc.getTimestamp("createdAt"));

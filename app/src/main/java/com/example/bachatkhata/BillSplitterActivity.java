@@ -310,7 +310,8 @@ public class BillSplitterActivity extends BaseActivity {
             inputVal.setHint("Percentage (e.g. 25)");
             inputVal.setText(String.format(Locale.US, "%.1f", p.percentage));
         } else {
-            builder.setMessage("Enter amount owed (₹):");
+            builder.setMessage("Enter amount owed ("
+                    + CurrencyManager.getInstance().getCurrentCurrencySymbol() + "):");
             inputVal.setHint("Amount (e.g. 500)");
             inputVal.setText(String.format(Locale.US, "%.2f", p.owes));
         }
@@ -363,7 +364,10 @@ public class BillSplitterActivity extends BaseActivity {
         }
 
         if ("Custom".equals(splitType) && Math.abs(totalOwed - totalAmount) > 1.0) {
-            showSnackbar(String.format(Locale.US, "Sum of individual owes (₹%.2f) must match total bill (₹%.2f)", totalOwed, totalAmount), "ERROR");
+            showSnackbar("Sum of individual owes ("
+                    + CurrencyManager.getInstance().formatAmount(totalOwed, false)
+                    + ") must match total bill ("
+                    + CurrencyManager.getInstance().formatAmount(totalAmount, false) + ")", "ERROR");
             return;
         }
 
@@ -419,7 +423,9 @@ public class BillSplitterActivity extends BaseActivity {
             ImageView btnWhatsApp = row.findViewById(R.id.btnDeleteCategory);
 
             txtFromTo.setText(String.format(Locale.US, "%s pays to %s", s.from, s.to));
-            txtAmount.setText(CurrencyManager.getInstance().formatAmount(s.amount));
+            // Split state is local and typed in the display currency — never stored, so
+            // it must not be converted on the way out.
+            txtAmount.setText(CurrencyManager.getInstance().formatAmount(s.amount, false));
             txtAmount.setVisibility(View.VISIBLE);
             txtAmount.setTextColor(getResources().getColor(R.color.colorDanger));
 
@@ -452,7 +458,7 @@ public class BillSplitterActivity extends BaseActivity {
      * go, so that case falls back to a generic share sheet instead.
      */
     private void triggerWhatsAppReminder(String debtorName, String phone, double amount, String title) {
-        String formattedAmount = CurrencyManager.getInstance().formatAmount(amount);
+        String formattedAmount = CurrencyManager.getInstance().formatAmount(amount, false);
 
         if (phone != null && !phone.trim().isEmpty()) {
             FlashReminderBottomSheet.newInstance(debtorName, phone, formattedAmount,
@@ -538,11 +544,12 @@ public class BillSplitterActivity extends BaseActivity {
                 pBinding.txtInitials.setText(p.getInitials());
 
                 if ("Equal".equals(splitType)) {
-                    pBinding.txtOwesLabel.setText(String.format(Locale.US, "Owes: ₹%.2f", p.owes));
+                    pBinding.txtOwesLabel.setText("Owes: " + CurrencyManager.getInstance().formatAmount(p.owes, false));
                 } else if ("Percent".equals(splitType)) {
-                    pBinding.txtOwesLabel.setText(String.format(Locale.US, "Owes: ₹%.2f (%.1f%%)", p.owes, p.percentage));
+                    pBinding.txtOwesLabel.setText(String.format(Locale.US, "Owes: %s (%.1f%%)",
+                            CurrencyManager.getInstance().formatAmount(p.owes, false), p.percentage));
                 } else {
-                    pBinding.txtOwesLabel.setText(String.format(Locale.US, "Owes: ₹%.2f", p.owes));
+                    pBinding.txtOwesLabel.setText("Owes: " + CurrencyManager.getInstance().formatAmount(p.owes, false));
                 }
 
                 // If Custom or Percentage, allow clicking owes label to set it
