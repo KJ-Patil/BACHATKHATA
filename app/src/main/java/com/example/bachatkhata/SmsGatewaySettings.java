@@ -23,13 +23,28 @@ import java.util.Map;
  * APK is extractable, so the same rule applies here as on the web. The settings
  * screen says so in a banner rather than implying otherwise.
  *
- * <p>Prefs are the source of truth for reads (and are AES-GCM encrypted at rest
- * via {@link SharedPreferencesManager}); Firestore mirrors to the user's own
- * account so the key follows them to a new device.
+ * <p><b>The key never leaves this device.</b> It is held only in prefs, which are
+ * AES-GCM encrypted at rest via {@link SharedPreferencesManager}. Firestore keeps
+ * the on/off flag, which is a preference rather than a credential.
+ *
+ * <p>It used to be mirrored to {@code users/{uid}.smsGatewayApiKey} so it would
+ * follow the user to a new device. That wrote a live third-party credential to the
+ * cloud in plain text — encrypted carefully on the phone and then sent up readable,
+ * which makes the on-device encryption largely beside the point. Owner-only rules
+ * limit who can read it, but they do not make it not-plaintext, and the key is
+ * exposed to anything with access to the project's data: an admin SDK script, a
+ * console session, an export, a future rules mistake.
+ *
+ * <p>Convenience lost: the key must be re-entered on a new device. That is the
+ * right trade for a credential the user can revoke and re-issue at will.
  */
 public final class SmsGatewaySettings {
 
     private static final String FIELD_ENABLED = "smsGatewayEnabled";
+    /**
+     * Retained only so {@link #save} can erase copies written by older builds. Never
+     * written with a value, never read back.
+     */
     private static final String FIELD_API_KEY = "smsGatewayApiKey";
 
     private SmsGatewaySettings() {
@@ -56,8 +71,8 @@ public final class SmsGatewaySettings {
     }
 
     /**
-     * Saves the config. Each field is written explicitly rather than merged from a
-     * spread, so a partial cloud document can never leave one of them undefined.
+     * Saves the config. The key goes to encrypted prefs only; the cloud gets the
+     * on/off flag and an explicit delete of any key an older build left behind.
      */
     public static void save(@NonNull Context context, String uid, Config config) {
         SharedPreferencesManager prefs = SharedPreferencesManager.getInstance(context);
@@ -67,15 +82,21 @@ public final class SmsGatewaySettings {
         if (uid == null) return;
         Map<String, Object> update = new HashMap<>();
         update.put(FIELD_ENABLED, config.enabled);
-        update.put(FIELD_API_KEY, config.apiKey.trim());
+        // Clears the plaintext key earlier versions stored here. Saving the settings
+        // once is enough to clean an existing account; without this the old value
+        // would sit in Firestore indefinitely even though nothing writes it any more.
+        update.put(FIELD_API_KEY, com.google.firebase.firestore.FieldValue.delete());
         FirebaseFirestore.getInstance().collection("users").document(uid)
                 .set(update, SetOptions.merge());
     }
 
     /**
-     * Pulls the cloud copy into prefs. Runs {@code onLoaded} either way so the
-     * screen can render from whatever it has — being offline should show the last
-     * known key, not an empty form whose Save would wipe the stored one.
+     * Pulls the cloud on/off flag into prefs. Runs {@code onLoaded} either way so the
+     * screen can render from whatever it has.
+     *
+     * <p>The key itself is deliberately not read back. It lives only in encrypted
+     * prefs now, so the local value is the only value — and reading the old cloud
+     * field would quietly reintroduce the plaintext copy this change removes.
      */
     public static void loadFromFirestore(@NonNull Context context, String uid, Runnable onLoaded) {
         if (uid == null) {
@@ -88,11 +109,6 @@ public final class SmsGatewaySettings {
                         SharedPreferencesManager prefs = SharedPreferencesManager.getInstance(context);
                         Boolean enabled = doc.getBoolean(FIELD_ENABLED);
                         if (enabled != null) prefs.setSmsGatewayEnabled(enabled);
-
-                        String apiKey = doc.getString(FIELD_API_KEY);
-                        // Only overwrite with a real value: a missing field must not
-                        // clear a key the user already has stored locally.
-                        if (apiKey != null) prefs.setSmsGatewayApiKey(apiKey);
                     }
                     if (onLoaded != null) onLoaded.run();
                 })

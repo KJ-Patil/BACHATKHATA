@@ -70,6 +70,8 @@ public class AddTransactionActivity extends BaseActivity {
     private final android.os.Handler timeoutHandler = new android.os.Handler(android.os.Looper.getMainLooper());
     private Runnable saveTimeoutRunnable;
     private boolean saveCompleted = false;
+    /** True when the screen closed before the server acknowledged the write. */
+    private boolean savePending = false;
     private static final long SAVE_TIMEOUT_MS = 10000; // 10 seconds
 
     @Override
@@ -438,7 +440,7 @@ public class AddTransactionActivity extends BaseActivity {
 
         showLoading(true);
         saveCompleted = false;
-        startSaveTimeout();
+        savePending = false;
 
         String uid = mAuth.getCurrentUser().getUid();
 
@@ -459,6 +461,10 @@ public class AddTransactionActivity extends BaseActivity {
             transaction.setOriginalAmount(currency.toBaseAmount(discount.gross));
             transaction.setDiscountAmount(currency.toBaseAmount(discount.discount));
         }
+
+        // Started here rather than before the transaction is built, so the timeout has
+        // the uid and row it needs to finish the job properly if the server never acks.
+        startSaveTimeout(uid, transaction);
 
         if (groupId != null && "expense".equals(transactionType)) {
             mFirestore.collection("groups").document(groupId).get()
@@ -522,13 +528,34 @@ public class AddTransactionActivity extends BaseActivity {
         }
     }
 
-    private void startSaveTimeout() {
+    /**
+     * Closes the screen when the server has not acknowledged the write in time.
+     *
+     * <p>This exists because a Firestore write offline never completes: the row is
+     * applied to the local cache straight away and the Task stays pending until the
+     * device reconnects. Without a timeout the user would sit on a spinner forever.
+     *
+     * <p>Two things were wrong with how it did that. It announced <em>"Transaction
+     * saved!"</em>, which overstates a write that has not reached the server — and
+     * because it set {@code saveCompleted}, the real failure callback arriving later
+     * returned early, so a genuine permission or validation error was swallowed and
+     * reported to the user as a success. It also skipped every post-save side effect,
+     * so budget alerts, round-up savings, anomaly detection and streaks silently did
+     * not run for anything saved while offline.
+     *
+     * <p>Now it says the write is pending, runs the side effects (the row is in the
+     * local cache, so they operate on real data), and leaves {@link #onSaveFailure}
+     * able to speak up if the write is ultimately rejected.
+     */
+    private void startSaveTimeout(String uid, Transaction transaction) {
         cancelSaveTimeout();
         saveTimeoutRunnable = () -> {
             if (!saveCompleted && !isFinishing() && !isDestroyed()) {
                 saveCompleted = true;
+                savePending = true;
+                runPostSaveSideEffects(uid, transaction);
                 showLoading(false);
-                showSuccess("Transaction saved!");
+                showSuccess(getString(R.string.txn_saved_pending_sync));
                 new android.os.Handler(android.os.Looper.getMainLooper()).postDelayed(this::finish, 1000);
             }
         };
@@ -587,10 +614,24 @@ public class AddTransactionActivity extends BaseActivity {
     }
 
     private void onSaveSuccess(String uid, Transaction transaction) {
-        if (saveCompleted) return; // Already handled by timeout
+        if (saveCompleted) return; // Already handled by the pending-sync timeout
         saveCompleted = true;
         cancelSaveTimeout();
 
+        runPostSaveSideEffects(uid, transaction);
+
+        showLoading(false);
+        showSuccess("Transaction saved!");
+        new android.os.Handler(android.os.Looper.getMainLooper()).postDelayed(this::finish, 1000);
+    }
+
+    /**
+     * Everything that reacts to a new row: budget thresholds, round-up savings, the
+     * anomaly check and the streak/badge updates. Split out so the pending-sync path
+     * runs them too — the row is already in the local cache by then, so skipping them
+     * meant no budget alert ever fired for a transaction entered offline.
+     */
+    private void runPostSaveSideEffects(String uid, Transaction transaction) {
         checkBudgetsAndNotify(uid, transaction);
 
         if ("expense".equalsIgnoreCase(transaction.getType())) {
@@ -613,14 +654,22 @@ public class AddTransactionActivity extends BaseActivity {
         } catch (Exception e) {
             e.printStackTrace();
         }
-
-        showLoading(false);
-        showSuccess("Transaction saved!");
-        new android.os.Handler(android.os.Looper.getMainLooper()).postDelayed(this::finish, 1000);
     }
 
     private void onSaveFailure(String errorMsg) {
-        if (saveCompleted) return; // Already handled by timeout
+        if (saveCompleted) {
+            // The screen already closed reporting the write as pending. A rejection
+            // arriving now means Firestore rolled the row back out of the local cache,
+            // so it is gone and the user is the only one who can re-enter it. Say so on
+            // the application context, which outlives this activity — staying silent
+            // here is what made a failed save look like a successful one.
+            if (savePending) {
+                android.widget.Toast.makeText(getApplicationContext(),
+                        getString(R.string.txn_sync_failed, errorMsg),
+                        android.widget.Toast.LENGTH_LONG).show();
+            }
+            return;
+        }
         saveCompleted = true;
         cancelSaveTimeout();
 

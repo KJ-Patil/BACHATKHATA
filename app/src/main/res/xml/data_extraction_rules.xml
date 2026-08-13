@@ -1,19 +1,17 @@
 <?xml version="1.0" encoding="utf-8"?><!--
-   Sample data extraction rules file; uncomment and customize as necessary.
-   See https://developer.android.com/about/versions/12/backup-restore#xml-changes
-   for details.
+   Backup / transfer rules for API 31+.
+   https://developer.android.com/about/versions/12/backup-restore#xml-changes
+
+   See backup_rules.xml for the reasoning: the encrypted preference file is sealed
+   with an AndroidKeyStore key that never leaves the device it was created on, so
+   carrying the file to another device produces an unopenable store rather than
+   restored settings. Excluded from both cloud backup and direct device transfer.
 -->
 <data-extraction-rules>
     <cloud-backup>
-        <!-- TODO: Use <include> and <exclude> to control what is backed up.
-        <include .../>
-        <exclude .../>
-        -->
+        <exclude domain="sharedpref" path="BachatKhata_Prefs_Enc.xml" />
     </cloud-backup>
-    <!--
     <device-transfer>
-        <include .../>
-        <exclude .../>
+        <exclude domain="sharedpref" path="BachatKhata_Prefs_Enc.xml" />
     </device-transfer>
-    -->
 </data-extraction-rules>

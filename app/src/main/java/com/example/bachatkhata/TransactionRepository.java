@@ -16,7 +16,6 @@ public class TransactionRepository {
 
     private static TransactionRepository instance;
     private final FirebaseFirestore mFirestore;
-    private ListenerRegistration transactionsListener;
 
     private TransactionRepository() {
         mFirestore = FirebaseFirestore.getInstance();
@@ -29,16 +28,26 @@ public class TransactionRepository {
         return instance;
     }
 
-    public void observeTransactions(String uid, OnTransactionLoadedListener callback) {
-        if (transactionsListener != null) {
-            transactionsListener.remove();
-        }
-
+    /**
+     * Streams the user's transactions, newest first.
+     *
+     * <p><b>The caller owns the returned registration and must remove it</b> when its
+     * screen goes away. This used to be the other way round: the repository is a
+     * singleton and it held one shared {@code ListenerRegistration}, cancelling the
+     * previous one on every call. Home, Transactions and Analytics are all bottom-nav
+     * tabs of the same activity and all observe here, so opening one silently killed
+     * the others' updates — switch Home → Transactions → Home and the dashboard was
+     * frozen on stale figures until the app restarted. Tearing one screen down took
+     * out whichever screen happened to own the listener at the time.
+     *
+     * <p>A registration per caller is what keeps them independent.
+     */
+    public ListenerRegistration observeTransactions(String uid, OnTransactionLoadedListener callback) {
         CollectionReference transactionsCol = mFirestore.collection("users")
                 .document(uid)
                 .collection("transactions");
 
-        transactionsListener = transactionsCol.orderBy("date", Query.Direction.DESCENDING)
+        return transactionsCol.orderBy("date", Query.Direction.DESCENDING)
                 .addSnapshotListener((value, error) -> {
                     if (error != null) {
                         return;
@@ -75,13 +84,6 @@ public class TransactionRepository {
                 .delete()
                 .addOnSuccessListener(success)
                 .addOnFailureListener(failure);
-    }
-
-    public void removeListener() {
-        if (transactionsListener != null) {
-            transactionsListener.remove();
-            transactionsListener = null;
-        }
     }
 
     public interface OnTransactionLoadedListener {

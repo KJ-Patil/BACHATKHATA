@@ -218,37 +218,76 @@ public class BaseActivity extends AppCompatActivity {
         isLockScreenActive = true;
 
         String uid = auth.getCurrentUser().getUid();
+        SharedPreferencesManager prefs = SharedPreferencesManager.getInstance(this);
+
+        // The locally cached PIN state answers this without a network round-trip, so
+        // the lock no longer depends on Firestore being reachable. The mirror is kept
+        // current by SplashActivity on every cold start and by PinSetupActivity
+        // whenever the PIN itself changes, so a PIN set on another device still
+        // reaches this device on its next launch.
+        if (prefs.isPinStateKnown(uid)) {
+            if (!prefs.getCachedPinHash(uid).trim().isEmpty()) {
+                launchLockScreen();
+            } else {
+                isAppLocked = false;
+                isLockScreenActive = false;
+            }
+            return;
+        }
+
+        // No cached answer yet (first run after upgrading). Ask Firestore, and mirror
+        // whatever comes back so this branch is not needed again.
         FirebaseFirestore.getInstance().collection("users").document(uid).get()
                 .addOnSuccessListener(documentSnapshot -> {
-                    if (documentSnapshot.exists()) {
-                        String pinHash = documentSnapshot.getString("pinHash");
-                        if (pinHash != null && !pinHash.trim().isEmpty()) {
-                            // Keep isLockScreenActive == true until the user unlocks
-                            // (setAppUnlocked) so the lock screen isn't relaunched.
-                            Intent intent = new Intent(BaseActivity.this, PinSetupActivity.class);
-                            intent.putExtra("mode", "VERIFY");
-                            intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
-                            startActivity(intent);
-                            finish();
-                        } else {
-                            isAppLocked = false;
-                            isLockScreenActive = false;
-                        }
+                    String pinHash = documentSnapshot.exists()
+                            ? documentSnapshot.getString("pinHash") : "";
+                    prefs.setCachedPin(uid, pinHash);
+                    if (pinHash != null && !pinHash.trim().isEmpty()) {
+                        // Keep isLockScreenActive == true until the user unlocks
+                        // (setAppUnlocked) so the lock screen isn't relaunched.
+                        launchLockScreen();
                     } else {
                         isAppLocked = false;
                         isLockScreenActive = false;
                     }
                 })
                 .addOnFailureListener(e -> {
-                    isAppLocked = false;
-                    isLockScreenActive = false;
+                    // Fail CLOSED. An unreadable profile is not evidence that no PIN
+                    // is set, and unlocking here turned "no network" into a bypass.
+                    // Reaching this line already implies the user switched app lock on
+                    // (onStart only sets isAppLocked when isAppLockEnabled), so a lock
+                    // screen is what they asked for. Nothing is cached — the answer is
+                    // still unknown, so the next attempt re-reads.
+                    launchLockScreen();
                 });
+    }
+
+    private void launchLockScreen() {
+        Intent intent = new Intent(BaseActivity.this, PinSetupActivity.class);
+        intent.putExtra("mode", "VERIFY");
+        intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+        startActivity(intent);
+        finish();
     }
 
     public static void setAppUnlocked() {
         isAppLocked = false;
         isLockScreenActive = false;
         backgroundTimeMs = -1;
+    }
+
+    /**
+     * Releases the claim made by {@link #checkPinConfigAndLock()} <em>without</em>
+     * unlocking, so the lock screen can be launched again.
+     *
+     * <p>Called when the lock screen is torn down while the app is still locked. The
+     * claim used to be released only on a successful unlock, so dismissing the lock
+     * screen with Back wedged the flag on for the life of the process: every later
+     * check returned early at the guard and the app opened unlocked. The flag exists
+     * to stop duplicate launches, not to record that the user got in.
+     */
+    public static void releaseLockScreen() {
+        isLockScreenActive = false;
     }
 
     // Utility: Show Clay loading ProgressBar Dialog

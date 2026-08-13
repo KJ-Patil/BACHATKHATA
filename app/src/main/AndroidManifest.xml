@@ -87,9 +87,13 @@
             android:exported="false" />
 
         <!-- Main Workspace -->
+        <!-- exported="false": there is no intent-filter here, and every launch comes
+             from inside the app (SplashActivity, the lock screen, notification
+             PendingIntents). Exporting it let any other app start the dashboard
+             directly with `am start`, skipping the splash screen's PIN check. -->
         <activity
             android:name=".MainActivity"
-            android:exported="true"
+            android:exported="false"
             android:windowSoftInputMode="adjustResize" />
 
         <!-- Transaction management -->

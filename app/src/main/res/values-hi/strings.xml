@@ -69,6 +69,9 @@
     <string name="pin_setup_mismatch">पिन मेल नहीं खाते। कृपया पुनः प्रयास करें।</string>
     <string name="pin_correct">पिन सत्यापित।</string>
     <string name="pin_incorrect">गलत पिन। कृपया पुनः प्रयास करें।</string>
+    <string name="pin_unavailable_offline">ऑफ़लाइन आपका पिन अभी जाँचा नहीं जा सकता। एक बार इंटरनेट से कनेक्ट करें, फिर पुनः प्रयास करें।</string>
+    <string name="txn_saved_pending_sync">इस डिवाइस पर सहेजा गया। ऑनलाइन होने पर यह सिंक हो जाएगा।</string>
+    <string name="txn_sync_failed">आपका पिछला लेनदेन सिंक नहीं हो सका, इसलिए वह सहेजा नहीं गया: %1$s</string>
     <string name="biometric_setup_title">फ़िंगरप्रिंट अनलॉक सक्षम करें?</string>
     <string name="biometric_setup_desc">अपने वित्त को सुरक्षित रखें और अपने फ़िंगरप्रिंट से तुरंत अनलॉक करें — कोई पिन आवश्यक नहीं।</string>
     <string name="enable">सक्षम करें</string>

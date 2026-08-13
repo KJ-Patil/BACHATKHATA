@@ -45,6 +45,13 @@ public class SharedPreferencesManager {
     // Dictation language for voice logging. Separate from the UI language — someone
     // reading the app in English may still speak their transactions in Tamil.
     public static final String KEY_VOICE_LANGUAGE = "VOICE_LANGUAGE";
+    // App-lock PIN mirror. Firestore stays the source of truth, but the lock cannot
+    // depend on reaching it: a failed read is not proof that no PIN is set, and
+    // treating it that way made airplane mode a bypass. Cached here because this
+    // store is the AES-GCM encrypted one.
+    public static final String KEY_PIN_HASH = "PIN_HASH";
+    public static final String KEY_PIN_UID = "PIN_UID";
+    public static final String KEY_PIN_KNOWN = "PIN_KNOWN";
 
     private SharedPreferencesManager(Context context) {
         Context appContext = context.getApplicationContext();
@@ -54,27 +61,71 @@ public class SharedPreferencesManager {
 
     /**
      * Build an AES-GCM encrypted preference store, migrating any pre-existing plaintext
-     * preferences into it once. Falls back to the plaintext store if the device cannot
-     * provide encryption (keeps the app usable rather than crashing).
+     * preferences into it once.
+     *
+     * <p>A first failure is not treated as "this device cannot encrypt". By far the
+     * likeliest cause is a store sealed with a key that no longer exists — a restored
+     * backup carries the file but not the AndroidKeyStore key, and the keystore can
+     * also be invalidated by a lock-screen change. The file is then permanently
+     * unopenable, and the old code answered that by silently returning the legacy
+     * plaintext store, which {@link #migrateLegacyPlaintext} had already wiped. The
+     * user lost their app-lock settings and SMS gateway key with no error, and every
+     * later launch hit the same dead end.
+     *
+     * <p>So an unopenable store is discarded and rebuilt. That loses the local copy of
+     * the settings, which is unavoidable — nothing can decrypt it — but it yields a
+     * working store that re-syncs from Firestore, instead of a broken one forever.
      */
     private SharedPreferences buildPreferences(Context appContext) {
         try {
-            MasterKey masterKey = new MasterKey.Builder(appContext)
-                    .setKeyScheme(MasterKey.KeyScheme.AES256_GCM)
-                    .build();
+            return createEncrypted(appContext);
+        } catch (Exception first) {
+            try {
+                discardUnreadableStore(appContext);
+                return createEncrypted(appContext);
+            } catch (Exception second) {
+                // Genuinely no encryption available on this device. Last resort, so the
+                // app still runs; the PIN's source of truth is Firestore either way.
+                return appContext.getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE);
+            }
+        }
+    }
 
-            SharedPreferences encrypted = EncryptedSharedPreferences.create(
-                    appContext,
-                    ENC_PREF_NAME,
-                    masterKey,
-                    EncryptedSharedPreferences.PrefKeyEncryptionScheme.AES256_SIV,
-                    EncryptedSharedPreferences.PrefValueEncryptionScheme.AES256_GCM);
+    private SharedPreferences createEncrypted(Context appContext) throws Exception {
+        MasterKey masterKey = new MasterKey.Builder(appContext)
+                .setKeyScheme(MasterKey.KeyScheme.AES256_GCM)
+                .build();
 
-            migrateLegacyPlaintext(appContext, encrypted);
-            return encrypted;
-        } catch (Exception e) {
-            // Encryption unavailable — degrade gracefully to the legacy plaintext store.
-            return appContext.getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE);
+        SharedPreferences encrypted = EncryptedSharedPreferences.create(
+                appContext,
+                ENC_PREF_NAME,
+                masterKey,
+                EncryptedSharedPreferences.PrefKeyEncryptionScheme.AES256_SIV,
+                EncryptedSharedPreferences.PrefValueEncryptionScheme.AES256_GCM);
+
+        migrateLegacyPlaintext(appContext, encrypted);
+        return encrypted;
+    }
+
+    /**
+     * Throws away a store that can no longer be decrypted, along with the master key
+     * entry, so the retry above builds a fresh pair. Both halves have to go: keeping
+     * the old key would re-seal against a key the file does not match, and keeping the
+     * old file would fail against the new key.
+     */
+    private void discardUnreadableStore(Context appContext) {
+        try {
+            appContext.deleteSharedPreferences(ENC_PREF_NAME);
+        } catch (Exception ignored) {
+            // Nothing to delete, or the platform refused — the key reset below may
+            // still be enough to recover.
+        }
+        try {
+            java.security.KeyStore keyStore = java.security.KeyStore.getInstance("AndroidKeyStore");
+            keyStore.load(null);
+            keyStore.deleteEntry(MasterKey.DEFAULT_MASTER_KEY_ALIAS);
+        } catch (Exception ignored) {
+            // No such entry, or the keystore is unavailable. The retry decides.
         }
     }
 
@@ -321,6 +372,51 @@ public class SharedPreferencesManager {
 
     public String getVoiceLanguage() {
         return sharedPreferences.getString(KEY_VOICE_LANGUAGE, VoiceLanguages.DEFAULT_TAG);
+    }
+
+    // ── App-lock PIN mirror ──
+    //
+    // Two distinct facts are stored, and the lock needs both: WHAT the hash is, and
+    // WHETHER the answer is known at all. "No PIN set" and "never synced" look
+    // identical if only the hash is kept, and they must route differently — the
+    // first lets the user straight in, the second must not.
+
+    /**
+     * Records the account's PIN state locally. A null or empty {@code hash} is a
+     * meaningful value: it records "this account has no PIN", which is exactly what
+     * lets the lock skip itself offline without guessing.
+     */
+    public void setCachedPin(String uid, String hash) {
+        if (uid == null || uid.isEmpty()) return;
+        editor.putString(KEY_PIN_UID, uid);
+        editor.putString(KEY_PIN_HASH, hash == null ? "" : hash);
+        editor.putBoolean(KEY_PIN_KNOWN, true);
+        editor.apply();
+    }
+
+    /**
+     * True once {@code uid}'s PIN state has been synced at least once on this device.
+     * The uid is part of the check so a cached hash can never be applied to whichever
+     * account happens to sign in next.
+     */
+    public boolean isPinStateKnown(String uid) {
+        if (uid == null || uid.isEmpty()) return false;
+        if (!sharedPreferences.getBoolean(KEY_PIN_KNOWN, false)) return false;
+        return uid.equals(sharedPreferences.getString(KEY_PIN_UID, ""));
+    }
+
+    /** The cached hash for {@code uid}; {@code ""} when unknown or when no PIN is set. */
+    public String getCachedPinHash(String uid) {
+        if (!isPinStateKnown(uid)) return "";
+        return sharedPreferences.getString(KEY_PIN_HASH, "");
+    }
+
+    /** Drops the mirror — used on sign-out so the next account starts from Firestore. */
+    public void clearCachedPin() {
+        editor.remove(KEY_PIN_HASH);
+        editor.remove(KEY_PIN_UID);
+        editor.remove(KEY_PIN_KNOWN);
+        editor.apply();
     }
 
     // Clear settings

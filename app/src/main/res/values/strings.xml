@@ -71,6 +71,9 @@
     <string name="pin_setup_mismatch">Those PINs don\'t match. Please try again.</string>
     <string name="pin_correct">PIN verified.</string>
     <string name="pin_incorrect">Incorrect PIN. Please try again.</string>
+    <string name="pin_unavailable_offline">Can\'t check your PIN offline yet. Connect to the internet once, then try again.</string>
+    <string name="txn_saved_pending_sync">Saved on this device. It will sync when you\'re back online.</string>
+    <string name="txn_sync_failed">Couldn\'t sync your last transaction, so it wasn\'t saved: %1$s</string>
     <string name="pin_forgot">Forgot PIN?</string>
     <string name="pin_verify_title">Enter Security PIN</string>
     <string name="pin_verify_subtitle">Confirm your identity to unlock.</string>

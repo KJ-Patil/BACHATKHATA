@@ -984,6 +984,11 @@ public class ProfileFragment extends Fragment {
     }
 
     private void performSignOut() {
+        // The lock now trusts a locally mirrored PIN, so it has to go with the account
+        // it belongs to — otherwise the next person to sign in on this device inherits
+        // this account's lock state.
+        SharedPreferencesManager.getInstance(requireContext()).clearCachedPin();
+        BaseActivity.setAppUnlocked();
         mAuth.signOut();
         GoogleSignInOptions gso = new GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN).build();
         GoogleSignInClient client = GoogleSignIn.getClient(requireActivity(), gso);

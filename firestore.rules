@@ -31,30 +31,88 @@ service cloud.firestore {
 
     match /groups/{groupId} {
 
+      function isMember() {
+        return request.auth != null
+            && request.auth.uid in resource.data.memberUids;
+      }
+
+      // The only top-level fields any member may change. Everything else —
+      // id, createdBy, createdAt, inviteCode, type — is fixed at creation, so a
+      // group cannot be repointed or re-identified after the fact.
+      //
+      // Each entry is written by a real screen: members/memberUids (join, leave),
+      // memberLimits (GroupDetailActivity), balance (AddTransactionActivity and
+      // OrgExpenseClaimsActivity), eventTargetBudget (EventFundActivity),
+      // donationCounter (OrgDonationTrackerActivity), name (rename).
+      function memberWritableFields() {
+        return ['members', 'memberUids', 'memberLimits', 'balance',
+                'eventTargetBudget', 'donationCounter', 'name'];
+      }
+
+      function changedKeys() {
+        return request.resource.data.diff(resource.data).affectedKeys();
+      }
+
+      // An existing member editing the group. Two limits, both absent before:
+      // only the fields above may move, and a member may drop only THEMSELF from
+      // the roster. Leaving is self-removal; evicting someone else is not, and the
+      // old rule allowed any member to empty memberUids entirely. The creator is
+      // exempt so an admin can still remove a member.
+      function isMemberUpdate() {
+        return isMember()
+            && changedKeys().hasOnly(memberWritableFields())
+            && (request.auth.uid == resource.data.createdBy
+                || request.resource.data.memberUids.hasAll(
+                     resource.data.memberUids.removeAll([request.auth.uid])));
+      }
+
+      // Someone joining with an invite code. This is the only write a non-member
+      // may make, and it has to be exactly "append me and nothing else".
+      //
+      // The old rule asked only whether the uid appeared in the RESULT, which any
+      // signed-in user could satisfy while rewriting the document around it: send
+      // memberUids: [me] and every existing member is evicted, with name, balance
+      // and members free to change in the same write. Requiring the new array to
+      // equal the old one plus this uid makes eviction unexpressible.
+      //
+      // `members` is display-only — the header note above applies, authorization
+      // never reads it — so growth by one entry is all that is checked there.
+      function isSelfJoin() {
+        return request.auth != null
+            && !(request.auth.uid in resource.data.memberUids)
+            && changedKeys().hasOnly(['members', 'memberUids'])
+            && request.resource.data.memberUids ==
+                 resource.data.memberUids.concat([request.auth.uid])
+            && request.resource.data.members.size() ==
+                 resource.data.members.size() + 1;
+      }
+
       // Read a single group you belong to.
-      allow get: if request.auth != null
-                 && request.auth.uid in resource.data.memberUids;
+      allow get: if isMember();
 
       // Queries. This permits exactly one shape:
       //     collection("groups").whereArrayContains("memberUids", uid)
       // which is what the Family Wallet dashboard issues. Any broader query —
       // including an unfiltered fetch of the collection — is rejected, so the
       // groups collection can never be enumerated by a stranger.
-      allow list: if request.auth != null
-                  && request.auth.uid in resource.data.memberUids;
+      allow list: if isMember();
 
-      // The creator must already be in memberUids on the document they write.
+      // A new group starts with its creator and nobody else. Seeding memberUids
+      // with other people's uids would push an unrequested group into their
+      // Family Wallet list, so the roster has to start as just the author.
+      // Invited contacts live in `members` with a blank uid until they join.
       allow create: if request.auth != null
+                    && request.resource.data.createdBy == request.auth.uid
+                    && request.resource.data.memberUids.hasOnly([request.auth.uid])
                     && request.auth.uid in request.resource.data.memberUids;
 
-      // Either an existing member editing/leaving, or someone joining by adding
-      // themselves via arrayUnion.
-      allow update: if request.auth != null
-                    && (request.auth.uid in resource.data.memberUids
-                        || request.auth.uid in request.resource.data.memberUids);
+      allow update: if isMemberUpdate() || isSelfJoin();
 
-      allow delete: if request.auth != null
-                    && request.auth.uid in resource.data.memberUids;
+      // Deleting destroys the shared history for everyone, so it is allowed only
+      // once nobody else is left — which is exactly when GroupDetailActivity
+      // offers it (the Leave dialog switches to Delete for the last member).
+      // Previously any one member could erase a group the others were still using.
+      allow delete: if isMember() && resource.data.memberUids.size() == 1;
 
       // All shared subcollections inherit the parent's membership check:
       // group_transactions, expense_claims, projects, donations,
@@ -74,13 +132,30 @@ service cloud.firestore {
     //
     // Written by CreateGroupActivity.publishInviteCode, read by
     // FamilyWalletFragment.joinGroupWithInviteCode.
+    // NOTE ON CODE STRENGTH: a code is the sole credential for joining, and `get`
+    // is open to any signed-in user, so the secrecy of the code is the only thing
+    // protecting a group's data. Six digits is a 1,000,000-key space — cheap to
+    // walk exhaustively, which turns this collection into a directory of every
+    // groupId in the app. Rules cannot fix that: they cannot rate-limit, and they
+    // cannot tell a guessed document id from a shared one. The fix is entropy, in
+    // CreateGroupActivity.claimInviteCode. Until codes get longer, treat group
+    // wallets as protected by an easily-guessed code.
     match /inviteCodes/{code} {
       allow get:    if request.auth != null;
       allow list:   if false;
       allow create: if request.auth != null
                     && request.auth.uid in
                        get(/databases/$(database)/documents/groups/$(request.resource.data.groupId)).data.memberUids;
-      allow update, delete: if request.auth != null
+
+      // No update. The mapping is write-once: nothing in the app rewrites a live
+      // code, and allowing it would let a member of group A repoint a code at
+      // group B, silently redirecting everyone who already holds that code.
+      // CreateGroupActivity's collision path relies on this — its set() on a code
+      // that already exists is an update, and being denied is what makes it report
+      // the code as unshareable instead of hijacking the existing mapping.
+      allow update: if false;
+
+      allow delete: if request.auth != null
                     && request.auth.uid in
                        get(/databases/$(database)/documents/groups/$(resource.data.groupId)).data.memberUids;
     }

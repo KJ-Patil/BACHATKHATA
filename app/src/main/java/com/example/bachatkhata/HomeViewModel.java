@@ -33,6 +33,7 @@ public class HomeViewModel extends ViewModel {
     private final List<Budget> budgetsList = new ArrayList<>();
     private final List<SavingsGoal> goalsList = new ArrayList<>();
     private ListenerRegistration budgetsListener;
+    private ListenerRegistration transactionsListener;
 
     // Line chart (Spending Trend) — cumulative series, aligned on a shared day axis
     private final MutableLiveData<List<Entry>> lineIncomeData = new MutableLiveData<>(new ArrayList<>());
@@ -91,8 +92,13 @@ public class HomeViewModel extends ViewModel {
     public void loadDashboardData(String uid, String period) {
         selectedPeriod.setValue(period);
         
-        // 1. Observe Transactions in real time
-        TransactionRepository.getInstance().observeTransactions(uid, list -> {
+        // 1. Observe Transactions in real time. This screen owns its registration —
+        // see TransactionRepository.observeTransactions for why they are no longer
+        // shared. loadDashboardData can be called again, so drop the old one first.
+        if (transactionsListener != null) {
+            transactionsListener.remove();
+        }
+        transactionsListener = TransactionRepository.getInstance().observeTransactions(uid, list -> {
             allTransactionsList.clear();
             allTransactionsList.addAll(list);
             allTransactions.setValue(new ArrayList<>(allTransactionsList));
@@ -354,7 +360,9 @@ public class HomeViewModel extends ViewModel {
     @Override
     protected void onCleared() {
         super.onCleared();
-        TransactionRepository.getInstance().removeListener();
+        if (transactionsListener != null) {
+            transactionsListener.remove();
+        }
         if (savingsListener != null) {
             savingsListener.remove();
         }

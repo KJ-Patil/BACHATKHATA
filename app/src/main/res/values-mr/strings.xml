@@ -69,6 +69,9 @@
     <string name="pin_setup_mismatch">पिन जुळत नाहीत. कृपया पुन्हा प्रयत्न करा.</string>
     <string name="pin_correct">पिन सत्यापित.</string>
     <string name="pin_incorrect">चुकीचा पिन. कृपया पुन्हा प्रयत्न करा.</string>
+    <string name="pin_unavailable_offline">ऑफलाइन असताना तुमचा पिन अद्याप तपासता येत नाही. एकदा इंटरनेटशी कनेक्ट करा, नंतर पुन्हा प्रयत्न करा.</string>
+    <string name="txn_saved_pending_sync">या डिव्हाइसवर जतन केले. ऑनलाइन आल्यावर ते सिंक होईल.</string>
+    <string name="txn_sync_failed">तुमचा मागील व्यवहार सिंक होऊ शकला नाही, त्यामुळे तो जतन झाला नाही: %1$s</string>
     <string name="biometric_setup_title">फिंगरप्रिंट अनलॉक सक्षम करायचे?</string>
     <string name="biometric_setup_desc">आपले वित्त सुरक्षित ठेवा आणि आपल्या फिंगरप्रिंटने त्वरित अनलॉक करा — पिनची आवश्यकता नाही.</string>
     <string name="enable">सक्षम करा</string>

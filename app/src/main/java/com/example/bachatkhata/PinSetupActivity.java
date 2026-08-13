@@ -36,6 +36,8 @@ public class PinSetupActivity extends AppCompatActivity {
     private String tempPin = "";
     private boolean isConfirming = false;
     private boolean isBiometricEnabled = false;
+    /** Set once the user gets past this screen, so onDestroy knows not to re-arm the lock. */
+    private boolean unlocked = false;
 
     @Override
     protected void attachBaseContext(android.content.Context newBase) {
@@ -58,7 +60,48 @@ public class PinSetupActivity extends AppCompatActivity {
 
         setupUI();
         setupListeners();
+        setupBackBehaviour();
         loadPinAndBiometricStatus();
+    }
+
+    /**
+     * In VERIFY mode this activity IS the lock, so Back must not dismiss it. It sends
+     * the task to the background instead — the same thing the system lock screen does —
+     * leaving this screen as the resume point. Previously Back simply finished the
+     * activity, which dropped the user onto whatever was behind it.
+     */
+    private void setupBackBehaviour() {
+        if (!"VERIFY".equals(mode)) return;
+        getOnBackPressedDispatcher().addCallback(this,
+                new androidx.activity.OnBackPressedCallback(true) {
+                    @Override
+                    public void handleOnBackPressed() {
+                        moveTaskToBack(true);
+                    }
+                });
+    }
+
+    /**
+     * If this screen goes away while the app is still locked, hand the launch claim
+     * back so the lock can be shown again. Without this the claim stayed set for the
+     * life of the process and every later check short-circuited, leaving the app
+     * permanently unlocked.
+     */
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        if ("VERIFY".equals(mode) && !unlocked) {
+            BaseActivity.releaseLockScreen();
+        }
+    }
+
+    /** Everything that must happen exactly once, when the user is let through. */
+    private void enterApp() {
+        unlocked = true;
+        BaseActivity.setAppUnlocked();
+        startActivity(new Intent(PinSetupActivity.this, MainActivity.class)
+                .putExtra(MainActivity.EXTRA_SKIP_BIOMETRIC, true));
+        finish();
     }
 
     private void setupUI() {
@@ -80,6 +123,12 @@ public class PinSetupActivity extends AppCompatActivity {
     private void loadPinAndBiometricStatus() {
         if (mAuth.getCurrentUser() == null) return;
         String uid = mAuth.getCurrentUser().getUid();
+        SharedPreferencesManager prefs = SharedPreferencesManager.getInstance(this);
+
+        // Seed from the encrypted local mirror first, so the PIN can be entered and
+        // checked with no network at all. Firestore then refreshes it below to pick up
+        // a PIN changed on another device.
+        correctPinHash = prefs.getCachedPinHash(uid);
 
         showLoading(true);
         mFirestore.collection("users").document(uid).get()
@@ -92,6 +141,7 @@ public class PinSetupActivity extends AppCompatActivity {
                         if (pinHash != null) {
                             correctPinHash = pinHash;
                         }
+                        prefs.setCachedPin(uid, pinHash);
                         if (bioEnabled != null) {
                             isBiometricEnabled = bioEnabled;
                         }
@@ -107,7 +157,10 @@ public class PinSetupActivity extends AppCompatActivity {
                 })
                 .addOnFailureListener(e -> {
                     showLoading(false);
-                    // If offline, continue without remote verification check (will fail PIN matching unless cached)
+                    // Offline. The cached hash above still verifies the PIN; only the
+                    // case where nothing was ever cached is unverifiable, and that is
+                    // said plainly at submit time rather than rejecting every attempt
+                    // as though the PIN were wrong.
                 });
     }
 
@@ -168,15 +221,20 @@ public class PinSetupActivity extends AppCompatActivity {
             }
         } else {
             // VERIFY Mode
+            if (correctPinHash == null || correctPinHash.trim().isEmpty()) {
+                // Nothing to check against: the profile has never synced to this device
+                // and there is no cached hash. Rejecting the PIN would read as "wrong
+                // PIN" and send the user round in circles, so name the real problem.
+                shakeInput();
+                showError(getString(R.string.pin_unavailable_offline));
+                return;
+            }
             if (verifyPin(pin, correctPinHash)) {
                 // Transparently upgrade legacy unsalted hashes to the salted v2$ format.
                 if (!correctPinHash.startsWith("v2$")) {
                     savePinHashSilently(hashPinV2(pin));
                 }
-                BaseActivity.setAppUnlocked();
-                startActivity(new Intent(PinSetupActivity.this, MainActivity.class)
-                        .putExtra(MainActivity.EXTRA_SKIP_BIOMETRIC, true));
-                finish();
+                enterApp();
             } else {
                 shakeInput();
                 showError(getString(R.string.pin_incorrect));
@@ -223,6 +281,11 @@ public class PinSetupActivity extends AppCompatActivity {
                 .set(Collections.singletonMap("pinHash", ""), SetOptions.merge())
                 .addOnSuccessListener(aVoid -> {
                     showLoading(false);
+                    // Drop the local mirror too. Leaving it behind would keep enforcing
+                    // the PIN that was just cleared, since the lock now trusts the cache.
+                    SharedPreferencesManager.getInstance(this).clearCachedPin();
+                    unlocked = true;
+                    BaseActivity.setAppUnlocked();
                     mAuth.signOut();
                     goToPhoneLogin();
                 })
@@ -282,6 +345,10 @@ public class PinSetupActivity extends AppCompatActivity {
     }
 
     private void performSwitchAccount() {
+        // The next account gets its PIN state from Firestore, not from this one's.
+        SharedPreferencesManager.getInstance(this).clearCachedPin();
+        unlocked = true;
+        BaseActivity.setAppUnlocked();
         mAuth.signOut();
         Intent intent = new Intent(PinSetupActivity.this, LoginActivity.class);
         intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
@@ -298,6 +365,7 @@ public class PinSetupActivity extends AppCompatActivity {
                 .set(Collections.singletonMap("pinHash", hash), SetOptions.merge())
                 .addOnSuccessListener(aVoid -> {
                     showLoading(false);
+                    SharedPreferencesManager.getInstance(this).setCachedPin(uid, hash);
                     // Successfully saved, go to BiometricSetupActivity
                     startActivity(new Intent(PinSetupActivity.this, BiometricSetupActivity.class));
                     finish();
@@ -323,10 +391,7 @@ public class PinSetupActivity extends AppCompatActivity {
                         @Override
                         public void onAuthenticationSucceeded(@NonNull BiometricPrompt.AuthenticationResult result) {
                             super.onAuthenticationSucceeded(result);
-                            BaseActivity.setAppUnlocked();
-                            startActivity(new Intent(PinSetupActivity.this, MainActivity.class)
-                                    .putExtra(MainActivity.EXTRA_SKIP_BIOMETRIC, true));
-                            finish();
+                            enterApp();
                         }
 
                         @Override
@@ -379,6 +444,7 @@ public class PinSetupActivity extends AppCompatActivity {
     private void savePinHashSilently(String hash) {
         if (mAuth.getCurrentUser() == null) return;
         String uid = mAuth.getCurrentUser().getUid();
+        SharedPreferencesManager.getInstance(this).setCachedPin(uid, hash);
         mFirestore.collection("users").document(uid)
                 .set(Collections.singletonMap("pinHash", hash), SetOptions.merge());
     }

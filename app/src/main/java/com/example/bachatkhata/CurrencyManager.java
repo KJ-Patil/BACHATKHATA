@@ -35,6 +35,8 @@ public class CurrencyManager {
     private final Map<String, String> supportedCurrencies = new HashMap<>();
     private final Map<String, Double> exchangeRates = new HashMap<>();
     private SharedPreferences ratesPrefs;
+    /** Application context, kept so the selected currency can be persisted on change. */
+    private Context appContext;
 
     private CurrencyManager() {
         // Initialize 20 supported currencies
@@ -72,12 +74,40 @@ public class CurrencyManager {
      * Loads any cached rates immediately and refreshes them in the background if stale.
      */
     public void init(Context context) {
+        appContext = context.getApplicationContext();
         if (ratesPrefs == null) {
-            ratesPrefs = context.getApplicationContext()
-                    .getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE);
+            ratesPrefs = appContext.getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE);
             loadCachedRates();
         }
+        restoreSelectedCurrency();
         refreshExchangeRates(false);
+    }
+
+    // ── Selected-currency persistence ───────────────────────────────────────
+    //
+    // The chosen currency used to live only in Firestore, fetched asynchronously
+    // from MainActivity. Until that read landed, every screen ran on the INR/₹
+    // defaults — so a USD user saw ₹ for the first moments of every launch, and
+    // anything typed in that window went through toBaseAmount at rate 1.0 and was
+    // stored raw as INR. Per the base-currency invariant below, that is silent and
+    // permanent corruption: nothing records what the value was really denominated
+    // in. Persisting the choice locally closes the window, because it is restored
+    // synchronously in init() before any screen renders.
+
+    /** Loads the last chosen currency so the first frame is already correct. */
+    private void restoreSelectedCurrency() {
+        if (appContext == null) return;
+        SharedPreferencesManager prefs = SharedPreferencesManager.getInstance(appContext);
+        currentCurrencyCode = prefs.getUserCurrency();
+        currentCurrencySymbol = prefs.getUserCurrencySymbol();
+    }
+
+    /** Mirrors the active currency locally. Called wherever it is set or refreshed. */
+    private void persistSelectedCurrency() {
+        if (appContext == null) return;
+        SharedPreferencesManager prefs = SharedPreferencesManager.getInstance(appContext);
+        prefs.setUserCurrency(currentCurrencyCode);
+        prefs.setUserCurrencySymbol(currentCurrencySymbol);
     }
 
     private void loadCachedRates() {
@@ -233,6 +263,9 @@ public class CurrencyManager {
                         String symbol = documentSnapshot.getString("currencySymbol");
                         if (code != null) currentCurrencyCode = code;
                         if (symbol != null) currentCurrencySymbol = symbol;
+                        // Keep the local mirror in step, so the next cold start opens
+                        // on this currency instead of falling back to INR.
+                        persistSelectedCurrency();
                     }
                     if (onLoaded != null) onLoaded.run();
                 })
@@ -249,7 +282,10 @@ public class CurrencyManager {
     public void saveToFirestore(String uid, String code, String symbol, Runnable onSaved) {
         currentCurrencyCode = code;
         currentCurrencySymbol = symbol;
-        
+        // Persisted before the network call, not after: the choice must survive a
+        // cold start even if the Firestore write never lands.
+        persistSelectedCurrency();
+
         Map<String, Object> updates = new HashMap<>();
         updates.put("currency", code);
         updates.put("currencySymbol", symbol);

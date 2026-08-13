@@ -58,6 +58,7 @@ public class TransactionsFragment extends Fragment {
     private FragmentTransactionsBinding binding;
     private FirebaseAuth mAuth;
     private SectionedAdapter adapter;
+    private com.google.firebase.firestore.ListenerRegistration transactionsListener;
     private final List<Transaction> allTransactions = new ArrayList<>();
     
     private String selectedTypeFilter = "ALL"; // "ALL", "INCOME", "EXPENSE"
@@ -175,11 +176,30 @@ public class TransactionsFragment extends Fragment {
     }
 
     private void loadTransactions(String uid) {
-        TransactionRepository.getInstance().observeTransactions(uid, list -> {
+        // This screen owns its registration — see TransactionRepository. Drop any
+        // previous one so a re-entry does not leave two listeners running.
+        if (transactionsListener != null) {
+            transactionsListener.remove();
+        }
+        transactionsListener = TransactionRepository.getInstance().observeTransactions(uid, list -> {
+            if (binding == null) return; // view already torn down
             allTransactions.clear();
             allTransactions.addAll(list);
             applyFiltersAndSort();
         });
+    }
+
+    @Override
+    public void onDestroyView() {
+        super.onDestroyView();
+        // The listener used to be cancelled as a side effect of another screen calling
+        // observeTransactions, so nothing here ever released it. With per-caller
+        // registrations this screen has to clean up after itself.
+        if (transactionsListener != null) {
+            transactionsListener.remove();
+            transactionsListener = null;
+        }
+        binding = null;
     }
 
     private void applyFiltersAndSort() {

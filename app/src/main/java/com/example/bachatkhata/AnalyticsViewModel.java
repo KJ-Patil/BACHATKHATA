@@ -7,6 +7,7 @@ import androidx.lifecycle.ViewModel;
 import com.github.mikephil.charting.data.BarEntry;
 import com.github.mikephil.charting.data.Entry;
 import com.github.mikephil.charting.data.PieEntry;
+import com.google.firebase.firestore.ListenerRegistration;
 
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -20,6 +21,9 @@ import java.util.Map;
 import java.util.TreeMap;
 
 public class AnalyticsViewModel extends ViewModel {
+
+    /** Owned by this screen — see TransactionRepository.observeTransactions. */
+    private ListenerRegistration transactionsListener;
 
     private final MutableLiveData<List<PieEntry>> pieChartData = new MutableLiveData<>(new ArrayList<>());
     private final MutableLiveData<List<CategoryBreakdown>> categoryBreakdowns = new MutableLiveData<>(new ArrayList<>());
@@ -56,7 +60,12 @@ public class AnalyticsViewModel extends ViewModel {
     public LiveData<List<String>> getBarChartLabels() { return barChartLabels; }
 
     public void init(String uid) {
-        TransactionRepository.getInstance().observeTransactions(uid, list -> {
+        // This screen owns its registration — see TransactionRepository. init() can be
+        // called again on a re-entry, so drop any previous one first.
+        if (transactionsListener != null) {
+            transactionsListener.remove();
+        }
+        transactionsListener = TransactionRepository.getInstance().observeTransactions(uid, list -> {
             allTransactions.clear();
             allTransactions.addAll(list);
             calculateAnalytics();
@@ -281,7 +290,9 @@ public class AnalyticsViewModel extends ViewModel {
     @Override
     protected void onCleared() {
         super.onCleared();
-        TransactionRepository.getInstance().removeListener();
+        if (transactionsListener != null) {
+            transactionsListener.remove();
+        }
     }
 
     public static class CategoryBreakdown {
