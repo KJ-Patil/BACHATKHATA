@@ -28,42 +28,67 @@ public class SmsReceiver extends BroadcastReceiver {
         try {
             Object[] pdus = (Object[]) bundle.get("pdus");
             String format = bundle.getString("format");
-            if (pdus != null) {
-                for (Object pdu : pdus) {
-                    SmsMessage smsMessage;
-                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-                        smsMessage = SmsMessage.createFromPdu((byte[]) pdu, format);
-                    } else {
-                        smsMessage = SmsMessage.createFromPdu((byte[]) pdu);
-                    }
+            if (pdus == null) return;
 
-                    if (smsMessage == null) continue;
+            // A long SMS arrives as several PDUs carrying consecutive slices of ONE
+            // message. Parsing each slice on its own splits the amount from its
+            // context — often mid-number — so a multipart bank alert never matched and
+            // was dropped. Reassemble the body first, then parse once.
+            StringBuilder fullBody = new StringBuilder();
+            String sender = null;
 
-                    String body = smsMessage.getMessageBody();
-                    String sender = smsMessage.getOriginatingAddress();
+            for (Object pdu : pdus) {
+                SmsMessage smsMessage;
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                    smsMessage = SmsMessage.createFromPdu((byte[]) pdu, format);
+                } else {
+                    smsMessage = SmsMessage.createFromPdu((byte[]) pdu);
+                }
+                if (smsMessage == null) continue;
 
-                    if (sender == null || body == null) continue;
+                String part = smsMessage.getMessageBody();
+                if (part != null) fullBody.append(part);
+                if (sender == null) sender = smsMessage.getOriginatingAddress();
+            }
 
-                    // Verify sender header starts with bank prefixes (e.g. VK-, VM-, JD-)
-                    String upperSender = sender.toUpperCase().trim();
-                    boolean isBankSender = upperSender.startsWith("VM-") || 
-                                           upperSender.startsWith("VK-") || 
-                                           upperSender.startsWith("JD-") || 
-                                           upperSender.matches("^[A-Z]{2}-[A-Z0-9]+$");
+            if (sender == null || fullBody.length() == 0) return;
 
-                    if (isBankSender) {
-                        SmsParser.ParsedTransaction parsedTxn = SmsParser.parse(body);
-                        if (parsedTxn != null) {
-                            // Valid transaction SMS found! Post notification.
-                            triggerNotification(context, parsedTxn);
-                            break; // Avoid spamming multiple notifications if concatenated
-                        }
-                    }
+            if (isBankSender(sender)) {
+                SmsParser.ParsedTransaction parsedTxn = SmsParser.parse(fullBody.toString());
+                if (parsedTxn != null) {
+                    triggerNotification(context, parsedTxn);
                 }
             }
         } catch (Exception e) {
             e.printStackTrace();
         }
+    }
+
+    /**
+     * Whether a sender header looks like a bank/service short code rather than a
+     * person.
+     *
+     * <p>Indian headers are assigned under TRAI's DLT scheme and normally look like
+     * {@code AD-HDFCBK-S}: a two-character operator prefix, the registered sender id,
+     * and a one-letter category suffix (S/T/P/G) added in 2021. The old check required
+     * exactly two dash-separated parts, so every header carrying that suffix — which is
+     * most of them now — failed and the message was discarded. Some circles also emit a
+     * bare header with no prefix at all.
+     *
+     * <p>Deliberately permissive: a false positive costs nothing, because
+     * {@link SmsParser#parse} still has to find a real transaction in the body before
+     * anything is shown. A false negative silently loses the alert.
+     */
+    private boolean isBankSender(String sender) {
+        String header = sender.toUpperCase(java.util.Locale.US).trim();
+
+        // A real phone number is a person, not a service. Short codes never look
+        // like this, so this is the one case worth excluding outright.
+        if (header.matches("^\\+?[0-9]{7,15}$")) return false;
+
+        // XX-SENDER, XX-SENDER-S, or a bare alphanumeric short code.
+        return header.matches("^[A-Z]{2}-[A-Z0-9]{2,}(-[A-Z])?$")
+                || header.matches("^[A-Z0-9]{3,11}$");
     }
 
     private void triggerNotification(Context context, SmsParser.ParsedTransaction txn) {

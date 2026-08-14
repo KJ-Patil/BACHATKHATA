@@ -15,8 +15,12 @@ public class SharedPreferencesManager {
     private static final String ENC_PREF_NAME = "BachatKhata_Prefs_Enc"; // AES-encrypted store
     private static final String KEY_MIGRATED_TO_ENC = "MIGRATED_TO_ENC";
     private static SharedPreferencesManager instance;
+    // No shared Editor field. One long-lived Editor was reused by every setter, and an
+    // Editor is not thread-safe: two threads staging changes on the same instance mean
+    // whichever calls apply() first publishes the other's half-written state, and an
+    // interleaved clearAll() could take unrelated keys with it. Each write now stages
+    // and commits on its own editor.
     private final SharedPreferences sharedPreferences;
-    private final SharedPreferences.Editor editor;
 
     // Required Keys
     public static final String KEY_APP_LOCK_ENABLED = "APP_LOCK_ENABLED";
@@ -56,7 +60,6 @@ public class SharedPreferencesManager {
     private SharedPreferencesManager(Context context) {
         Context appContext = context.getApplicationContext();
         sharedPreferences = buildPreferences(appContext);
-        editor = sharedPreferences.edit();
     }
 
     /**
@@ -167,9 +170,7 @@ public class SharedPreferencesManager {
 
     // Remember Me (login email pre-fill)
     public void setRememberMe(boolean remember, String email) {
-        editor.putBoolean(KEY_REMEMBER_ME, remember);
-        editor.putString(KEY_REMEMBERED_EMAIL, remember ? email : "");
-        editor.apply();
+        sharedPreferences.edit().putBoolean(KEY_REMEMBER_ME, remember).putString(KEY_REMEMBERED_EMAIL, remember ? email : "").apply();
     }
 
     public boolean isRememberMe() {
@@ -182,8 +183,7 @@ public class SharedPreferencesManager {
 
     // Round-up Settings
     public void setRoundUpEnabled(boolean enabled) {
-        editor.putBoolean(KEY_ROUNDUP_ENABLED, enabled);
-        editor.apply();
+        sharedPreferences.edit().putBoolean(KEY_ROUNDUP_ENABLED, enabled).apply();
     }
 
     public boolean isRoundUpEnabled() {
@@ -191,8 +191,7 @@ public class SharedPreferencesManager {
     }
 
     public void setRoundUpLimit(int limit) {
-        editor.putInt(KEY_ROUNDUP_LIMIT, limit);
-        editor.apply();
+        sharedPreferences.edit().putInt(KEY_ROUNDUP_LIMIT, limit).apply();
     }
 
     public int getRoundUpLimit() {
@@ -201,8 +200,7 @@ public class SharedPreferencesManager {
 
     // App Lock Enabled
     public void setAppLockEnabled(boolean enabled) {
-        editor.putBoolean(KEY_APP_LOCK_ENABLED, enabled);
-        editor.apply();
+        sharedPreferences.edit().putBoolean(KEY_APP_LOCK_ENABLED, enabled).apply();
     }
 
     public boolean isAppLockEnabled() {
@@ -211,8 +209,7 @@ public class SharedPreferencesManager {
 
     // Last Paused Time (for timeout tracking)
     public void setLastPausedTime(long timeMs) {
-        editor.putLong(KEY_LAST_PAUSED_TIME, timeMs);
-        editor.apply();
+        sharedPreferences.edit().putLong(KEY_LAST_PAUSED_TIME, timeMs).apply();
     }
 
     public long getLastPausedTime() {
@@ -221,8 +218,7 @@ public class SharedPreferencesManager {
 
     // Selected Period
     public void setSelectedPeriod(int period) {
-        editor.putInt(KEY_SELECTED_PERIOD, period);
-        editor.apply();
+        sharedPreferences.edit().putInt(KEY_SELECTED_PERIOD, period).apply();
     }
 
     public int getSelectedPeriod() {
@@ -231,8 +227,7 @@ public class SharedPreferencesManager {
 
     // Onboarding Shown
     public void setOnboardingShown(boolean shown) {
-        editor.putBoolean(KEY_ONBOARDING_SHOWN, shown);
-        editor.apply();
+        sharedPreferences.edit().putBoolean(KEY_ONBOARDING_SHOWN, shown).apply();
     }
 
     public boolean isOnboardingShown() {
@@ -241,8 +236,7 @@ public class SharedPreferencesManager {
 
     // User UID
     public void setUserUid(String uid) {
-        editor.putString(KEY_USER_UID, uid);
-        editor.apply();
+        sharedPreferences.edit().putString(KEY_USER_UID, uid).apply();
     }
 
     public String getUserUid() {
@@ -251,8 +245,7 @@ public class SharedPreferencesManager {
 
     // User Currency
     public void setUserCurrency(String currencyCode) {
-        editor.putString(KEY_USER_CURRENCY, currencyCode);
-        editor.apply();
+        sharedPreferences.edit().putString(KEY_USER_CURRENCY, currencyCode).apply();
     }
 
     public String getUserCurrency() {
@@ -261,8 +254,7 @@ public class SharedPreferencesManager {
 
     // User Currency Symbol
     public void setUserCurrencySymbol(String symbol) {
-        editor.putString(KEY_USER_CURRENCY_SYMBOL, symbol);
-        editor.apply();
+        sharedPreferences.edit().putString(KEY_USER_CURRENCY_SYMBOL, symbol).apply();
     }
 
     public String getUserCurrencySymbol() {
@@ -271,8 +263,7 @@ public class SharedPreferencesManager {
 
     // Biometric Enabled
     public void setBiometricEnabled(boolean enabled) {
-        editor.putBoolean(KEY_BIOMETRIC_ENABLED, enabled);
-        editor.apply();
+        sharedPreferences.edit().putBoolean(KEY_BIOMETRIC_ENABLED, enabled).apply();
     }
 
     public boolean isBiometricEnabled() {
@@ -281,8 +272,7 @@ public class SharedPreferencesManager {
 
     // Lock Timeout Seconds
     public void setLockTimeoutSeconds(int seconds) {
-        editor.putInt(KEY_LOCK_TIMEOUT_SECONDS, seconds);
-        editor.apply();
+        sharedPreferences.edit().putInt(KEY_LOCK_TIMEOUT_SECONDS, seconds).apply();
     }
 
     public int getLockTimeoutSeconds() {
@@ -291,8 +281,7 @@ public class SharedPreferencesManager {
 
     // Theme Mode ("System" | "Light" | "Dark")
     public void setThemeMode(String mode) {
-        editor.putString(KEY_THEME_MODE, mode);
-        editor.apply();
+        sharedPreferences.edit().putString(KEY_THEME_MODE, mode).apply();
     }
 
     public String getThemeMode() {
@@ -314,8 +303,7 @@ public class SharedPreferencesManager {
     // Income is kept as a String so large values keep full precision (SharedPreferences
     // has no double type, and float silently rounds past ~7 significant digits).
     public void setMonthlyIncome(double income) {
-        editor.putString(KEY_MONTHLY_INCOME, String.valueOf(Math.max(0, income)));
-        editor.apply();
+        sharedPreferences.edit().putString(KEY_MONTHLY_INCOME, String.valueOf(Math.max(0, income))).apply();
     }
 
     public double getMonthlyIncome() {
@@ -327,10 +315,7 @@ public class SharedPreferencesManager {
     }
 
     public void setRuleSplit(int needs, int wants, int investments) {
-        editor.putInt(KEY_RULE_NEEDS, needs);
-        editor.putInt(KEY_RULE_WANTS, wants);
-        editor.putInt(KEY_RULE_INVESTMENTS, investments);
-        editor.apply();
+        sharedPreferences.edit().putInt(KEY_RULE_NEEDS, needs).putInt(KEY_RULE_WANTS, wants).putInt(KEY_RULE_INVESTMENTS, investments).apply();
     }
 
     public int getRuleNeeds() {
@@ -347,8 +332,7 @@ public class SharedPreferencesManager {
 
     // SMS gateway (Fast2SMS)
     public void setSmsGatewayEnabled(boolean enabled) {
-        editor.putBoolean(KEY_SMS_GATEWAY_ENABLED, enabled);
-        editor.apply();
+        sharedPreferences.edit().putBoolean(KEY_SMS_GATEWAY_ENABLED, enabled).apply();
     }
 
     public boolean isSmsGatewayEnabled() {
@@ -356,8 +340,7 @@ public class SharedPreferencesManager {
     }
 
     public void setSmsGatewayApiKey(String apiKey) {
-        editor.putString(KEY_SMS_GATEWAY_API_KEY, apiKey == null ? "" : apiKey);
-        editor.apply();
+        sharedPreferences.edit().putString(KEY_SMS_GATEWAY_API_KEY, apiKey == null ? "" : apiKey).apply();
     }
 
     public String getSmsGatewayApiKey() {
@@ -366,8 +349,7 @@ public class SharedPreferencesManager {
 
     // Voice logging dictation language (BCP-47, e.g. "hi-IN")
     public void setVoiceLanguage(String tag) {
-        editor.putString(KEY_VOICE_LANGUAGE, tag);
-        editor.apply();
+        sharedPreferences.edit().putString(KEY_VOICE_LANGUAGE, tag).apply();
     }
 
     public String getVoiceLanguage() {
@@ -388,10 +370,7 @@ public class SharedPreferencesManager {
      */
     public void setCachedPin(String uid, String hash) {
         if (uid == null || uid.isEmpty()) return;
-        editor.putString(KEY_PIN_UID, uid);
-        editor.putString(KEY_PIN_HASH, hash == null ? "" : hash);
-        editor.putBoolean(KEY_PIN_KNOWN, true);
-        editor.apply();
+        sharedPreferences.edit().putString(KEY_PIN_UID, uid).putString(KEY_PIN_HASH, hash == null ? "" : hash).putBoolean(KEY_PIN_KNOWN, true).apply();
     }
 
     /**
@@ -413,15 +392,11 @@ public class SharedPreferencesManager {
 
     /** Drops the mirror — used on sign-out so the next account starts from Firestore. */
     public void clearCachedPin() {
-        editor.remove(KEY_PIN_HASH);
-        editor.remove(KEY_PIN_UID);
-        editor.remove(KEY_PIN_KNOWN);
-        editor.apply();
+        sharedPreferences.edit().remove(KEY_PIN_HASH).remove(KEY_PIN_UID).remove(KEY_PIN_KNOWN).apply();
     }
 
     // Clear settings
     public void clearAll() {
-        editor.clear();
-        editor.apply();
+        sharedPreferences.edit().clear().apply();
     }
 }

@@ -240,7 +240,12 @@ public class Transaction implements Serializable {
 
     public static Transaction fromDocument(DocumentSnapshot doc) {
         Transaction t = new Transaction();
-        t.setId(doc.getString("id"));
+        // The document's own id is authoritative — the stored "id" field is a copy
+        // that a row may be missing. Reading only the field meant a row without it
+        // produced a null id, and the edit and delete paths then called
+        // .document(null), which throws rather than failing gracefully.
+        String storedId = doc.getString("id");
+        t.setId((storedId == null || storedId.isEmpty()) ? doc.getId() : storedId);
         Double amt = doc.getDouble("amount");
         t.setAmount(amt != null ? amt : 0.0);
         t.setType(doc.getString("type"));

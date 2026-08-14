@@ -134,12 +134,17 @@ service cloud.firestore {
     // FamilyWalletFragment.joinGroupWithInviteCode.
     // NOTE ON CODE STRENGTH: a code is the sole credential for joining, and `get`
     // is open to any signed-in user, so the secrecy of the code is the only thing
-    // protecting a group's data. Six digits is a 1,000,000-key space — cheap to
-    // walk exhaustively, which turns this collection into a directory of every
-    // groupId in the app. Rules cannot fix that: they cannot rate-limit, and they
-    // cannot tell a guessed document id from a shared one. The fix is entropy, in
-    // CreateGroupActivity.claimInviteCode. Until codes get longer, treat group
-    // wallets as protected by an easily-guessed code.
+    // protecting a group's data. Rules cannot help here — they cannot rate-limit,
+    // and they cannot tell a guessed document id from one a friend shared. The
+    // only defence is entropy, which lives in CreateGroupActivity.generateInviteCode.
+    //
+    // Codes were six DIGITS: a 1,000,000-key space, cheap to walk exhaustively,
+    // which made this collection a directory of every groupId in the app. They are
+    // now six characters from a 32-symbol alphabet — ~1.07e9, three orders of
+    // magnitude more — while staying the same length to type.
+    //
+    // Six-digit codes issued before that change still resolve (they are looked up
+    // by document id) and are still weak. Reissue them if that matters.
     match /inviteCodes/{code} {
       allow get:    if request.auth != null;
       allow list:   if false;

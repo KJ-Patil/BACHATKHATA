@@ -82,7 +82,8 @@
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
                             android:maxLength="6"
-                            android:inputType="number" />
+                            android:digits="ABCDEFGHJKLMNPQRSTUVWXYZ23456789abcdefghjklmnpqrstuvwxyz0123456789"
+                            android:inputType="textCapCharacters|textNoSuggestions" />
                     </com.google.android.material.textfield.TextInputLayout>
 
                     <com.google.android.material.button.MaterialButton

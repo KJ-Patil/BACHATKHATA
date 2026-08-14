@@ -20,6 +20,7 @@ import com.google.firebase.firestore.QuerySnapshot;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.Locale;
 import java.util.Map;
 
 public class BudgetAlertWorker extends Worker {
@@ -99,24 +100,32 @@ public class BudgetAlertWorker extends Worker {
                     double totalSpent = categorySpentMap.getOrDefault(category, 0.0);
                     double percentage = (totalSpent / limitAmount) * 100;
 
+                    // Only the crossing is news. This worker runs daily and re-evaluated
+                    // the same figures every time, so one overspent category produced an
+                    // identical notification — and an identical inbox row in Firestore —
+                    // every single day for the rest of the month.
                     if (percentage >= 100) {
-                        triggerLocalNotification(
-                                "Budget Exceeded: " + category,
-                                String.format("You spent %s of your budget limit %s for %s.",
-                                        CurrencyManager.getInstance().formatAmount(totalSpent),
-                                        CurrencyManager.getInstance().formatAmount(limitAmount),
-                                        category),
-                                uid
-                        );
+                        if (markAlerted(category, 100, month, year)) {
+                            triggerLocalNotification(
+                                    "Budget Exceeded: " + category,
+                                    String.format(Locale.US, "You spent %s of your budget limit %s for %s.",
+                                            CurrencyManager.getInstance().formatAmount(totalSpent),
+                                            CurrencyManager.getInstance().formatAmount(limitAmount),
+                                            category),
+                                    uid
+                            );
+                        }
                     } else if (percentage >= 80) {
-                        triggerLocalNotification(
-                                "Budget Alert: " + category,
-                                String.format("You have used %.1f%% of your budget limit %s for %s.",
-                                        percentage,
-                                        CurrencyManager.getInstance().formatAmount(limitAmount),
-                                        category),
-                                uid
-                        );
+                        if (markAlerted(category, 80, month, year)) {
+                            triggerLocalNotification(
+                                    "Budget Alert: " + category,
+                                    String.format(Locale.US, "You have used %.1f%% of your budget limit %s for %s.",
+                                            percentage,
+                                            CurrencyManager.getInstance().formatAmount(limitAmount),
+                                            category),
+                                    uid
+                            );
+                        }
                     }
                 }
             }
@@ -127,6 +136,35 @@ public class BudgetAlertWorker extends Worker {
             e.printStackTrace();
             return Result.retry();
         }
+    }
+
+    /**
+     * Records that {@code category} has been alerted at {@code threshold} for this
+     * month, and reports whether this is the first time.
+     *
+     * <p>Kept on the device rather than in Firestore: it is throwaway bookkeeping, and
+     * writing it remotely would add a round-trip (and a write) to a worker that already
+     * runs while the user is asleep. Keyed by month and year, so a new month naturally
+     * starts fresh and the entries are self-expiring.
+     *
+     * <p>The 80% and 100% thresholds are tracked separately, so a category that creeps
+     * from warning to exceeded still reports the second, more important crossing.
+     */
+    private boolean markAlerted(String category, int threshold, int month, int year) {
+        android.content.SharedPreferences prefs = getApplicationContext()
+                .getSharedPreferences("BachatKhata_BudgetAlerts", Context.MODE_PRIVATE);
+        String key = year + "-" + month + "-" + threshold + "-" + category;
+        if (prefs.getBoolean(key, false)) return false;
+
+        // Each write also drops any entry from an earlier month, so the file cannot
+        // grow without bound across years of use.
+        android.content.SharedPreferences.Editor editor = prefs.edit();
+        String currentPrefix = year + "-" + month + "-";
+        for (String existing : prefs.getAll().keySet()) {
+            if (!existing.startsWith(currentPrefix)) editor.remove(existing);
+        }
+        editor.putBoolean(key, true).apply();
+        return true;
     }
 
     private void triggerLocalNotification(String title, String message, String uid) {

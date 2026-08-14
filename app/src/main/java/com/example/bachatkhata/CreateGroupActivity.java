@@ -27,8 +27,12 @@ import java.util.Random;
 
 public class CreateGroupActivity extends BaseActivity {
 
-    /** How many times to re-roll a 6-digit code before giving up on a free one. */
+    /** How many times to re-roll a code before giving up on a free one. */
     private static final int MAX_CODE_ATTEMPTS = 5;
+
+    /** Invite-code shape. See {@link #generateInviteCode()} for why it is not 6 digits. */
+    private static final int CODE_LENGTH = 6;
+    private static final String CODE_ALPHABET = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
 
     private ActivityCreateGroupBinding binding;
     private FirebaseFirestore mFirestore;
@@ -208,10 +212,11 @@ public class CreateGroupActivity extends BaseActivity {
     }
 
     /**
-     * Finds a 6-digit code with no {@code inviteCodes/{code}} document behind it.
-     * Codes are the lookup key joiners use, so two groups sharing one would send
-     * the second joiner to the wrong wallet. Retries a few times, then gives up
-     * rather than knowingly issuing a duplicate.
+     * Finds a code with no {@code inviteCodes/{code}} document behind it.
+     *
+     * <p>Codes are the lookup key joiners use, so two groups sharing one sends the
+     * second joiner to the wrong wallet. Retries a few times, then gives up rather
+     * than knowingly issuing a duplicate.
      */
     private void claimInviteCode(int attempt, @NonNull OnCodeClaimed callback) {
         if (attempt >= MAX_CODE_ATTEMPTS) {
@@ -220,7 +225,7 @@ public class CreateGroupActivity extends BaseActivity {
             return;
         }
 
-        String candidate = String.format(Locale.US, "%06d", new Random().nextInt(1000000));
+        String candidate = generateInviteCode();
         mFirestore.collection("inviteCodes").document(candidate).get()
                 .addOnSuccessListener(doc -> {
                     if (doc.exists()) {
@@ -230,9 +235,36 @@ public class CreateGroupActivity extends BaseActivity {
                     }
                 })
                 .addOnFailureListener(e ->
-                        // Lookup failed (offline, rules); use the candidate rather than
-                        // blocking group creation. A collision is unlikely and recoverable.
-                        callback.onClaimed(candidate));
+                        // The uniqueness check could not run (offline, or rules denied it).
+                        // Proceeding used to be the fallback, but an unverified code is
+                        // worse than no group: publishInviteCode is then denied by the
+                        // write-once rule, leaving a group whose displayed code silently
+                        // resolves to somebody ELSE's wallet for anyone who uses it.
+                        // Fail loudly instead — the user can retry when back online.
+                        Toast.makeText(this,
+                                "Couldn't reserve an invite code. Check your connection and try again.",
+                                Toast.LENGTH_LONG).show());
+    }
+
+    /**
+     * A random invite code.
+     *
+     * <p>{@value #CODE_LENGTH} characters from {@link #CODE_ALPHABET}, which is ~1.1
+     * billion combinations. The previous six digits were a million — anyone signed in
+     * can read {@code inviteCodes/{code}}, and a million single-document reads is
+     * cheap, so the whole range could be walked to enumerate every group in the app.
+     * The alphabet omits O/0 and I/1 so a code stays readable when spoken or copied.
+     *
+     * <p>Older six-digit codes keep working: they are looked up by document id, and
+     * FamilyWalletFragment still accepts them.
+     */
+    private String generateInviteCode() {
+        java.security.SecureRandom random = new java.security.SecureRandom();
+        StringBuilder code = new StringBuilder(CODE_LENGTH);
+        for (int i = 0; i < CODE_LENGTH; i++) {
+            code.append(CODE_ALPHABET.charAt(random.nextInt(CODE_ALPHABET.length())));
+        }
+        return code.toString();
     }
 
     private interface OnCodeClaimed {

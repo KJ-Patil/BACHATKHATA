@@ -124,19 +124,45 @@ public class AddEmiActivity extends BaseActivity {
             showSnackbar("Please enter a loan name.", "ERROR");
             return false;
         }
-        if (principalStr.isEmpty() || Double.parseDouble(principalStr) <= 0) {
+        // Parsed defensively rather than with a bare parseDouble/parseInt. A decimal
+        // keyboard still lets through "1.2.3", a lone ".", or a pasted value, and the
+        // old check threw NumberFormatException from inside the validator — so the
+        // screen crashed instead of showing the very message written just below it.
+        if (principalStr.isEmpty() || !(parseDoubleOrNaN(principalStr) > 0)) {
             showSnackbar("Please enter a valid principal amount.", "ERROR");
             return false;
         }
-        if (rateStr.isEmpty() || Double.parseDouble(rateStr) < 0) {
+        if (rateStr.isEmpty() || !(parseDoubleOrNaN(rateStr) >= 0)) {
             showSnackbar("Please enter a valid interest rate.", "ERROR");
             return false;
         }
-        if (tenureStr.isEmpty() || Integer.parseInt(tenureStr) <= 0) {
+        if (tenureStr.isEmpty() || parseIntOrMinusOne(tenureStr) <= 0) {
             showSnackbar("Please enter a valid tenure in months.", "ERROR");
             return false;
         }
         return true;
+    }
+
+    /**
+     * NaN for anything unparseable. Every caller compares with {@code >} or {@code >=},
+     * and NaN fails both, so bad input is rejected by the same check that rejects a
+     * negative one.
+     */
+    private static double parseDoubleOrNaN(String raw) {
+        try {
+            return Double.parseDouble(raw);
+        } catch (NumberFormatException e) {
+            return Double.NaN;
+        }
+    }
+
+    /** -1 for anything unparseable, which every caller already treats as invalid. */
+    private static int parseIntOrMinusOne(String raw) {
+        try {
+            return Integer.parseInt(raw);
+        } catch (NumberFormatException e) {
+            return -1;
+        }
     }
 
     private void performCalculation() {

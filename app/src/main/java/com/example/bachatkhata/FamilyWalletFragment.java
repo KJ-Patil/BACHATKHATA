@@ -69,9 +69,13 @@ public class FamilyWalletFragment extends Fragment {
         });
 
         binding.btnJoinGroup.setOnClickListener(v -> {
-            String inviteCode = binding.etInviteCode.getText().toString().trim();
+            // Upper-cased because codes are looked up by document id, which is
+            // case-sensitive, and the letters in a code are always upper case. Digits
+            // are unaffected, so codes issued before the alphabet widened still resolve.
+            String inviteCode = binding.etInviteCode.getText().toString()
+                    .trim().toUpperCase(java.util.Locale.US);
             if (inviteCode.length() != 6) {
-                Toast.makeText(getContext(), "Invite code must be 6 digits", Toast.LENGTH_SHORT).show();
+                Toast.makeText(getContext(), "Invite code must be 6 characters", Toast.LENGTH_SHORT).show();
                 return;
             }
             joinGroupWithInviteCode(inviteCode);
@@ -152,12 +156,19 @@ public class FamilyWalletFragment extends Fragment {
                                     return;
                                 }
 
-                                // 3. Build joining member map
+                                // 3. Build joining member map.
+                                //
+                                //    Deliberately no joinedAt. arrayUnion dedupes by exact
+                                //    value, so a Timestamp.now() in here made every attempt a
+                                //    different map and therefore always an append — joining a
+                                //    group twice (a rejoin, or a tap before isAlreadyMemberOf
+                                //    had its data) listed the same person twice and inflated
+                                //    the member count. Without it the map is stable and the
+                                //    union is genuinely idempotent. Nothing reads joinedAt.
                                 Map<String, Object> memberMap = new HashMap<>();
                                 memberMap.put("uid", uid);
                                 memberMap.put("name", finalJoinerName);
                                 memberMap.put("role", "member");
-                                memberMap.put("joinedAt", Timestamp.now());
 
                                 // 4. Perform atomic update. arrayUnion is idempotent, and the
                                 //    post-write state puts this uid in memberUids, which is
@@ -177,7 +188,12 @@ public class FamilyWalletFragment extends Fragment {
                                         });
                             })
                             .addOnFailureListener(e -> Toast.makeText(getContext(), "Search failed: " + e.getLocalizedMessage(), Toast.LENGTH_SHORT).show());
-                });
+                })
+                // Without this the whole join silently did nothing when the profile read
+                // failed: no toast, no navigation, the button just appeared dead.
+                .addOnFailureListener(e -> Toast.makeText(getContext(),
+                        "Couldn't join right now: " + e.getLocalizedMessage(),
+                        Toast.LENGTH_SHORT).show());
     }
 
     /** True when the signed-in user already belongs to {@code groupId}. */
@@ -265,7 +281,11 @@ public class FamilyWalletFragment extends Fragment {
                 itemBinding.txtGroupType.setTextColor(tintColor);
                 itemBinding.txtGroupType.setBackgroundTintList(android.content.res.ColorStateList.valueOf(bgColor));
 
-                itemView.setOnClickListener(v -> navigateToGroupDetail(id));
+                // The document's own id, not the copied "id" field — a group written by
+                // the backfill script has no such field, and passing null opened a blank
+                // detail screen.
+                itemView.setOnClickListener(v ->
+                        navigateToGroupDetail((id == null || id.isEmpty()) ? doc.getId() : id));
             }
         }
     }
