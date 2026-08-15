@@ -68,8 +68,19 @@ public class SplashActivity extends AppCompatActivity {
                                 // Mirror the PIN state locally on every cold start. This is
                                 // what lets the lock work — and fail closed — when Firestore
                                 // is unreachable on a later launch.
-                                SharedPreferencesManager.getInstance(SplashActivity.this)
-                                        .setCachedPin(uid, pinHash);
+                                SharedPreferencesManager prefs =
+                                        SharedPreferencesManager.getInstance(SplashActivity.this);
+                                prefs.setCachedPin(uid, pinHash);
+
+                                // One-time default for accounts that already had a PIN. The
+                                // idle lock could not be switched on by anything until now,
+                                // so those users read as "off" despite having asked for a
+                                // lock. Only applied when no deliberate choice exists, so it
+                                // never overrides someone who turned it off themselves.
+                                if (!prefs.hasChosenAppLock()
+                                        && pinHash != null && !pinHash.trim().isEmpty()) {
+                                    prefs.setAppLockEnabled(true);
+                                }
 
                                 if (onboardingComplete != null && !onboardingComplete) {
                                     startActivity(new Intent(SplashActivity.this, OnboardingActivity.class));

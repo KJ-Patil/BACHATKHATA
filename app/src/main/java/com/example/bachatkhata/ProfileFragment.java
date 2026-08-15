@@ -160,10 +160,64 @@ public class ProfileFragment extends Fragment {
 
         binding.switchBiometrics.setOnCheckedChangeListener((buttonView, isChecked) -> updateBiometricSetting(isChecked));
         binding.switchNotifications.setOnCheckedChangeListener((buttonView, isChecked) -> updateNotificationsSetting(isChecked));
+        bindAppLockSwitch();
 
         // Data & Tools have moved to the Home dashboard's "Data & Tools" page.
 
         binding.btnLogout.setOnClickListener(v -> logoutUser());
+    }
+
+    /**
+     * Wires the "Lock App When Idle" switch.
+     *
+     * <p>This setting had no UI at all. {@code setAppLockEnabled} existed but nothing
+     * ever called it, so {@code isAppLockEnabled()} always returned its {@code false}
+     * default — and BaseActivity gates the whole idle-lock on exactly that flag. The
+     * result was that the app never re-locked when it came back from the background,
+     * no matter what PIN was set, while the Auto Lock Timeout row below sat there
+     * letting people configure a feature that could not run.
+     *
+     * <p>Local-only, deliberately: this is per-device. Someone may want their phone to
+     * re-lock and their tablet at home not to, and the PIN itself is what syncs.
+     */
+    private void bindAppLockSwitch() {
+        if (getContext() == null) return;
+        SharedPreferencesManager prefs = SharedPreferencesManager.getInstance(getContext());
+        binding.switchAppLock.setOnCheckedChangeListener(null);
+        binding.switchAppLock.setChecked(prefs.isAppLockEnabled());
+        binding.switchAppLock.setOnCheckedChangeListener((buttonView, isChecked) -> {
+            if (getContext() == null) return;
+            SharedPreferencesManager p = SharedPreferencesManager.getInstance(getContext());
+
+            // A lock with no PIN behind it would strand the user on a verify screen
+            // they cannot pass, so refuse rather than half-enable it.
+            if (isChecked && !hasPinConfigured()) {
+                buttonView.setChecked(false);
+                BaseActivity activity = (BaseActivity) getActivity();
+                if (activity != null) {
+                    activity.showSnackbar(getString(R.string.app_lock_needs_pin), "ERROR");
+                }
+                return;
+            }
+
+            p.setAppLockEnabled(isChecked);
+            if (!isChecked) {
+                // Drop any lock already armed, so turning it off takes effect now
+                // instead of at the next return from the background.
+                BaseActivity.setAppUnlocked();
+            }
+        });
+    }
+
+    /**
+     * Whether this account has a PIN, read from the locally mirrored copy so the answer
+     * is available offline and without a round-trip.
+     */
+    private boolean hasPinConfigured() {
+        if (getContext() == null || mAuth.getCurrentUser() == null) return false;
+        String uid = mAuth.getCurrentUser().getUid();
+        return !SharedPreferencesManager.getInstance(getContext())
+                .getCachedPinHash(uid).trim().isEmpty();
     }
 
     private void loadProfileInfo() {
@@ -987,7 +1041,9 @@ public class ProfileFragment extends Fragment {
         // The lock now trusts a locally mirrored PIN, so it has to go with the account
         // it belongs to — otherwise the next person to sign in on this device inherits
         // this account's lock state.
-        SharedPreferencesManager.getInstance(requireContext()).clearCachedPin();
+        SharedPreferencesManager signOutPrefs = SharedPreferencesManager.getInstance(requireContext());
+        signOutPrefs.clearCachedPin();
+        signOutPrefs.setAppLockEnabled(false);
         BaseActivity.setAppUnlocked();
         mAuth.signOut();
         GoogleSignInOptions gso = new GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN).build();

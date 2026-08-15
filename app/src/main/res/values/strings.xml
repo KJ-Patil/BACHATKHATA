@@ -289,7 +289,9 @@
     <string name="profile_section_security">Security Settings</string>
     <string name="profile_change_pin">Change PIN Lock</string>
     <string name="profile_biometric">Biometric Authentication</string>
+    <string name="profile_app_lock">Lock App When Idle</string>
     <string name="profile_auto_lock">Auto Lock Timeout</string>
+    <string name="app_lock_needs_pin">Set a PIN first to use the app lock.</string>
     <string name="profile_clear_data">Clear All Account Data</string>
     <string name="profile_cloud_backup">Cloud Backup</string>
     <string name="profile_logout">Logout</string>

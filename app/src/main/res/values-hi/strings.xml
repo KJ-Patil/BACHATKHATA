@@ -265,7 +265,9 @@
     <string name="profile_section_security">सुरक्षा सेटिंग्स</string>
     <string name="profile_change_pin">पिन लॉक बदलें</string>
     <string name="profile_biometric">बायोमेट्रिक प्रमाणीकरण</string>
+    <string name="profile_app_lock">निष्क्रिय होने पर ऐप लॉक करें</string>
     <string name="profile_auto_lock">ऑटो लॉक टाइमआउट</string>
+    <string name="app_lock_needs_pin">ऐप लॉक इस्तेमाल करने के लिए पहले पिन सेट करें।</string>
     <string name="profile_clear_data">सभी खाता डेटा साफ़ करें</string>
     <string name="profile_logout">लॉग आउट</string>
 

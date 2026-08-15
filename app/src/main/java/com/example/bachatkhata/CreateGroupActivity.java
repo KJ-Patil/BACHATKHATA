@@ -192,8 +192,8 @@ public class CreateGroupActivity extends BaseActivity {
         if (mAuth.getCurrentUser() == null) return;
         String uid = mAuth.getCurrentUser().getUid();
 
-        // 1. Claim a 6-digit invite code that nobody is using yet, then fetch the
-        //    current user's profile details to add them as admin.
+        // 1. Claim an invite code that nobody is using yet, then fetch the current
+        //    user's profile details to add them as admin.
         claimInviteCode(0, inviteCode -> mFirestore.collection("users").document(uid).get()
                 .addOnSuccessListener(documentSnapshot -> {
                     String adminName = "Admin";

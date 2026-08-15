@@ -439,6 +439,30 @@
                         android:layout_height="1dp"
                         android:background="@color/colorCardBorder"/>
 
+                    <!-- App Lock Toggle Row -->
+                    <RelativeLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="48dp">
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_centerVertical="true"
+                            android:text="@string/profile_app_lock"
+                            android:textColor="@color/colorTextPrimary"
+                            android:textSize="14sp" />
+                        <com.google.android.material.switchmaterial.SwitchMaterial
+                            android:id="@+id/switchAppLock"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_alignParentEnd="true"
+                            android:layout_centerVertical="true" />
+                    </RelativeLayout>
+
+                    <View
+                        android:layout_width="match_parent"
+                        android:layout_height="1dp"
+                        android:background="@color/colorCardBorder"/>
+
                     <!-- App Lock Timeout Row -->
                     <RelativeLayout
                         android:id="@+id/rowLockTimeout"

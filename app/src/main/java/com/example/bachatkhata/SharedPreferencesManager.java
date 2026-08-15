@@ -24,6 +24,7 @@ public class SharedPreferencesManager {
 
     // Required Keys
     public static final String KEY_APP_LOCK_ENABLED = "APP_LOCK_ENABLED";
+    public static final String KEY_APP_LOCK_CHOSEN = "APP_LOCK_CHOSEN";
     public static final String KEY_LAST_PAUSED_TIME = "LAST_PAUSED_TIME";
     public static final String KEY_SELECTED_PERIOD = "SELECTED_PERIOD";
     public static final String KEY_ONBOARDING_SHOWN = "ONBOARDING_SHOWN";
@@ -200,11 +201,26 @@ public class SharedPreferencesManager {
 
     // App Lock Enabled
     public void setAppLockEnabled(boolean enabled) {
-        sharedPreferences.edit().putBoolean(KEY_APP_LOCK_ENABLED, enabled).apply();
+        sharedPreferences.edit()
+                .putBoolean(KEY_APP_LOCK_ENABLED, enabled)
+                .putBoolean(KEY_APP_LOCK_CHOSEN, true)
+                .apply();
     }
 
     public boolean isAppLockEnabled() {
         return sharedPreferences.getBoolean(KEY_APP_LOCK_ENABLED, false);
+    }
+
+    /**
+     * Whether the idle lock has ever been switched on or off deliberately.
+     *
+     * <p>Needed because "off" and "never asked" are different states and the default
+     * for each differs. Nothing could set this flag before, so every existing install
+     * reads as off; an account that already has a PIN wants it on, and only this
+     * marker distinguishes that from someone who turned it off on purpose.
+     */
+    public boolean hasChosenAppLock() {
+        return sharedPreferences.getBoolean(KEY_APP_LOCK_CHOSEN, false);
     }
 
     // Last Paused Time (for timeout tracking)

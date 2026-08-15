@@ -283,7 +283,10 @@ public class PinSetupActivity extends AppCompatActivity {
                     showLoading(false);
                     // Drop the local mirror too. Leaving it behind would keep enforcing
                     // the PIN that was just cleared, since the lock now trusts the cache.
-                    SharedPreferencesManager.getInstance(this).clearCachedPin();
+                    // The idle lock goes with it — there is no PIN left to satisfy it.
+                    SharedPreferencesManager prefs = SharedPreferencesManager.getInstance(this);
+                    prefs.clearCachedPin();
+                    prefs.setAppLockEnabled(false);
                     unlocked = true;
                     BaseActivity.setAppUnlocked();
                     mAuth.signOut();
@@ -345,8 +348,11 @@ public class PinSetupActivity extends AppCompatActivity {
     }
 
     private void performSwitchAccount() {
-        // The next account gets its PIN state from Firestore, not from this one's.
-        SharedPreferencesManager.getInstance(this).clearCachedPin();
+        // The next account gets its PIN state from Firestore, not from this one's, and
+        // must not inherit this one's idle-lock setting either.
+        SharedPreferencesManager prefs = SharedPreferencesManager.getInstance(this);
+        prefs.clearCachedPin();
+        prefs.setAppLockEnabled(false);
         unlocked = true;
         BaseActivity.setAppUnlocked();
         mAuth.signOut();
@@ -365,7 +371,13 @@ public class PinSetupActivity extends AppCompatActivity {
                 .set(Collections.singletonMap("pinHash", hash), SetOptions.merge())
                 .addOnSuccessListener(aVoid -> {
                     showLoading(false);
-                    SharedPreferencesManager.getInstance(this).setCachedPin(uid, hash);
+                    SharedPreferencesManager prefs = SharedPreferencesManager.getInstance(this);
+                    prefs.setCachedPin(uid, hash);
+                    // Arm the idle lock. Setting a PIN is the act of asking for one, and
+                    // nothing else in the app ever turned this flag on — so the lock
+                    // screen only ever appeared on a cold start, never on returning from
+                    // the background, however the PIN was configured.
+                    prefs.setAppLockEnabled(true);
                     // Successfully saved, go to BiometricSetupActivity
                     startActivity(new Intent(PinSetupActivity.this, BiometricSetupActivity.class));
                     finish();
