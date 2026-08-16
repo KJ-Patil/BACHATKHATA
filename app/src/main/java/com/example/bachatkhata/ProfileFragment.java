@@ -492,10 +492,12 @@ public class ProfileFragment extends Fragment {
         Map<String, Object> update = new HashMap<>();
         update.put("name", newName);
 
-        mFirestore.collection("users").document(mAuth.getCurrentUser().getUid())
+        String uid = mAuth.getCurrentUser().getUid();
+        mFirestore.collection("users").document(uid)
                 .set(update, SetOptions.merge())
                 .addOnSuccessListener(aVoid -> {
                     if (activity != null) activity.showSnackbar("Profile name updated!", "SUCCESS");
+                    propagateNameToGroups(uid, newName);
                 })
                 .addOnFailureListener(e -> {
                     if (activity != null) activity.showSnackbar("Update failed: " + e.getMessage(), "ERROR");
@@ -510,6 +512,60 @@ public class ProfileFragment extends Fragment {
                     .setDisplayName(newName)
                     .build());
         }
+    }
+
+    /**
+     * Rewrites this user's entry in the {@code members} array of every group they
+     * belong to.
+     *
+     * <p>The display name is denormalized into each group document when the user
+     * creates or joins it, and nothing refreshed those copies afterwards — so a
+     * rename changed the profile screen and nothing anyone else could see. The
+     * Family Wallet roster, and every screen that reads a name out of it, kept
+     * showing whatever the name was at join time, permanently.
+     *
+     * <p>The whole array is read and written back rather than patched. {@code
+     * arrayUnion} — which is what {@link FamilyWalletFragment} joins with — cannot
+     * update in place: firing it with a changed name appends a SECOND entry for the
+     * same uid instead of replacing the old one, so the user would appear twice and
+     * the member count would inflate.
+     *
+     * <p>Only {@code members} moves, which keeps the write inside the field list
+     * {@code isMemberUpdate()} allows in firestore.rules, and leaves {@code
+     * memberUids} untouched so the roster-preservation clause passes too.
+     *
+     * <p>Best-effort and silent: the profile document is the source of truth, and a
+     * group that fails to update is stale rather than broken. Surfacing an error here
+     * would contradict the "updated!" message the write above already earned.
+     */
+    private void propagateNameToGroups(String uid, String newName) {
+        mFirestore.collection("groups")
+                .whereArrayContains("memberUids", uid)
+                .get()
+                .addOnSuccessListener(snapshot -> {
+                    for (DocumentSnapshot groupDoc : snapshot.getDocuments()) {
+                        @SuppressWarnings("unchecked")
+                        List<Map<String, Object>> members =
+                                (List<Map<String, Object>>) groupDoc.get("members");
+                        if (members == null) continue;
+
+                        boolean changed = false;
+                        List<Map<String, Object>> rewritten = new ArrayList<>(members.size());
+                        for (Map<String, Object> member : members) {
+                            Map<String, Object> copy = new HashMap<>(member);
+                            if (uid.equals(copy.get("uid")) && !newName.equals(copy.get("name"))) {
+                                copy.put("name", newName);
+                                changed = true;
+                            }
+                            rewritten.add(copy);
+                        }
+
+                        // Don't spend a write on a group that already reads correctly.
+                        if (changed) {
+                            groupDoc.getReference().update("members", rewritten);
+                        }
+                    }
+                });
     }
 
     private void showChangePasswordDialog() {

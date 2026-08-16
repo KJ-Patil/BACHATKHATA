@@ -15,6 +15,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.example.bachatkhata.databinding.ActivityEventFundBinding;
+import com.example.bachatkhata.domain.ProfileSanitizer;
 import com.google.firebase.Timestamp;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.DocumentReference;
@@ -38,6 +39,9 @@ public class EventFundActivity extends BaseActivity {
     private String groupId;
     private String currentUid;
     private String currentUserName = "You";
+    /** True once {@link #loadCurrentUserName()} has resolved a name from the profile,
+     *  so the stale copy in the group roster stops being used as a fallback. */
+    private boolean nameFromProfile = false;
 
     private double targetBudget = 10000.0;
     private final List<Map<String, Object>> groupMembers = new ArrayList<>();
@@ -72,9 +76,34 @@ public class EventFundActivity extends BaseActivity {
         }
 
         setupUI();
+        loadCurrentUserName();
         observeGroupDetails();
         observeContributions();
         observeExpenses();
+    }
+
+    /**
+     * Resolves the current user's display name from their profile document.
+     *
+     * <p>It used to be lifted out of the group's {@code members} array, which holds a
+     * copy frozen at join time. That made a rename unable to take effect here at all:
+     * every new contribution was stamped with the stale copy, so the old name kept
+     * being written indefinitely rather than merely lingering on old records.
+     *
+     * <p>{@code members} remains the fallback (see {@link #observeGroupDetails()}) for
+     * the case where the profile has no usable name.
+     */
+    private void loadCurrentUserName() {
+        if (currentUid == null) return;
+        mFirestore.collection("users").document(currentUid).get()
+                .addOnSuccessListener(doc -> {
+                    if (!doc.exists()) return;
+                    String name = ProfileSanitizer.sanitizeDisplayName(doc.getString("name"));
+                    if (!name.isEmpty()) {
+                        currentUserName = name;
+                        nameFromProfile = true;
+                    }
+                });
     }
 
     private void setupUI() {
@@ -141,10 +170,14 @@ public class EventFundActivity extends BaseActivity {
                         List<Map<String, Object>> members = (List<Map<String, Object>>) doc.get("members");
                         if (members != null) {
                             groupMembers.addAll(members);
-                            for (Map<String, Object> member : members) {
-                                String mUid = (String) member.get("uid");
-                                if (currentUid.equals(mUid)) {
-                                    currentUserName = (String) member.get("name");
+                            // Fallback only — the roster's copy of the name is frozen at
+                            // join time, so it must never overwrite the profile's.
+                            if (!nameFromProfile) {
+                                for (Map<String, Object> member : members) {
+                                    String mUid = (String) member.get("uid");
+                                    if (currentUid.equals(mUid)) {
+                                        currentUserName = (String) member.get("name");
+                                    }
                                 }
                             }
                         }
@@ -267,10 +300,14 @@ public class EventFundActivity extends BaseActivity {
         spinPaidBy.setAdapter(memAdapter);
         spinPaidBy.setPadding(0, 16, 0, 16);
 
-        // Pre-select current user in spinner
-        int myIndex = memberNames.indexOf(currentUserName);
-        if (myIndex != -1) {
-            spinPaidBy.setSelection(myIndex);
+        // Pre-select current user in spinner. Matched on uid, not name: the roster
+        // holds a frozen copy of the name, so a rename made the two disagree and
+        // indexOf() silently returned -1, dropping the preselect.
+        for (int i = 0; i < groupMembers.size(); i++) {
+            if (currentUid.equals(groupMembers.get(i).get("uid"))) {
+                spinPaidBy.setSelection(i);
+                break;
+            }
         }
         layout.addView(spinPaidBy);
 
