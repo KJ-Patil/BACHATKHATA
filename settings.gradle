@@ -23,5 +23,5 @@ dependencyResolutionManagement {
     }
 }
 
-rootProject.name = "BachatKhata"
+rootProject.name = "MoneyLens"
 include ':app'

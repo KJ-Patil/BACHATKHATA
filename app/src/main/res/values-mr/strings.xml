@@ -1,11 +1,11 @@
 <resources>
     <!-- App Name -->
-    <string name="app_name">BachatKhata</string>
+    <string name="app_name">MoneyLens</string>
 
     <!-- Login brand panel / field labels -->
     <string name="brand_kicker">वैयक्तिक वित्त व्यवस्थापक</string>
     <string name="brand_headline">आत्मविश्वासाने बचत करा.\nसहजतेने वाढा.</string>
-    <string name="brand_subline">BachatKhata साठी ऑल-इन-वन वैयक्तिक वित्त वर्कस्पेस.</string>
+    <string name="brand_subline">MoneyLens साठी ऑल-इन-वन वैयक्तिक वित्त वर्कस्पेस.</string>
     <string name="login_welcome_subtitle">सुरू ठेवण्यासाठी आपल्या खात्यात साइन इन करा.</string>
     <string name="login_email_label">ईमेल</string>
     <string name="login_password_label">पासवर्ड</string>
@@ -42,7 +42,7 @@
 
     <!-- Auth / Login / Register -->
     <string name="welcome_back">पुन्हा स्वागत आहे</string>
-    <string name="sign_in_tagline">BachatKhata मध्ये सुरू ठेवण्यासाठी साइन इन करा</string>
+    <string name="sign_in_tagline">MoneyLens मध्ये सुरू ठेवण्यासाठी साइन इन करा</string>
     <string name="email_hint">ईमेल पत्ता</string>
     <string name="password_hint">पासवर्ड</string>
     <string name="confirm_password_hint">पासवर्डची पुष्टी करा</string>
@@ -51,9 +51,9 @@
     <string name="remember_me">मला लक्षात ठेवा</string>
     <string name="sign_in">साइन इन करा</string>
     <string name="sign_up">साइन अप करा</string>
-    <string name="register_tagline">आपले BachatKhata खाते तयार करा</string>
+    <string name="register_tagline">आपले MoneyLens खाते तयार करा</string>
     <string name="register_btn">खाते तयार करा</string>
-    <string name="no_account_prompt">BachatKhata मध्ये नवीन आहात? खाते तयार करा</string>
+    <string name="no_account_prompt">MoneyLens मध्ये नवीन आहात? खाते तयार करा</string>
     <string name="have_account_prompt">आधीच खाते आहे? साइन इन करा</string>
     <string name="google_sign_in">Google ने साइन इन करा</string>
     <string name="reset_password_title">पासवर्ड रीसेट करा</string>
@@ -75,8 +75,8 @@
     <string name="biometric_setup_title">फिंगरप्रिंट अनलॉक सक्षम करायचे?</string>
     <string name="biometric_setup_desc">आपले वित्त सुरक्षित ठेवा आणि आपल्या फिंगरप्रिंटने त्वरित अनलॉक करा — पिनची आवश्यकता नाही.</string>
     <string name="enable">सक्षम करा</string>
-    <string name="biometric_auth_title">BachatKhata अनलॉक करा</string>
-    <string name="biometric_auth_subtitle">BachatKhata अनलॉक करण्यासाठी आपल्या फिंगरप्रिंट किंवा चेहऱ्याचा वापर करा.</string>
+    <string name="biometric_auth_title">MoneyLens अनलॉक करा</string>
+    <string name="biometric_auth_subtitle">MoneyLens अनलॉक करण्यासाठी आपल्या फिंगरप्रिंट किंवा चेहऱ्याचा वापर करा.</string>
 
     <!-- Transactions -->
     <string name="add_transaction">व्यवहार जोडा</string>
@@ -417,6 +417,24 @@
     <string name="pin_forgot_confirm">रीसेट करा व पडताळा</string>
     <string name="pin_forgot_dialog_title">PIN रीसेट करायचा?</string>
     <string name="pin_forgot_dialog_message">तुम्हाला साइन आउट केले जाईल आणि तुमचा फोन नंबर पडताळण्यास सांगितले जाईल. त्यानंतर तुम्ही नवा PIN सेट करू शकता.</string>
+    <string name="pin_change_title">सुरक्षा PIN बदला</string>
+    <string name="pin_change_current_subtitle">पुढे जाण्यासाठी तुमचा सध्याचा 4-अंकी PIN टाका</string>
+    <string name="pin_change_incorrect_current">सध्याचा PIN चुकीचा आहे. कृपया पुन्हा प्रयत्न करा.</string>
+    <string name="pin_change_new_title">नवा PIN टाका</string>
+    <string name="pin_change_new_subtitle">नवा 4-अंकी PIN निवडा</string>
+    <string name="pin_change_confirm_title">नव्या PIN ची खात्री करा</string>
+    <string name="pin_change_confirm_subtitle">खात्रीसाठी तुमचा नवा 4-अंकी PIN पुन्हा टाका.</string>
+    <string name="pin_change_success">सुरक्षा PIN यशस्वीरित्या बदलला.</string>
+    <string name="pin_reauth_title">तुमची ओळख पडताळा</string>
+    <string name="pin_reauth_google_msg">PIN रीसेट करण्यासाठी तुमच्या Google खात्याद्वारे (%1$s) पडताळणी करा.</string>
+    <string name="pin_reauth_email_msg">ओळख पडताळण्यासाठी आणि PIN रीसेट करण्यासाठी %1$s चा पासवर्ड टाका.</string>
+    <string name="pin_reauth_btn_google">Google द्वारे पडताळा</string>
+    <string name="pin_reauth_btn_verify">पासवर्ड पडताळा</string>
+    <string name="pin_reauth_failed">प्रमाणीकरण अयशस्वी</string>
+    <string name="pin_reauth_password_hint">खाते पासवर्ड</string>
+    <string name="pin_reset_reauth_success">ओळख पडताळली. कृपया नवा PIN सेट करा.</string>
+    <string name="pin_reset_phone_msg">PIN रीसेट करण्यासाठी तुम्हाला OTP द्वारे फोन नंबर पडताळावा लागेल.</string>
+    <string name="pin_forgot_password_reset_sent">%1$s वर पासवर्ड रीसेट लिंक पाठवली</string>
 
     <!-- Expanded chart popup -->
     <string name="chart_swipe_hint">सर्व बार पाहण्यासाठी डावी-उजवीकडे स्वाइप करा</string>

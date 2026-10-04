@@ -1,0 +1,219 @@
+package com.example.moneylens;
+
+import android.app.NotificationChannel;
+import android.app.NotificationManager;
+import android.content.Context;
+import android.os.Build;
+
+import androidx.annotation.NonNull;
+import androidx.core.app.NotificationCompat;
+import androidx.work.Worker;
+import androidx.work.WorkerParameters;
+
+import com.google.android.gms.tasks.Tasks;
+import com.google.firebase.Timestamp;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.firestore.DocumentSnapshot;
+import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.QuerySnapshot;
+
+import java.util.Calendar;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.Locale;
+import java.util.Map;
+
+public class BudgetAlertWorker extends Worker {
+
+    private final FirebaseFirestore mFirestore;
+
+    public BudgetAlertWorker(@NonNull Context context, @NonNull WorkerParameters workerParams) {
+        super(context, workerParams);
+        mFirestore = FirebaseFirestore.getInstance();
+    }
+
+    @NonNull
+    @Override
+    public Result doWork() {
+        FirebaseAuth auth = FirebaseAuth.getInstance();
+        if (auth.getCurrentUser() == null) {
+            return Result.success();
+        }
+
+        String uid = auth.getCurrentUser().getUid();
+
+        // Respect the "Enable Notifications" master switch.
+        if (!NotificationSettings.isEnabled(getApplicationContext())) {
+            return Result.success();
+        }
+
+        try {
+            Calendar cal = Calendar.getInstance();
+            int month = cal.get(Calendar.MONTH);
+            int year = cal.get(Calendar.YEAR);
+
+            // Fetch current month's budgets
+            QuerySnapshot budgetSnapshots = Tasks.await(
+                    mFirestore.collection("users").document(uid).collection("budgets")
+                            .whereEqualTo("month", month)
+                            .whereEqualTo("year", year)
+                            .get()
+            );
+
+            if (budgetSnapshots.isEmpty()) {
+                return Result.success();
+            }
+
+            // Set start of month boundary
+            Calendar boundaryCal = Calendar.getInstance();
+            boundaryCal.set(year, month, 1, 0, 0, 0);
+            boundaryCal.set(Calendar.MILLISECOND, 0);
+            Date startBound = boundaryCal.getTime();
+
+            // Fetch current month's expenses
+            QuerySnapshot transactionSnapshots = Tasks.await(
+                    mFirestore.collection("users").document(uid).collection("transactions")
+                            .whereEqualTo("type", "expense")
+                            .get()
+            );
+
+            // Group transaction expenses by category
+            Map<String, Double> categorySpentMap = new HashMap<>();
+            for (DocumentSnapshot doc : transactionSnapshots.getDocuments()) {
+                Timestamp timestamp = doc.getTimestamp("date");
+                if (timestamp != null && (timestamp.toDate().after(startBound) || timestamp.toDate().equals(startBound))) {
+                    String categoryName = doc.getString("category");
+                    Double amount = doc.getDouble("amount");
+                    if (categoryName != null && amount != null) {
+                        double current = categorySpentMap.getOrDefault(categoryName, 0.0);
+                        categorySpentMap.put(categoryName, current + amount);
+                    }
+                }
+            }
+
+            // Verify budgets
+            for (DocumentSnapshot budgetDoc : budgetSnapshots.getDocuments()) {
+                String category = budgetDoc.getString("category");
+                Double limitAmount = budgetDoc.getDouble("limitAmount");
+
+                if (category != null && limitAmount != null && limitAmount > 0) {
+                    double totalSpent = categorySpentMap.getOrDefault(category, 0.0);
+                    double percentage = (totalSpent / limitAmount) * 100;
+
+                    // Only the crossing is news. This worker runs daily and re-evaluated
+                    // the same figures every time, so one overspent category produced an
+                    // identical notification — and an identical inbox row in Firestore —
+                    // every single day for the rest of the month.
+                    if (percentage >= 100) {
+                        if (markAlerted(category, 100, month, year)) {
+                            triggerLocalNotification(
+                                    "Budget Exceeded: " + category,
+                                    String.format(Locale.US, "You spent %s of your budget limit %s for %s.",
+                                            CurrencyManager.getInstance().formatAmount(totalSpent),
+                                            CurrencyManager.getInstance().formatAmount(limitAmount),
+                                            category),
+                                    uid
+                            );
+                        }
+                    } else if (percentage >= 80) {
+                        if (markAlerted(category, 80, month, year)) {
+                            triggerLocalNotification(
+                                    "Budget Alert: " + category,
+                                    String.format(Locale.US, "You have used %.1f%% of your budget limit %s for %s.",
+                                            percentage,
+                                            CurrencyManager.getInstance().formatAmount(limitAmount),
+                                            category),
+                                    uid
+                            );
+                        }
+                    }
+                }
+            }
+
+            return Result.success();
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            return Result.retry();
+        }
+    }
+
+    /**
+     * Records that {@code category} has been alerted at {@code threshold} for this
+     * month, and reports whether this is the first time.
+     *
+     * <p>Kept on the device rather than in Firestore: it is throwaway bookkeeping, and
+     * writing it remotely would add a round-trip (and a write) to a worker that already
+     * runs while the user is asleep. Keyed by month and year, so a new month naturally
+     * starts fresh and the entries are self-expiring.
+     *
+     * <p>The 80% and 100% thresholds are tracked separately, so a category that creeps
+     * from warning to exceeded still reports the second, more important crossing.
+     */
+    private boolean markAlerted(String category, int threshold, int month, int year) {
+        android.content.SharedPreferences prefs = getApplicationContext()
+                .getSharedPreferences("MoneyLens_BudgetAlerts", Context.MODE_PRIVATE);
+        String key = year + "-" + month + "-" + threshold + "-" + category;
+        if (prefs.getBoolean(key, false)) return false;
+
+        // Each write also drops any entry from an earlier month, so the file cannot
+        // grow without bound across years of use.
+        android.content.SharedPreferences.Editor editor = prefs.edit();
+        String currentPrefix = year + "-" + month + "-";
+        for (String existing : prefs.getAll().keySet()) {
+            if (!existing.startsWith(currentPrefix)) editor.remove(existing);
+        }
+        editor.putBoolean(key, true).apply();
+        return true;
+    }
+
+    private void triggerLocalNotification(String title, String message, String uid) {
+        NotificationManager notificationManager = (NotificationManager) getApplicationContext().getSystemService(Context.NOTIFICATION_SERVICE);
+        String channelId = "budget_alerts";
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            NotificationChannel channel = new NotificationChannel(
+                    channelId,
+                    "Budget Alerts",
+                    NotificationManager.IMPORTANCE_HIGH
+            );
+            channel.setDescription("Budgets warnings and thresholds exceeded alerts.");
+            notificationManager.createNotificationChannel(channel);
+        }
+
+        android.content.Intent intent = new android.content.Intent(getApplicationContext(), MainActivity.class);
+        intent.putExtra("destination", "budget");
+        intent.setFlags(android.content.Intent.FLAG_ACTIVITY_NEW_TASK | android.content.Intent.FLAG_ACTIVITY_CLEAR_TASK);
+        android.app.PendingIntent pendingIntent = android.app.PendingIntent.getActivity(
+                getApplicationContext(),
+                (int) System.currentTimeMillis(),
+                intent,
+                android.app.PendingIntent.FLAG_UPDATE_CURRENT | android.app.PendingIntent.FLAG_IMMUTABLE
+        );
+
+        NotificationCompat.Builder builder = new NotificationCompat.Builder(getApplicationContext(), channelId)
+                .setSmallIcon(R.mipmap.ic_launcher)
+                .setContentTitle(title)
+                .setContentText(message)
+                .setStyle(new NotificationCompat.BigTextStyle().bigText(message))
+                .setPriority(NotificationCompat.PRIORITY_HIGH)
+                .setContentIntent(pendingIntent)
+                .setAutoCancel(true);
+
+        notificationManager.notify((int) System.currentTimeMillis(), builder.build());
+
+        // Also save this notification inside Firestore collection for user notifications inbox
+        saveNotificationToFirestore(title, message, uid);
+    }
+
+    private void saveNotificationToFirestore(String title, String message, String uid) {
+        Map<String, Object> notification = new HashMap<>();
+        notification.put("title", title);
+        notification.put("message", message);
+        notification.put("type", "alert");
+        notification.put("isRead", false);
+        notification.put("createdAt", Timestamp.now());
+
+        mFirestore.collection("users").document(uid).collection("notifications").add(notification);
+    }
+}

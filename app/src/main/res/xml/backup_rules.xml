@@ -4,7 +4,7 @@
 -->
 <full-backup-content>
     <!--
-       BachatKhata_Prefs_Enc is written by EncryptedSharedPreferences, whose AES key
+       MoneyLens_Prefs_Enc is written by EncryptedSharedPreferences, whose AES key
        lives in the AndroidKeyStore. Keystore keys are hardware-bound and are NOT
        part of a backup, so a restored copy of this file cannot be decrypted on the
        new device: EncryptedSharedPreferences.create() throws, and every later call
@@ -14,5 +14,5 @@
        re-syncs the PIN state from Firestore, which is the recoverable outcome.
        Including it means a file that can never be opened again.
     -->
-    <exclude domain="sharedpref" path="BachatKhata_Prefs_Enc.xml" />
+    <exclude domain="sharedpref" path="MoneyLens_Prefs_Enc.xml" />
 </full-backup-content>

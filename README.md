@@ -1,6 +1,6 @@
-# BachatKhata (बचतखाता) — Personal Finance & Expense Tracker
+# MoneyLens (बचतखाता) — Personal Finance & Expense Tracker
 
-BachatKhata is a secure, visually stunning personal finance management and expense tracker Android application built using traditional **Java + XML** following modern **MVVM architecture** principles and a premium **Claymorphism** design system.
+MoneyLens is a secure, visually stunning personal finance management and expense tracker Android application built using traditional **Java + XML** following modern **MVVM architecture** principles and a premium **Claymorphism** design system.
 
 ---
 
@@ -39,13 +39,13 @@ BachatKhata is a secure, visually stunning personal finance management and expen
 ## 📦 Project Directory Layout
 
 ```
-BACHATKHATA/
+MONEYLENS/
 ├── app/
 │   ├── build.gradle             # Groovy build configurations
 │   ├── proguard-rules.pro       # Obfuscation keep rules (Firebase, MPAndroidChart, etc.)
 │   └── src/
 │       └── main/
-│           ├── java/com/example/bachatkhata/
+│           ├── java/com/example/moneylens/
 │           │   ├── MainActivity.java
 │           │   ├── BaseActivity.java              # AppLock lifecycle tracker
 │           │   ├── SplashActivity.java
@@ -71,7 +71,7 @@ BACHATKHATA/
 
 ## 🚀 Step-by-Step Setup Guide
 
-Follow these instructions to deploy and run BachatKhata on your system:
+Follow these instructions to deploy and run MoneyLens on your system:
 
 ### 1. Clone & Import
 Clone the repository and open the project using **Android Studio Ladybug (2024.2) or newer**. Ensure Gradle is allowed to index and sync the dependencies.

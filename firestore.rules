@@ -1,6 +1,6 @@
 rules_version = '2';
 
-// Bachat Khata — Firestore security rules.
+// MoneyLens — Firestore security rules.
 //
 // Two access models only:
 //   1. users/{uid}/**  — strictly private to the owner. Everything the app stores

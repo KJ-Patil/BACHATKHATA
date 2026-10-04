@@ -1,4 +1,4 @@
-# ProGuard rules for BachatKhata Release builds
+# ProGuard rules for MoneyLens Release builds
 
 # Preserve line numbers and source file names for crash reporting
 -keepattributes SourceFile,LineNumberTable
@@ -14,12 +14,12 @@
     @com.google.firebase.firestore.PropertyName <fields>;
     @com.google.firebase.firestore.PropertyName <methods>;
 }
--keep class com.example.bachatkhata.Transaction { *; }
--keep class com.example.bachatkhata.Category { *; }
--keep class com.example.bachatkhata.Budget { *; }
--keep class com.example.bachatkhata.SavingsGoal { *; }
--keep class com.example.bachatkhata.Customer { *; }
--keep class com.example.bachatkhata.CustomerTransaction { *; }
+-keep class com.example.moneylens.Transaction { *; }
+-keep class com.example.moneylens.Category { *; }
+-keep class com.example.moneylens.Budget { *; }
+-keep class com.example.moneylens.SavingsGoal { *; }
+-keep class com.example.moneylens.Customer { *; }
+-keep class com.example.moneylens.CustomerTransaction { *; }
 
 # MPAndroidChart
 -keep class com.github.mikephil.charting.** { *; }

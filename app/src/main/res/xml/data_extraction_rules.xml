@@ -9,9 +9,9 @@
 -->
 <data-extraction-rules>
     <cloud-backup>
-        <exclude domain="sharedpref" path="BachatKhata_Prefs_Enc.xml" />
+        <exclude domain="sharedpref" path="MoneyLens_Prefs_Enc.xml" />
     </cloud-backup>
     <device-transfer>
-        <exclude domain="sharedpref" path="BachatKhata_Prefs_Enc.xml" />
+        <exclude domain="sharedpref" path="MoneyLens_Prefs_Enc.xml" />
     </device-transfer>
 </data-extraction-rules>

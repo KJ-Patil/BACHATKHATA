@@ -1,11 +1,11 @@
 <resources>
     <!-- App Name -->
-    <string name="app_name">BachatKhata</string>
+    <string name="app_name">MoneyLens</string>
 
     <!-- Login brand panel / field labels -->
     <string name="brand_kicker">PERSONAL FINANCE MANAGER</string>
     <string name="brand_headline">Save with confidence.\nGrow with ease.</string>
-    <string name="brand_subline">The all-in-one personal finance workspace for BachatKhata.</string>
+    <string name="brand_subline">The all-in-one personal finance workspace for MoneyLens.</string>
     <string name="login_welcome_subtitle">Sign in to your account to continue.</string>
     <string name="login_email_label">Email</string>
     <string name="login_password_label">Password</string>
@@ -44,7 +44,7 @@
 
     <!-- Auth / Login / Register -->
     <string name="welcome_back">Welcome back</string>
-    <string name="sign_in_tagline">Sign in to continue to BachatKhata</string>
+    <string name="sign_in_tagline">Sign in to continue to MoneyLens</string>
     <string name="email_hint">Email address</string>
     <string name="password_hint">Password</string>
     <string name="confirm_password_hint">Confirm password</string>
@@ -53,9 +53,9 @@
     <string name="remember_me">Remember me</string>
     <string name="sign_in">Sign in</string>
     <string name="sign_up">Sign up</string>
-    <string name="register_tagline">Create your BachatKhata account</string>
+    <string name="register_tagline">Create your MoneyLens account</string>
     <string name="register_btn">Create account</string>
-    <string name="no_account_prompt">New to BachatKhata? Create an account</string>
+    <string name="no_account_prompt">New to MoneyLens? Create an account</string>
     <string name="have_account_prompt">Already have an account? Sign in</string>
     <string name="google_sign_in">Sign in with Google</string>
     <string name="reset_password_title">Reset password</string>
@@ -90,11 +90,29 @@
     <string name="pin_forgot_dialog_title">Reset PIN?</string>
     <string name="pin_forgot_dialog_message">You\'ll be signed out and asked to verify your phone number. After that you can set a new PIN.</string>
     <string name="pin_forgot_confirm">Reset &amp; verify</string>
+    <string name="pin_change_title">Change Security PIN</string>
+    <string name="pin_change_current_subtitle">Enter your current 4-digit PIN</string>
+    <string name="pin_change_incorrect_current">Current PIN is incorrect. Please try again.</string>
+    <string name="pin_change_new_title">Enter New PIN</string>
+    <string name="pin_change_new_subtitle">Choose a new 4-digit PIN</string>
+    <string name="pin_change_confirm_title">Confirm New PIN</string>
+    <string name="pin_change_confirm_subtitle">Re-enter your new 4-digit PIN to confirm.</string>
+    <string name="pin_change_success">Security PIN changed successfully.</string>
+    <string name="pin_reauth_title">Verify Your Identity</string>
+    <string name="pin_reauth_google_msg">Verify with your Google account (%1$s) to reset your PIN.</string>
+    <string name="pin_reauth_email_msg">Enter your password for %1$s to verify your identity and reset your PIN.</string>
+    <string name="pin_reauth_btn_google">Verify with Google</string>
+    <string name="pin_reauth_btn_verify">Verify Password</string>
+    <string name="pin_reauth_failed">Authentication failed</string>
+    <string name="pin_reauth_password_hint">Account Password</string>
+    <string name="pin_reset_reauth_success">Identity verified. Please set a new PIN.</string>
+    <string name="pin_reset_phone_msg">You will be asked to verify your phone number via OTP to reset your PIN.</string>
+    <string name="pin_forgot_password_reset_sent">Password reset email sent to %1$s</string>
     <string name="biometric_setup_title">Enable fingerprint unlock?</string>
     <string name="biometric_setup_desc">Keep your finances secure and unlock instantly with your fingerprint — no PIN required.</string>
     <string name="enable">Enable</string>
-    <string name="biometric_auth_title">Unlock BachatKhata</string>
-    <string name="biometric_auth_subtitle">Use your fingerprint or face to unlock BachatKhata.</string>
+    <string name="biometric_auth_title">Unlock MoneyLens</string>
+    <string name="biometric_auth_subtitle">Use your fingerprint or face to unlock MoneyLens.</string>
 
     <!-- Transactions -->
     <string name="add_transaction">Add transaction</string>
@@ -351,7 +369,7 @@
     <string name="help_contact_whatsapp">Chat with support on WhatsApp</string>
     <string name="help_contact_call">Call support</string>
     <string name="help_contact_email">Email support</string>
-    <string name="help_whatsapp_prefill">Hi, I need help with Bachat Khata.</string>
+    <string name="help_whatsapp_prefill">Hi, I need help with MoneyLens.</string>
     <string name="help_no_app_for_action">No app on this device can open that.</string>
 
     <string name="faq_q_add_txn">How do I add a transaction?</string>

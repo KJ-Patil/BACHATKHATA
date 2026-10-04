@@ -61,7 +61,7 @@
                     android:orientation="vertical"
                     android:padding="20dp">
 
-                    <com.example.bachatkhata.CircleScoreView
+                    <com.example.moneylens.CircleScoreView
                         android:id="@+id/creditScoreGauge"
                         android:layout_width="180dp"
                         android:layout_height="180dp" />

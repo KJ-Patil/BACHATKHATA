@@ -7,7 +7,7 @@
 
     <fragment
         android:id="@+id/navigation_home"
-        android:name="com.example.bachatkhata.HomeFragment"
+        android:name="com.example.moneylens.HomeFragment"
         android:label="@string/title_home"
         tools:layout="@layout/fragment_home">
         <action
@@ -20,104 +20,104 @@
 
     <fragment
         android:id="@+id/navigation_transactions"
-        android:name="com.example.bachatkhata.TransactionsFragment"
+        android:name="com.example.moneylens.TransactionsFragment"
         android:label="@string/title_transactions"
         tools:layout="@layout/fragment_transactions" />
 
     <fragment
         android:id="@+id/navigation_budget"
-        android:name="com.example.bachatkhata.BudgetFragment"
+        android:name="com.example.moneylens.BudgetFragment"
         android:label="@string/title_budget"
         tools:layout="@layout/fragment_budget" />
 
     <fragment
         android:id="@+id/navigation_savings"
-        android:name="com.example.bachatkhata.SavingsFragment"
+        android:name="com.example.moneylens.SavingsFragment"
         android:label="@string/title_savings"
         tools:layout="@layout/fragment_savings" />
 
     <fragment
         android:id="@+id/navigation_analytics"
-        android:name="com.example.bachatkhata.AnalyticsFragment"
+        android:name="com.example.moneylens.AnalyticsFragment"
         android:label="@string/title_analytics"
         tools:layout="@layout/fragment_analytics" />
 
     <fragment
         android:id="@+id/navigation_profile"
-        android:name="com.example.bachatkhata.ProfileFragment"
+        android:name="com.example.moneylens.ProfileFragment"
         android:label="@string/title_profile"
         tools:layout="@layout/fragment_profile" />
 
     <fragment
         android:id="@+id/navigation_notifications"
-        android:name="com.example.bachatkhata.NotificationsFragment"
+        android:name="com.example.moneylens.NotificationsFragment"
         android:label="@string/title_notifications"
         tools:layout="@layout/fragment_notifications" />
 
     <!-- Activity destination for FAB -->
     <activity
         android:id="@+id/action_add_transaction"
-        android:name="com.example.bachatkhata.AddTransactionActivity"
+        android:name="com.example.moneylens.AddTransactionActivity"
         android:label="@string/add_transaction"
         tools:layout="@layout/activity_add_transaction" />
 
     <fragment
         android:id="@+id/navigation_customer_ledger"
-        android:name="com.example.bachatkhata.CustomerLedgerFragment"
+        android:name="com.example.moneylens.CustomerLedgerFragment"
         android:label="Customer Ledger"
         tools:layout="@layout/fragment_customer_ledger" />
 
     <fragment
         android:id="@+id/navigation_subscriptions"
-        android:name="com.example.bachatkhata.SubscriptionTrackerFragment"
+        android:name="com.example.moneylens.SubscriptionTrackerFragment"
         android:label="Subscriptions"
         tools:layout="@layout/fragment_subscription_tracker" />
 
     <fragment
         android:id="@+id/navigation_emi_tracker"
-        android:name="com.example.bachatkhata.EmiTrackerFragment"
+        android:name="com.example.moneylens.EmiTrackerFragment"
         android:label="EMI Tracker"
         tools:layout="@layout/fragment_emi_tracker" />
 
     <fragment
         android:id="@+id/navigation_family_wallet"
-        android:name="com.example.bachatkhata.FamilyWalletFragment"
+        android:name="com.example.moneylens.FamilyWalletFragment"
         android:label="Family Wallet"
         tools:layout="@layout/fragment_family_wallet" />
 
     <fragment
         android:id="@+id/navigation_achievements"
-        android:name="com.example.bachatkhata.AchievementsFragment"
+        android:name="com.example.moneylens.AchievementsFragment"
         android:label="Achievements"
         tools:layout="@layout/fragment_achievements" />
 
     <fragment
         android:id="@+id/navigation_health_score"
-        android:name="com.example.bachatkhata.HealthScoreFragment"
+        android:name="com.example.moneylens.HealthScoreFragment"
         android:label="Financial Health Score"
         tools:layout="@layout/fragment_health_score" />
 
     <fragment
         android:id="@+id/navigation_roundup_settings"
-        android:name="com.example.bachatkhata.RoundUpSettingsFragment"
+        android:name="com.example.moneylens.RoundUpSettingsFragment"
         android:label="Round-Up Settings"
         tools:layout="@layout/fragment_roundup_settings" />
 
     <fragment
         android:id="@+id/navigation_literacy_lessons"
-        android:name="com.example.bachatkhata.LiteracyLessonsFragment"
+        android:name="com.example.moneylens.LiteracyLessonsFragment"
         android:label="Financial School"
         tools:layout="@layout/fragment_literacy_lessons" />
 
     <fragment
         android:id="@+id/navigation_carbon_tracker"
-        android:name="com.example.bachatkhata.CarbonTrackerFragment"
+        android:name="com.example.moneylens.CarbonTrackerFragment"
         android:label="Carbon Footprint"
         tools:layout="@layout/fragment_carbon_tracker" />
 
     <fragment
         android:id="@+id/navigation_data_tools"
-        android:name="com.example.bachatkhata.DataToolsFragment"
+        android:name="com.example.moneylens.DataToolsFragment"
         android:label="Data &amp; Tools"
         tools:layout="@layout/fragment_data_tools" />
 

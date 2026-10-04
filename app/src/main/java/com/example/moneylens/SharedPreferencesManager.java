@@ -1,0 +1,418 @@
+package com.example.moneylens;
+
+import android.content.Context;
+import android.content.SharedPreferences;
+
+import androidx.appcompat.app.AppCompatDelegate;
+import androidx.security.crypto.EncryptedSharedPreferences;
+import androidx.security.crypto.MasterKey;
+
+import java.util.Map;
+
+public class SharedPreferencesManager {
+
+    private static final String PREF_NAME = "MoneyLens_Prefs";        // legacy plaintext store
+    private static final String ENC_PREF_NAME = "MoneyLens_Prefs_Enc"; // AES-encrypted store
+    private static final String KEY_MIGRATED_TO_ENC = "MIGRATED_TO_ENC";
+    private static SharedPreferencesManager instance;
+    // No shared Editor field. One long-lived Editor was reused by every setter, and an
+    // Editor is not thread-safe: two threads staging changes on the same instance mean
+    // whichever calls apply() first publishes the other's half-written state, and an
+    // interleaved clearAll() could take unrelated keys with it. Each write now stages
+    // and commits on its own editor.
+    private final SharedPreferences sharedPreferences;
+
+    // Required Keys
+    public static final String KEY_APP_LOCK_ENABLED = "APP_LOCK_ENABLED";
+    public static final String KEY_APP_LOCK_CHOSEN = "APP_LOCK_CHOSEN";
+    public static final String KEY_LAST_PAUSED_TIME = "LAST_PAUSED_TIME";
+    public static final String KEY_SELECTED_PERIOD = "SELECTED_PERIOD";
+    public static final String KEY_ONBOARDING_SHOWN = "ONBOARDING_SHOWN";
+    public static final String KEY_USER_UID = "USER_UID";
+    public static final String KEY_USER_CURRENCY = "USER_CURRENCY";
+    public static final String KEY_USER_CURRENCY_SYMBOL = "USER_CURRENCY_SYMBOL";
+    public static final String KEY_BIOMETRIC_ENABLED = "BIOMETRIC_ENABLED";
+    public static final String KEY_LOCK_TIMEOUT_SECONDS = "LOCK_TIMEOUT_SECONDS";
+    public static final String KEY_ROUNDUP_ENABLED = "ROUNDUP_ENABLED";
+    public static final String KEY_ROUNDUP_LIMIT = "ROUNDUP_LIMIT";
+    public static final String KEY_THEME_MODE = "THEME_MODE";
+    public static final String KEY_REMEMBER_ME = "REMEMBER_ME";
+    public static final String KEY_REMEMBERED_EMAIL = "REMEMBERED_EMAIL";
+    // Budgeting Rule (50/30/20)
+    public static final String KEY_MONTHLY_INCOME = "MONTHLY_INCOME";
+    public static final String KEY_RULE_NEEDS = "RULE_NEEDS";
+    public static final String KEY_RULE_WANTS = "RULE_WANTS";
+    public static final String KEY_RULE_INVESTMENTS = "RULE_INVESTMENTS";
+    // SMS gateway (Fast2SMS). The API key is a credential — it lives here rather
+    // than in the plaintext store precisely because this one is AES-GCM encrypted.
+    public static final String KEY_SMS_GATEWAY_ENABLED = "SMS_GATEWAY_ENABLED";
+    public static final String KEY_SMS_GATEWAY_API_KEY = "SMS_GATEWAY_API_KEY";
+    // Dictation language for voice logging. Separate from the UI language — someone
+    // reading the app in English may still speak their transactions in Tamil.
+    public static final String KEY_VOICE_LANGUAGE = "VOICE_LANGUAGE";
+    // App-lock PIN mirror. Firestore stays the source of truth, but the lock cannot
+    // depend on reaching it: a failed read is not proof that no PIN is set, and
+    // treating it that way made airplane mode a bypass. Cached here because this
+    // store is the AES-GCM encrypted one.
+    public static final String KEY_PIN_HASH = "PIN_HASH";
+    public static final String KEY_PIN_UID = "PIN_UID";
+    public static final String KEY_PIN_KNOWN = "PIN_KNOWN";
+
+    private SharedPreferencesManager(Context context) {
+        Context appContext = context.getApplicationContext();
+        sharedPreferences = buildPreferences(appContext);
+    }
+
+    /**
+     * Build an AES-GCM encrypted preference store, migrating any pre-existing plaintext
+     * preferences into it once.
+     *
+     * <p>A first failure is not treated as "this device cannot encrypt". By far the
+     * likeliest cause is a store sealed with a key that no longer exists — a restored
+     * backup carries the file but not the AndroidKeyStore key, and the keystore can
+     * also be invalidated by a lock-screen change. The file is then permanently
+     * unopenable, and the old code answered that by silently returning the legacy
+     * plaintext store, which {@link #migrateLegacyPlaintext} had already wiped. The
+     * user lost their app-lock settings and SMS gateway key with no error, and every
+     * later launch hit the same dead end.
+     *
+     * <p>So an unopenable store is discarded and rebuilt. That loses the local copy of
+     * the settings, which is unavoidable — nothing can decrypt it — but it yields a
+     * working store that re-syncs from Firestore, instead of a broken one forever.
+     */
+    private SharedPreferences buildPreferences(Context appContext) {
+        try {
+            return createEncrypted(appContext);
+        } catch (Exception first) {
+            try {
+                discardUnreadableStore(appContext);
+                return createEncrypted(appContext);
+            } catch (Exception second) {
+                // Genuinely no encryption available on this device. Last resort, so the
+                // app still runs; the PIN's source of truth is Firestore either way.
+                return appContext.getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE);
+            }
+        }
+    }
+
+    private SharedPreferences createEncrypted(Context appContext) throws Exception {
+        MasterKey masterKey = new MasterKey.Builder(appContext)
+                .setKeyScheme(MasterKey.KeyScheme.AES256_GCM)
+                .build();
+
+        SharedPreferences encrypted = EncryptedSharedPreferences.create(
+                appContext,
+                ENC_PREF_NAME,
+                masterKey,
+                EncryptedSharedPreferences.PrefKeyEncryptionScheme.AES256_SIV,
+                EncryptedSharedPreferences.PrefValueEncryptionScheme.AES256_GCM);
+
+        migrateLegacyPlaintext(appContext, encrypted);
+        return encrypted;
+    }
+
+    /**
+     * Throws away a store that can no longer be decrypted, along with the master key
+     * entry, so the retry above builds a fresh pair. Both halves have to go: keeping
+     * the old key would re-seal against a key the file does not match, and keeping the
+     * old file would fail against the new key.
+     */
+    private void discardUnreadableStore(Context appContext) {
+        try {
+            appContext.deleteSharedPreferences(ENC_PREF_NAME);
+        } catch (Exception ignored) {
+            // Nothing to delete, or the platform refused — the key reset below may
+            // still be enough to recover.
+        }
+        try {
+            java.security.KeyStore keyStore = java.security.KeyStore.getInstance("AndroidKeyStore");
+            keyStore.load(null);
+            keyStore.deleteEntry(MasterKey.DEFAULT_MASTER_KEY_ALIAS);
+        } catch (Exception ignored) {
+            // No such entry, or the keystore is unavailable. The retry decides.
+        }
+    }
+
+    @SuppressWarnings("unchecked")
+    private void migrateLegacyPlaintext(Context appContext, SharedPreferences encrypted) {
+        if (encrypted.getBoolean(KEY_MIGRATED_TO_ENC, false)) return;
+
+        SharedPreferences legacy = appContext.getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE);
+        Map<String, ?> all = legacy.getAll();
+        SharedPreferences.Editor encEditor = encrypted.edit();
+        for (Map.Entry<String, ?> entry : all.entrySet()) {
+            String key = entry.getKey();
+            Object value = entry.getValue();
+            if (value instanceof String) {
+                encEditor.putString(key, (String) value);
+            } else if (value instanceof Boolean) {
+                encEditor.putBoolean(key, (Boolean) value);
+            } else if (value instanceof Integer) {
+                encEditor.putInt(key, (Integer) value);
+            } else if (value instanceof Long) {
+                encEditor.putLong(key, (Long) value);
+            } else if (value instanceof Float) {
+                encEditor.putFloat(key, (Float) value);
+            }
+        }
+        encEditor.putBoolean(KEY_MIGRATED_TO_ENC, true);
+        encEditor.apply();
+
+        // Wipe the now-redundant plaintext copy.
+        legacy.edit().clear().apply();
+    }
+
+    public static synchronized SharedPreferencesManager getInstance(Context context) {
+        if (instance == null) {
+            instance = new SharedPreferencesManager(context);
+        }
+        return instance;
+    }
+
+    // Remember Me (login email pre-fill)
+    public void setRememberMe(boolean remember, String email) {
+        sharedPreferences.edit().putBoolean(KEY_REMEMBER_ME, remember).putString(KEY_REMEMBERED_EMAIL, remember ? email : "").apply();
+    }
+
+    public boolean isRememberMe() {
+        return sharedPreferences.getBoolean(KEY_REMEMBER_ME, false);
+    }
+
+    public String getRememberedEmail() {
+        return sharedPreferences.getString(KEY_REMEMBERED_EMAIL, "");
+    }
+
+    // Round-up Settings
+    public void setRoundUpEnabled(boolean enabled) {
+        sharedPreferences.edit().putBoolean(KEY_ROUNDUP_ENABLED, enabled).apply();
+    }
+
+    public boolean isRoundUpEnabled() {
+        return sharedPreferences.getBoolean(KEY_ROUNDUP_ENABLED, false);
+    }
+
+    public void setRoundUpLimit(int limit) {
+        sharedPreferences.edit().putInt(KEY_ROUNDUP_LIMIT, limit).apply();
+    }
+
+    public int getRoundUpLimit() {
+        return sharedPreferences.getInt(KEY_ROUNDUP_LIMIT, 10); // Default ₹10 rounding
+    }
+
+    // App Lock Enabled
+    public void setAppLockEnabled(boolean enabled) {
+        sharedPreferences.edit()
+                .putBoolean(KEY_APP_LOCK_ENABLED, enabled)
+                .putBoolean(KEY_APP_LOCK_CHOSEN, true)
+                .apply();
+    }
+
+    public boolean isAppLockEnabled() {
+        return sharedPreferences.getBoolean(KEY_APP_LOCK_ENABLED, false);
+    }
+
+    /**
+     * Whether the idle lock has ever been switched on or off deliberately.
+     *
+     * <p>Needed because "off" and "never asked" are different states and the default
+     * for each differs. Nothing could set this flag before, so every existing install
+     * reads as off; an account that already has a PIN wants it on, and only this
+     * marker distinguishes that from someone who turned it off on purpose.
+     */
+    public boolean hasChosenAppLock() {
+        return sharedPreferences.getBoolean(KEY_APP_LOCK_CHOSEN, false);
+    }
+
+    // Last Paused Time (for timeout tracking)
+    public void setLastPausedTime(long timeMs) {
+        sharedPreferences.edit().putLong(KEY_LAST_PAUSED_TIME, timeMs).apply();
+    }
+
+    public long getLastPausedTime() {
+        return sharedPreferences.getLong(KEY_LAST_PAUSED_TIME, -1);
+    }
+
+    // Selected Period
+    public void setSelectedPeriod(int period) {
+        sharedPreferences.edit().putInt(KEY_SELECTED_PERIOD, period).apply();
+    }
+
+    public int getSelectedPeriod() {
+        return sharedPreferences.getInt(KEY_SELECTED_PERIOD, 0); // 0 = This Month
+    }
+
+    // Onboarding Shown
+    public void setOnboardingShown(boolean shown) {
+        sharedPreferences.edit().putBoolean(KEY_ONBOARDING_SHOWN, shown).apply();
+    }
+
+    public boolean isOnboardingShown() {
+        return sharedPreferences.getBoolean(KEY_ONBOARDING_SHOWN, false);
+    }
+
+    // User UID
+    public void setUserUid(String uid) {
+        sharedPreferences.edit().putString(KEY_USER_UID, uid).apply();
+    }
+
+    public String getUserUid() {
+        return sharedPreferences.getString(KEY_USER_UID, "");
+    }
+
+    // User Currency
+    public void setUserCurrency(String currencyCode) {
+        sharedPreferences.edit().putString(KEY_USER_CURRENCY, currencyCode).apply();
+    }
+
+    public String getUserCurrency() {
+        return sharedPreferences.getString(KEY_USER_CURRENCY, "INR");
+    }
+
+    // User Currency Symbol
+    public void setUserCurrencySymbol(String symbol) {
+        sharedPreferences.edit().putString(KEY_USER_CURRENCY_SYMBOL, symbol).apply();
+    }
+
+    public String getUserCurrencySymbol() {
+        return sharedPreferences.getString(KEY_USER_CURRENCY_SYMBOL, "₹");
+    }
+
+    // Biometric Enabled
+    public void setBiometricEnabled(boolean enabled) {
+        sharedPreferences.edit().putBoolean(KEY_BIOMETRIC_ENABLED, enabled).apply();
+    }
+
+    public boolean isBiometricEnabled() {
+        return sharedPreferences.getBoolean(KEY_BIOMETRIC_ENABLED, false);
+    }
+
+    // Lock Timeout Seconds
+    public void setLockTimeoutSeconds(int seconds) {
+        sharedPreferences.edit().putInt(KEY_LOCK_TIMEOUT_SECONDS, seconds).apply();
+    }
+
+    public int getLockTimeoutSeconds() {
+        return sharedPreferences.getInt(KEY_LOCK_TIMEOUT_SECONDS, 60); // default 60s
+    }
+
+    // Theme Mode ("System" | "Light" | "Dark")
+    public void setThemeMode(String mode) {
+        sharedPreferences.edit().putString(KEY_THEME_MODE, mode).apply();
+    }
+
+    public String getThemeMode() {
+        return sharedPreferences.getString(KEY_THEME_MODE, "System"); // default follow system
+    }
+
+    // Map a theme mode string to AppCompatDelegate night mode and apply it
+    public static void applyThemeMode(String mode) {
+        if ("Dark".equalsIgnoreCase(mode)) {
+            AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_YES);
+        } else if ("Light".equalsIgnoreCase(mode)) {
+            AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO);
+        } else {
+            AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_FOLLOW_SYSTEM);
+        }
+    }
+
+    // ── Budgeting Rule (50/30/20) ──
+    // Income is kept as a String so large values keep full precision (SharedPreferences
+    // has no double type, and float silently rounds past ~7 significant digits).
+    public void setMonthlyIncome(double income) {
+        sharedPreferences.edit().putString(KEY_MONTHLY_INCOME, String.valueOf(Math.max(0, income))).apply();
+    }
+
+    public double getMonthlyIncome() {
+        try {
+            return Double.parseDouble(sharedPreferences.getString(KEY_MONTHLY_INCOME, "0"));
+        } catch (NumberFormatException e) {
+            return 0;
+        }
+    }
+
+    public void setRuleSplit(int needs, int wants, int investments) {
+        sharedPreferences.edit().putInt(KEY_RULE_NEEDS, needs).putInt(KEY_RULE_WANTS, wants).putInt(KEY_RULE_INVESTMENTS, investments).apply();
+    }
+
+    public int getRuleNeeds() {
+        return sharedPreferences.getInt(KEY_RULE_NEEDS, 50);
+    }
+
+    public int getRuleWants() {
+        return sharedPreferences.getInt(KEY_RULE_WANTS, 30);
+    }
+
+    public int getRuleInvestments() {
+        return sharedPreferences.getInt(KEY_RULE_INVESTMENTS, 20);
+    }
+
+    // SMS gateway (Fast2SMS)
+    public void setSmsGatewayEnabled(boolean enabled) {
+        sharedPreferences.edit().putBoolean(KEY_SMS_GATEWAY_ENABLED, enabled).apply();
+    }
+
+    public boolean isSmsGatewayEnabled() {
+        return sharedPreferences.getBoolean(KEY_SMS_GATEWAY_ENABLED, false);
+    }
+
+    public void setSmsGatewayApiKey(String apiKey) {
+        sharedPreferences.edit().putString(KEY_SMS_GATEWAY_API_KEY, apiKey == null ? "" : apiKey).apply();
+    }
+
+    public String getSmsGatewayApiKey() {
+        return sharedPreferences.getString(KEY_SMS_GATEWAY_API_KEY, "");
+    }
+
+    // Voice logging dictation language (BCP-47, e.g. "hi-IN")
+    public void setVoiceLanguage(String tag) {
+        sharedPreferences.edit().putString(KEY_VOICE_LANGUAGE, tag).apply();
+    }
+
+    public String getVoiceLanguage() {
+        return sharedPreferences.getString(KEY_VOICE_LANGUAGE, VoiceLanguages.DEFAULT_TAG);
+    }
+
+    // ── App-lock PIN mirror ──
+    //
+    // Two distinct facts are stored, and the lock needs both: WHAT the hash is, and
+    // WHETHER the answer is known at all. "No PIN set" and "never synced" look
+    // identical if only the hash is kept, and they must route differently — the
+    // first lets the user straight in, the second must not.
+
+    /**
+     * Records the account's PIN state locally. A null or empty {@code hash} is a
+     * meaningful value: it records "this account has no PIN", which is exactly what
+     * lets the lock skip itself offline without guessing.
+     */
+    public void setCachedPin(String uid, String hash) {
+        if (uid == null || uid.isEmpty()) return;
+        sharedPreferences.edit().putString(KEY_PIN_UID, uid).putString(KEY_PIN_HASH, hash == null ? "" : hash).putBoolean(KEY_PIN_KNOWN, true).apply();
+    }
+
+    /**
+     * True once {@code uid}'s PIN state has been synced at least once on this device.
+     * The uid is part of the check so a cached hash can never be applied to whichever
+     * account happens to sign in next.
+     */
+    public boolean isPinStateKnown(String uid) {
+        if (uid == null || uid.isEmpty()) return false;
+        if (!sharedPreferences.getBoolean(KEY_PIN_KNOWN, false)) return false;
+        return uid.equals(sharedPreferences.getString(KEY_PIN_UID, ""));
+    }
+
+    /** The cached hash for {@code uid}; {@code ""} when unknown or when no PIN is set. */
+    public String getCachedPinHash(String uid) {
+        if (!isPinStateKnown(uid)) return "";
+        return sharedPreferences.getString(KEY_PIN_HASH, "");
+    }
+
+    /** Drops the mirror — used on sign-out so the next account starts from Firestore. */
+    public void clearCachedPin() {
+        sharedPreferences.edit().remove(KEY_PIN_HASH).remove(KEY_PIN_UID).remove(KEY_PIN_KNOWN).apply();
+    }
+
+    // Clear settings
+    public void clearAll() {
+        sharedPreferences.edit().clear().apply();
+    }
+}

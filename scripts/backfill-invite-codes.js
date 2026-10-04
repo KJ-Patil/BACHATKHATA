@@ -23,7 +23,7 @@ const admin = require('firebase-admin');
 
 const DRY_RUN = process.argv.includes('--dry-run');
 
-admin.initializeApp({ projectId: 'bachat-khata-db36c' });
+admin.initializeApp({ projectId: 'money-lens-db36c' });
 const db = admin.firestore();
 
 async function main() {

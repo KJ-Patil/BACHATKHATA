@@ -1,0 +1,296 @@
+package com.example.moneylens;
+
+import android.content.Intent;
+import android.net.Uri;
+import android.os.Bundle;
+import android.util.Patterns;
+import android.view.View;
+
+import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.contract.ActivityResultContracts;
+import androidx.appcompat.app.AppCompatActivity;
+
+import com.example.moneylens.databinding.ActivityRegisterBinding;
+import com.example.moneylens.domain.ProfileSanitizer;
+import com.google.android.gms.tasks.OnFailureListener;
+import com.google.android.material.snackbar.Snackbar;
+import com.google.firebase.FirebaseNetworkException;
+import com.google.firebase.Timestamp;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseAuthException;
+import com.google.firebase.auth.FirebaseAuthUserCollisionException;
+import com.google.firebase.auth.FirebaseAuthWeakPasswordException;
+import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.storage.FirebaseStorage;
+import com.google.firebase.storage.StorageReference;
+
+import java.util.HashMap;
+import java.util.Map;
+
+public class RegisterActivity extends AppCompatActivity {
+
+    private ActivityRegisterBinding binding;
+    private FirebaseAuth mAuth;
+    private FirebaseFirestore mFirestore;
+    private FirebaseStorage mStorage;
+    private Uri profileImageUri;
+    private ActivityResultLauncher<String> getContentLauncher;
+
+    private java.util.List<Country> countries;
+    private Country selectedCountry;
+
+    @Override
+    protected void attachBaseContext(android.content.Context newBase) {
+        super.attachBaseContext(LocaleHelper.wrap(newBase));
+    }
+
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        binding = ActivityRegisterBinding.inflate(getLayoutInflater());
+        setContentView(binding.getRoot());
+        BaseActivity.applyEdgeToEdgeInsets(findViewById(android.R.id.content));
+
+        mAuth = FirebaseAuth.getInstance();
+        mFirestore = FirebaseFirestore.getInstance();
+        mStorage = FirebaseStorage.getInstance();
+
+        // Register Content Pick Launcher for profile picture
+        getContentLauncher = registerForActivityResult(
+                new ActivityResultContracts.GetContent(),
+                uri -> {
+                    if (uri != null) {
+                        profileImageUri = uri;
+                        binding.imgProfile.setImageURI(uri);
+                    }
+                }
+        );
+
+        binding.cardProfileFrame.setOnClickListener(v -> getContentLauncher.launch("image/*"));
+        binding.btnChoosePhoto.setOnClickListener(v -> getContentLauncher.launch("image/*"));
+        binding.btnRegister.setOnClickListener(v -> handleRegister());
+        binding.btnGoToLogin.setOnClickListener(v -> finish());
+
+        // Country dial-code selector
+        countries = Country.all();
+        selectedCountry = countries.get(0); // India default
+        updateCountryButton();
+        binding.btnCountryCode.setOnClickListener(v -> showCountryPicker());
+    }
+
+    private void updateCountryButton() {
+        binding.btnCountryCode.setText(selectedCountry.flag() + " " + selectedCountry.dialCode);
+    }
+
+    private void showCountryPicker() {
+        String[] labels = new String[countries.size()];
+        for (int i = 0; i < countries.size(); i++) {
+            labels[i] = countries.get(i).displayLabel();
+        }
+        new androidx.appcompat.app.AlertDialog.Builder(this)
+                .setTitle("Select country")
+                .setItems(labels, (dialog, which) -> {
+                    selectedCountry = countries.get(which);
+                    updateCountryButton();
+                })
+                .show();
+    }
+
+    private void handleRegister() {
+        // Sanitize before validating, so a name made only of zero-width or bidi
+        // characters is caught by the empty check rather than persisted (§5.24).
+        String name = ProfileSanitizer.sanitizeDisplayName(binding.etFullName.getText().toString());
+        String email = binding.etEmail.getText().toString().trim();
+        String password = binding.etPassword.getText().toString().trim();
+        String confirmPassword = binding.etConfirmPassword.getText().toString().trim();
+
+        if (name.isEmpty()) {
+            binding.tilFullName.setError(getString(R.string.err_empty_name));
+            return;
+        } else {
+            binding.tilFullName.setError(null);
+        }
+
+        if (email.isEmpty()) {
+            binding.tilEmail.setError(getString(R.string.err_empty_email));
+            return;
+        } else if (!Patterns.EMAIL_ADDRESS.matcher(email).matches()) {
+            binding.tilEmail.setError(getString(R.string.err_invalid_email));
+            return;
+        } else {
+            binding.tilEmail.setError(null);
+        }
+
+        if (password.isEmpty()) {
+            binding.tilPassword.setError(getString(R.string.err_empty_password));
+            return;
+        } else if (password.length() < 6) {
+            binding.tilPassword.setError(getString(R.string.err_short_password));
+            return;
+        } else {
+            binding.tilPassword.setError(null);
+        }
+
+        if (!password.equals(confirmPassword)) {
+            binding.tilConfirmPassword.setError(getString(R.string.err_password_mismatch));
+            return;
+        } else {
+            binding.tilConfirmPassword.setError(null);
+        }
+
+        // Phone is optional, but if given it must fit the selected country's format —
+        // otherwise a malformed number is saved and later WhatsApp/SMS links fail.
+        String phoneEntered = binding.etPhone.getText().toString().trim();
+        if (!phoneEntered.isEmpty()) {
+            String phoneError = selectedCountry.validatePhone(phoneEntered);
+            if (phoneError != null) {
+                binding.tilPhone.setError(phoneError);
+                return;
+            }
+        }
+        binding.tilPhone.setError(null);
+
+        showLoading(true);
+
+        mAuth.createUserWithEmailAndPassword(email, password)
+                .addOnSuccessListener(authResult -> {
+                    FirebaseUser user = authResult.getUser();
+                    if (user != null) {
+                        uploadPhotoAndSaveUser(user, name);
+                    } else {
+                        // Without this branch the full-screen loader scrim stays up and
+                        // swallows every touch, leaving the screen permanently frozen.
+                        showLoading(false);
+                        showError("Account created but no user session was returned. Please sign in.");
+                    }
+                })
+                .addOnFailureListener(e -> {
+                    showLoading(false);
+                    showError(describeAuthError(e));
+                });
+    }
+
+    /**
+     * Turn a Firebase sign-up failure into a message that names the actual cause. The raw
+     * {@code getLocalizedMessage()} is often opaque ("An internal error has occurred"), which
+     * makes a disabled Email/Password provider indistinguishable from a bad password.
+     */
+    private String describeAuthError(Exception e) {
+        if (e instanceof FirebaseAuthUserCollisionException) {
+            return "That email already has an account. Try signing in instead, or use Forgot password.";
+        }
+        if (e instanceof FirebaseAuthWeakPasswordException) {
+            String reason = ((FirebaseAuthWeakPasswordException) e).getReason();
+            return "Password too weak: " + (reason == null ? "choose a longer one." : reason);
+        }
+        if (e instanceof FirebaseNetworkException) {
+            return "No internet connection. Connect and try again.";
+        }
+        if (e instanceof FirebaseAuthException) {
+            String code = ((FirebaseAuthException) e).getErrorCode();
+            if ("ERROR_OPERATION_NOT_ALLOWED".equals(code)) {
+                return "Email/password sign-up is disabled for this project. "
+                        + "Enable it in Firebase Console → Authentication → Sign-in method.";
+            }
+            if ("ERROR_INVALID_EMAIL".equals(code)) {
+                return getString(R.string.err_invalid_email);
+            }
+            return "Sign-up failed (" + code + "): " + e.getLocalizedMessage();
+        }
+        String message = e.getLocalizedMessage();
+        // A missing/mismatched google-services.json surfaces only in the message text.
+        if (message != null && message.contains("CONFIGURATION_NOT_FOUND")) {
+            return "Firebase project is not configured for this app. Check that Authentication is "
+                    + "enabled and google-services.json matches the package name.";
+        }
+        return message;
+    }
+
+    private void uploadPhotoAndSaveUser(FirebaseUser user, String name) {
+        String uid = user.getUid();
+
+        // Carry the name onto the Auth profile too, so anything reading
+        // displayName (and the Google/phone sign-in paths) sees it (§6.3).
+        user.updateProfile(new com.google.firebase.auth.UserProfileChangeRequest.Builder()
+                .setDisplayName(name)
+                .build());
+
+        if (profileImageUri != null) {
+            StorageReference profileRef = mStorage.getReference().child("users/" + uid + "/profile.jpg");
+
+            // Crop and shrink to a 256px JPEG first. A full-resolution phone photo is
+            // several megabytes, uploaded once and then re-downloaded on every profile
+            // render; the avatar never needs more than a couple hundred pixels (§6.6).
+            // Fall back to the raw file only if decoding fails, so a picture the
+            // decoder can't read still doesn't block sign-up.
+            byte[] avatarBytes = ImageDownscaler.toAvatarJpeg(this, profileImageUri);
+            com.google.firebase.storage.UploadTask upload = avatarBytes != null
+                    ? profileRef.putBytes(avatarBytes)
+                    : profileRef.putFile(profileImageUri);
+
+            upload.addOnSuccessListener(taskSnapshot -> profileRef.getDownloadUrl()
+                            .addOnSuccessListener(uri -> saveUserToFirestore(uid, name, uri.toString()))
+                            .addOnFailureListener(e -> saveUserToFirestore(uid, name, "")))
+                    .addOnFailureListener(e -> saveUserToFirestore(uid, name, ""));
+        } else {
+            saveUserToFirestore(uid, name, "");
+        }
+    }
+
+    private void saveUserToFirestore(String uid, String name, String photoUrl) {
+        Map<String, Object> userData = new HashMap<>();
+        userData.put("name", name);
+        userData.put("email", mAuth.getCurrentUser().getEmail());
+        // Only an https download URL is ever legitimate here; anything else would
+        // put an attacker-chosen URL in front of the image loader on every read.
+        String safePhotoUrl = ProfileSanitizer.sanitizeAvatarUrl(photoUrl);
+        userData.put("photoUrl", safePhotoUrl == null ? "" : safePhotoUrl);
+
+        // Optional phone number with its country dial code.
+        String phoneNumber = binding.etPhone.getText().toString().trim();
+        if (!phoneNumber.isEmpty()) {
+            userData.put("phone", selectedCountry.dialCode + " " + Country.digitsOnly(phoneNumber));
+            userData.put("dialCode", selectedCountry.dialCode);
+            userData.put("countryCode", selectedCountry.isoCode);
+        }
+        userData.put("currency", "INR");
+        userData.put("currencySymbol", "₹");
+        userData.put("pinHash", "");
+        userData.put("biometricEnabled", false);
+        userData.put("themeMode", "system");
+        userData.put("createdAt", Timestamp.now());
+        userData.put("onboardingComplete", false);
+
+        mFirestore.collection("users").document(uid).set(userData)
+                .addOnSuccessListener(aVoid -> {
+                    // Seed defaults and navigate to onboarding
+                    DefaultDataSeeder.seedDefaultData(uid,
+                            aVoid2 -> {
+                                showLoading(false);
+                                startActivity(new Intent(RegisterActivity.this, OnboardingActivity.class));
+                                finish();
+                            },
+                            e -> {
+                                showLoading(false);
+                                showError("Failed to seed default categories: " + e.getLocalizedMessage());
+                            }
+                    );
+                })
+                .addOnFailureListener(e -> {
+                    showLoading(false);
+                    showError("Firestore registration error: " + e.getLocalizedMessage());
+                });
+    }
+
+    private void showLoading(boolean isLoading) {
+        binding.loaderOverlay.setVisibility(isLoading ? View.VISIBLE : View.GONE);
+    }
+
+    private void showError(String message) {
+        if (message == null || message.isEmpty()) message = "Registration failed.";
+        Snackbar snackbar = Snackbar.make(binding.getRoot(), message, Snackbar.LENGTH_LONG);
+        snackbar.setBackgroundTint(getResources().getColor(R.color.colorDanger));
+        snackbar.show();
+    }
+}

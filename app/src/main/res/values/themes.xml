@@ -1,6 +1,6 @@
 <resources xmlns:tools="http://schemas.android.com/tools">
     <!-- Base application theme. -->
-    <style name="Base.Theme.BachatKhata" parent="Theme.Material3.Light.NoActionBar">
+    <style name="Base.Theme.MoneyLens" parent="Theme.Material3.Light.NoActionBar">
         <!-- Customize your light theme here. -->
         <item name="colorPrimary">@color/colorPrimary</item>
         <item name="colorOnPrimary">@color/colorOnPrimary</item>
@@ -17,8 +17,8 @@
         <item name="android:navigationBarColor">@color/colorBackground</item>
     </style>
 
-    <style name="Theme.BachatKhata" parent="Base.Theme.BachatKhata" />
-    <style name="Theme.BachatKhata.Dark" parent="Base.Theme.BachatKhata" />
+    <style name="Theme.MoneyLens" parent="Base.Theme.MoneyLens" />
+    <style name="Theme.MoneyLens.Dark" parent="Base.Theme.MoneyLens" />
 
     <!-- SoftCard Style — mirrors the CSS:
          backgroundColor #ffffff, border 1px #e5e7eb, borderRadius 16px, padding 48px,

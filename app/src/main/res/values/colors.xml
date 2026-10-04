@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <!-- ============================================================
-         PaisaTrack / BachatKhata — Indigo + Neutral (fintech) palette
+         PaisaTrack / MoneyLens — Indigo + Neutral (fintech) palette
          Light theme. Dark counterparts live in values-night/colors.xml
          with the SAME token names, so every reference adapts automatically.
          ============================================================ -->

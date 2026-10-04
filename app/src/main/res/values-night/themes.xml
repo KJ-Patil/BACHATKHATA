@@ -1,6 +1,6 @@
 <resources xmlns:tools="http://schemas.android.com/tools">
     <!-- Base application theme for Dark Mode. -->
-    <style name="Base.Theme.BachatKhata" parent="Theme.Material3.Dark.NoActionBar">
+    <style name="Base.Theme.MoneyLens" parent="Theme.Material3.Dark.NoActionBar">
         <!-- Customize your dark theme here. -->
         <item name="colorPrimary">@color/colorPrimary</item>
         <item name="colorOnPrimary">@color/colorOnPrimary</item>
@@ -17,8 +17,8 @@
         <item name="android:navigationBarColor">@color/colorBackground</item>
     </style>
 
-    <style name="Theme.BachatKhata" parent="Base.Theme.BachatKhata" />
-    <style name="Theme.BachatKhata.Dark" parent="Base.Theme.BachatKhata" />
+    <style name="Theme.MoneyLens" parent="Base.Theme.MoneyLens" />
+    <style name="Theme.MoneyLens.Dark" parent="Base.Theme.MoneyLens" />
 
     <!-- ClayCard Style — bold raised card (deeper shadow reads better on dark). -->
     <style name="ClayCard" parent="Widget.Material3.CardView.Elevated">
