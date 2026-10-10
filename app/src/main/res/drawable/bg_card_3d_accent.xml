@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- Glassmorphism accent card — translucent blue. -->
+<!-- Crisp accent surface for safe-to-spend and summary cards -->
 <shape xmlns:android="http://schemas.android.com/apk/res/android"
     android:shape="rectangle">
-    <solid android:color="#80339AF0" />
+    <solid android:color="@color/colorSurface" />
     <corners android:radius="20dp" />
-    <stroke android:width="1dp" android:color="#4D60A5FA" />
+    <stroke android:width="1dp" android:color="@color/colorCardBorder" />
 </shape>
