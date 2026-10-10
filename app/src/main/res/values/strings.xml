@@ -139,9 +139,6 @@
     <string name="err_invalid_amount">Please enter an amount greater than zero</string>
     <string name="err_select_category">Please select a category</string>
 
-    <!-- Firebase / Client ID -->
-    <!-- Replace with actual client ID from Google console if available, using standard default name expected by standard auth tools -->
-    <string name="default_web_client_id" translatable="false">538622153215-t3g8s0lq663u5fghm7l88l9efbe9e26a.apps.googleusercontent.com</string>
 
     <!-- v2.0 FEATURES STRINGS -->
 

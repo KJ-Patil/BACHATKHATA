@@ -28,6 +28,11 @@
     <color name="colorSurfaceElevated">#232E42</color>
     <color name="colorSurfaceVariant">#131C2B</color>
 
+    <!-- Background Gradient (Dark theme) -->
+    <color name="bgGradientStart">#111827</color>     <!-- deep slate-900 -->
+    <color name="bgGradientCenter">#0E1524</color>    <!-- smooth transition -->
+    <color name="bgGradientEnd">#0B1220</color>       <!-- near-black slate-950 base -->
+
     <!-- Text -->
     <color name="colorTextPrimary">#F1F5F9</color>
     <color name="colorTextSecondary">#94A3B8</color>

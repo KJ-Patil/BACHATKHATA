@@ -1,32 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- Mesh-style gradient background for glassmorphism.
-     Three radial-gradient orbs layered on top of the base background. -->
-<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
-    <!-- Base background -->
-    <item>
-        <shape android:shape="rectangle">
-            <solid android:color="@color/colorBackground" />
-        </shape>
-    </item>
-    <!-- Top-right indigo orb -->
-    <item android:top="-80dp" android:right="-60dp">
-        <shape android:shape="oval">
-            <solid android:color="@color/glassMeshOrb1" />
-            <size android:width="280dp" android:height="280dp" />
-        </shape>
-    </item>
-    <!-- Bottom-left teal orb -->
-    <item android:bottom="-40dp" android:left="-80dp" android:top="400dp">
-        <shape android:shape="oval">
-            <solid android:color="@color/glassMeshOrb2" />
-            <size android:width="240dp" android:height="240dp" />
-        </shape>
-    </item>
-    <!-- Center indigo orb (subtle) -->
-    <item android:top="200dp" android:left="60dp">
-        <shape android:shape="oval">
-            <solid android:color="@color/glassMeshOrb3" />
-            <size android:width="200dp" android:height="200dp" />
-        </shape>
-    </item>
-</layer-list>
+<!-- Premium subtle vertical gradient background ensuring crystal-clear text contrast and zero harsh blob overlays -->
+<shape xmlns:android="http://schemas.android.com/apk/res/android"
+    android:shape="rectangle">
+    <gradient
+        android:angle="270"
+        android:startColor="@color/bgGradientStart"
+        android:centerColor="@color/bgGradientCenter"
+        android:endColor="@color/bgGradientEnd"
+        android:type="linear" />
+</shape>

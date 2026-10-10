@@ -28,9 +28,14 @@
     <color name="colorSurfaceElevated">#FFFFFF</color>
     <color name="colorSurfaceVariant">#F8FAFC</color> <!-- slate-50 (subtle inner fills) -->
 
+    <!-- Background Gradient (Smooth, ultra-clean fintech palette for optimal contrast) -->
+    <color name="bgGradientStart">#F8FAFC</color>     <!-- slate-50 crisp top -->
+    <color name="bgGradientCenter">#F1F5F9</color>    <!-- slate-100 smooth transition -->
+    <color name="bgGradientEnd">#E2E8F0</color>       <!-- slate-200 subtle base depth -->
+
     <!-- Text -->
-    <color name="colorTextPrimary">#0F172A</color>    <!-- slate-900 -->
-    <color name="colorTextSecondary">#64748B</color>  <!-- slate-500 -->
+    <color name="colorTextPrimary">#0F172A</color>    <!-- slate-900 (ultra-deep high contrast) -->
+    <color name="colorTextSecondary">#475569</color>  <!-- slate-600 (sharper, highly legible secondary text) -->
     <color name="colorTextTertiary">#94A3B8</color>   <!-- slate-400 (hints) -->
 
     <!-- Lines & shadows -->
