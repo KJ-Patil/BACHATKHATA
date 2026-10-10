@@ -4,7 +4,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/colorBackground">
+    android:background="@drawable/bg_mesh_gradient">
 
     <!-- Top App Bar Toolbar -->
     <RelativeLayout
@@ -30,7 +30,7 @@
         android:id="@+id/tabPeriod"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:background="@color/colorBackground"
+        android:background="@drawable/bg_mesh_gradient"
         app:tabMode="fixed"
         app:tabGravity="fill"
         app:tabIndicatorColor="@color/colorPrimary"

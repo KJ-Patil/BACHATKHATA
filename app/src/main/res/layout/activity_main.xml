@@ -5,7 +5,7 @@
     android:id="@+id/coordinatorLayout"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/colorBackground">
+    android:background="@drawable/bg_mesh_gradient">
 
     <!-- Top Connection Warning Banner -->
     <TextView
@@ -41,8 +41,8 @@
         app:fabCradleMargin="8dp"
         app:fabCradleRoundedCornerRadius="16dp"
         app:fabCradleVerticalOffset="10dp"
-        android:backgroundTint="@color/colorSurface"
-        app:elevation="18dp"
+        android:backgroundTint="@color/glassBottomNavBg"
+        app:elevation="0dp"
         tools:ignore="BottomAppBar">
 
         <com.google.android.material.bottomnavigation.BottomNavigationView
@@ -72,8 +72,8 @@
         android:layout_marginEnd="16dp"
         android:src="@drawable/ic_calculator"
         app:tint="@color/colorPrimary"
-        android:backgroundTint="@color/colorSurface"
-        app:elevation="8dp"
+        android:backgroundTint="@color/glassCardBg"
+        app:elevation="4dp"
         app:fabCustomSize="46dp"
         app:maxImageSize="22dp"
         app:borderWidth="0dp"
@@ -88,7 +88,7 @@
         android:src="@drawable/ic_add"
         app:tint="@color/colorSurface"
         android:backgroundTint="@color/colorPrimary"
-        app:elevation="10dp"
+        app:elevation="6dp"
         app:fabCustomSize="58dp"
         app:maxImageSize="26dp"
         app:borderWidth="0dp"

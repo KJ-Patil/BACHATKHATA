@@ -24,7 +24,7 @@
             android:id="@+id/layoutIconCircle"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:background="@color/colorSurface">
+            android:background="@drawable/bg_glass_card">
 
             <TextView
                 android:id="@+id/txtCategoryEmoji"

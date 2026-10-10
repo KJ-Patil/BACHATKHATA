@@ -1,7 +1,6 @@
 <resources xmlns:tools="http://schemas.android.com/tools">
     <!-- Base application theme for Dark Mode. -->
     <style name="Base.Theme.MoneyLens" parent="Theme.Material3.Dark.NoActionBar">
-        <!-- Customize your dark theme here. -->
         <item name="colorPrimary">@color/colorPrimary</item>
         <item name="colorOnPrimary">@color/colorOnPrimary</item>
         <item name="colorSecondary">@color/colorSecondary</item>
@@ -11,59 +10,60 @@
         <item name="android:colorBackground">@color/colorBackground</item>
         <item name="colorOnSurface">@color/colorTextPrimary</item>
 
-        <!-- Status bar and navigation bar customization -->
-        <item name="android:statusBarColor">@color/colorBackground</item>
+        <!-- Translucent status/nav bars for glass effect -->
+        <item name="android:statusBarColor">@android:color/transparent</item>
         <item name="android:windowLightStatusBar" tools:targetApi="m">false</item>
-        <item name="android:navigationBarColor">@color/colorBackground</item>
+        <item name="android:navigationBarColor">@android:color/transparent</item>
+        <item name="android:windowDrawsSystemBarBackgrounds">true</item>
     </style>
 
     <style name="Theme.MoneyLens" parent="Base.Theme.MoneyLens" />
     <style name="Theme.MoneyLens.Dark" parent="Base.Theme.MoneyLens" />
 
-    <!-- ClayCard Style — bold raised card (deeper shadow reads better on dark). -->
+    <!-- ClayCard Style — glassmorphism dark variant -->
     <style name="ClayCard" parent="Widget.Material3.CardView.Elevated">
         <item name="cardCornerRadius">@dimen/clay_card_radius</item>
-        <item name="cardElevation">12dp</item>
+        <item name="cardElevation">2dp</item>
         <item name="android:stateListAnimator">@null</item>
-        <item name="strokeColor">@color/colorCardBorder</item>
+        <item name="strokeColor">@color/glassCardBorder</item>
         <item name="strokeWidth">1dp</item>
-        <item name="cardBackgroundColor">@color/colorSurface</item>
+        <item name="cardBackgroundColor">@color/glassCardBg</item>
     </style>
 
-    <!-- ClayButton Style — filled, bold raised. -->
+    <!-- ClayButton Style — glassmorphism dark -->
     <style name="ClayButton" parent="Widget.Material3.Button">
         <item name="cornerRadius">@dimen/clay_button_radius</item>
         <item name="android:paddingVertical">14dp</item>
         <item name="backgroundTint">@color/colorPrimary</item>
-        <item name="android:textColor">@color/colorOnPrimary</item> <!-- contrast for dark surface -->
+        <item name="android:textColor">@color/colorOnPrimary</item>
         <item name="iconTint">@color/colorOnPrimary</item>
-        <item name="android:elevation">6dp</item>
+        <item name="android:elevation">4dp</item>
         <item name="android:insetTop">0dp</item>
         <item name="android:insetBottom">0dp</item>
     </style>
 
-    <!-- ClayButtonSecondary Style -->
+    <!-- ClayButtonSecondary Style — glassmorphism dark -->
     <style name="ClayButtonSecondary" parent="Widget.Material3.Button.OutlinedButton">
         <item name="cornerRadius">@dimen/clay_button_radius</item>
         <item name="android:paddingVertical">14dp</item>
-        <item name="backgroundTint">@color/colorSurface</item>
+        <item name="backgroundTint">@color/glassCardBg</item>
         <item name="android:textColor">@color/colorPrimary</item>
-        <item name="strokeColor">@color/colorPrimary</item>
-        <item name="strokeWidth">1.5dp</item>
+        <item name="strokeColor">@color/glassCardBorder</item>
+        <item name="strokeWidth">1dp</item>
         <item name="android:insetTop">0dp</item>
         <item name="android:insetBottom">0dp</item>
     </style>
 
-    <!-- ClayInput Style -->
+    <!-- ClayInput Style — glassmorphism dark -->
     <style name="ClayInput" parent="Widget.Material3.TextInputLayout.OutlinedBox">
         <item name="boxCornerRadiusTopStart">@dimen/clay_input_radius</item>
         <item name="boxCornerRadiusTopEnd">@dimen/clay_input_radius</item>
         <item name="boxCornerRadiusBottomStart">@dimen/clay_input_radius</item>
         <item name="boxCornerRadiusBottomEnd">@dimen/clay_input_radius</item>
-        <item name="boxStrokeColor">@color/colorCardBorder</item>
-        <item name="boxStrokeWidth">1.5dp</item>
-        <item name="boxStrokeWidthFocused">2.5dp</item>
-        <item name="boxBackgroundColor">@color/colorSurface</item>
+        <item name="boxStrokeColor">@color/glassInputBorder</item>
+        <item name="boxStrokeWidth">1dp</item>
+        <item name="boxStrokeWidthFocused">2dp</item>
+        <item name="boxBackgroundColor">@color/glassInputBg</item>
         <item name="hintTextColor">@color/colorPrimary</item>
     </style>
 

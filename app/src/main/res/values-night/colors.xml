@@ -53,4 +53,19 @@
     <!-- Soft card treatment (kept for back-compat) -->
     <color name="softCardBorder">#2A3648</color>
     <color name="softCardText">#94A3B8</color>
+
+    <!-- ── Glassmorphism tokens (dark) ──────────────────────────── -->
+    <color name="glassCardBg">#991A2333</color>
+    <color name="glassCardBorder">#1AFFFFFF</color>
+    <color name="glassCardShadow">#4D000000</color>
+    <color name="glassPillBg">#8C1A2333</color>
+    <color name="glassInputBg">#801A2333</color>
+    <color name="glassInputBorder">#1AFFFFFF</color>
+    <color name="glassBottomNavBg">#CC1A2333</color>
+    <color name="glassHeroBg">#594F46E5</color>
+    <color name="glassHeroBorder">#40818CF8</color>
+    <color name="glassMeshOrb1">#666366F1</color>
+    <color name="glassMeshOrb2">#4D0D9488</color>
+    <color name="glassMeshOrb3">#33312E81</color>
+    <color name="glassSheetBg">#E61A2333</color>
 </resources>

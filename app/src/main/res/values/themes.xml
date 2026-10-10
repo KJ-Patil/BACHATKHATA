@@ -1,7 +1,6 @@
 <resources xmlns:tools="http://schemas.android.com/tools">
     <!-- Base application theme. -->
     <style name="Base.Theme.MoneyLens" parent="Theme.Material3.Light.NoActionBar">
-        <!-- Customize your light theme here. -->
         <item name="colorPrimary">@color/colorPrimary</item>
         <item name="colorOnPrimary">@color/colorOnPrimary</item>
         <item name="colorSecondary">@color/colorSecondary</item>
@@ -11,75 +10,71 @@
         <item name="android:colorBackground">@color/colorBackground</item>
         <item name="colorOnSurface">@color/colorTextPrimary</item>
 
-        <!-- Status bar and navigation bar customization -->
-        <item name="android:statusBarColor">@color/colorBackground</item>
+        <!-- Translucent status/nav bars for glass effect -->
+        <item name="android:statusBarColor">@android:color/transparent</item>
         <item name="android:windowLightStatusBar" tools:targetApi="m">true</item>
-        <item name="android:navigationBarColor">@color/colorBackground</item>
+        <item name="android:navigationBarColor">@android:color/transparent</item>
+        <item name="android:windowDrawsSystemBarBackgrounds">true</item>
     </style>
 
     <style name="Theme.MoneyLens" parent="Base.Theme.MoneyLens" />
     <style name="Theme.MoneyLens.Dark" parent="Base.Theme.MoneyLens" />
 
-    <!-- SoftCard Style — mirrors the CSS:
-         backgroundColor #ffffff, border 1px #e5e7eb, borderRadius 16px, padding 48px,
-         textAlign center, color #64748b, fontSize 14px, boxShadow 0 1px 2px rgba(0,0,0,.05) -->
+    <!-- SoftCard Style — glassmorphism variant -->
     <style name="SoftCard">
         <item name="android:background">@drawable/bg_card_soft</item>
         <item name="android:padding">48dp</item>
         <item name="android:gravity">center</item>
         <item name="android:textAlignment">center</item>
-        <item name="android:elevation">2dp</item>
+        <item name="android:elevation">0dp</item>
         <item name="android:textColor">@color/softCardText</item>
         <item name="android:textSize">14sp</item>
     </style>
 
-    <!-- ClayCard Style — bold raised card with a branded (indigo-tinted) shadow. -->
+    <!-- ClayCard Style — glassmorphism: translucent card, minimal elevation. -->
     <style name="ClayCard" parent="Widget.Material3.CardView.Elevated">
         <item name="cardCornerRadius">@dimen/clay_card_radius</item>
-        <item name="cardElevation">10dp</item>
+        <item name="cardElevation">2dp</item>
         <item name="android:stateListAnimator">@null</item>
-        <item name="strokeColor">@color/colorCardBorder</item>
+        <item name="strokeColor">@color/glassCardBorder</item>
         <item name="strokeWidth">1dp</item>
-        <item name="cardBackgroundColor">@color/colorSurface</item>
-        <item name="android:outlineSpotShadowColor" tools:targetApi="p">@color/colorPrimary</item>
-        <item name="android:outlineAmbientShadowColor" tools:targetApi="p">@color/colorPrimary</item>
+        <item name="cardBackgroundColor">@color/glassCardBg</item>
     </style>
 
-    <!-- ClayButton Style — filled, bold raised with a real elevation shadow. -->
+    <!-- ClayButton Style — glassmorphism: gradient fill, reduced elevation. -->
     <style name="ClayButton" parent="Widget.Material3.Button">
         <item name="cornerRadius">@dimen/clay_button_radius</item>
         <item name="android:paddingVertical">14dp</item>
         <item name="backgroundTint">@color/colorPrimary</item>
         <item name="android:textColor">@color/colorOnPrimary</item>
         <item name="iconTint">@color/colorOnPrimary</item>
-        <item name="android:elevation">6dp</item>
-        <item name="android:outlineSpotShadowColor" tools:targetApi="p">@color/colorPrimaryShadow</item>
+        <item name="android:elevation">4dp</item>
         <item name="android:insetTop">0dp</item>
         <item name="android:insetBottom">0dp</item>
     </style>
 
-    <!-- ClayButtonSecondary Style -->
+    <!-- ClayButtonSecondary Style — glassmorphism outline -->
     <style name="ClayButtonSecondary" parent="Widget.Material3.Button.OutlinedButton">
         <item name="cornerRadius">@dimen/clay_button_radius</item>
         <item name="android:paddingVertical">14dp</item>
-        <item name="backgroundTint">@color/colorSurface</item>
+        <item name="backgroundTint">@color/glassCardBg</item>
         <item name="android:textColor">@color/colorPrimary</item>
-        <item name="strokeColor">@color/colorPrimary</item>
-        <item name="strokeWidth">1.5dp</item>
+        <item name="strokeColor">@color/glassCardBorder</item>
+        <item name="strokeWidth">1dp</item>
         <item name="android:insetTop">0dp</item>
         <item name="android:insetBottom">0dp</item>
     </style>
 
-    <!-- ClayInput Style -->
+    <!-- ClayInput Style — glassmorphism -->
     <style name="ClayInput" parent="Widget.Material3.TextInputLayout.OutlinedBox">
         <item name="boxCornerRadiusTopStart">@dimen/clay_input_radius</item>
         <item name="boxCornerRadiusTopEnd">@dimen/clay_input_radius</item>
         <item name="boxCornerRadiusBottomStart">@dimen/clay_input_radius</item>
         <item name="boxCornerRadiusBottomEnd">@dimen/clay_input_radius</item>
-        <item name="boxStrokeColor">@color/colorCardBorder</item>
-        <item name="boxStrokeWidth">1.5dp</item>
-        <item name="boxStrokeWidthFocused">2.5dp</item>
-        <item name="boxBackgroundColor">@color/colorSurface</item>
+        <item name="boxStrokeColor">@color/glassInputBorder</item>
+        <item name="boxStrokeWidth">1dp</item>
+        <item name="boxStrokeWidthFocused">2dp</item>
+        <item name="boxBackgroundColor">@color/glassInputBg</item>
         <item name="hintTextColor">@color/colorPrimary</item>
     </style>
 
@@ -94,16 +89,14 @@
         <item name="cornerSize">19dp</item>
     </style>
 
-    <!-- ── Floating calculator keypad ──────────────────────────────────────
-         Keys share one base so the 4x5 grid stays even; variants only
-         re-tint. layout_weight=1 + width=0dp makes each row self-distribute. -->
+    <!-- Calculator keys -->
     <style name="CalcKey" parent="Widget.Material3.Button.TextButton">
         <item name="android:layout_width">0dp</item>
         <item name="android:layout_height">54dp</item>
         <item name="android:layout_weight">1</item>
         <item name="android:layout_marginHorizontal">4dp</item>
         <item name="cornerRadius">@dimen/clay_input_radius</item>
-        <item name="backgroundTint">@color/colorSurface</item>
+        <item name="backgroundTint">@color/glassCardBg</item>
         <item name="android:textColor">@color/colorTextPrimary</item>
         <item name="android:textSize">19sp</item>
         <item name="android:textStyle">bold</item>
@@ -132,7 +125,7 @@
         <item name="android:textColor">@color/colorOnPrimary</item>
     </style>
 
-    <!-- Bottom navigation active indicator (soft primary pill) -->
+    <!-- Bottom navigation active indicator -->
     <style name="ShapeAppearance.BottomNavIndicator" parent="">
         <item name="cornerFamily">rounded</item>
         <item name="cornerSize">18dp</item>
